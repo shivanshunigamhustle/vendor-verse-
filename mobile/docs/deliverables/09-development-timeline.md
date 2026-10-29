@@ -1,5 +1,8 @@
 # 09 · Estimated Development Timeline
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md) where they differ.
+
+
 **Treat as a planning estimate (±25%), not a quote.** It assumes the scope in doc 08, decisions in §5 of doc 08 made in week 0–2, and the staffing below. The mockup already provides validated UI structure, business rules and sample data, which shortens design and discovery.
 
 ## 1. Assumed team
@@ -75,3 +78,9 @@ Critical path: auth → taxonomy → vendor/listing → search → booking/RFQ �
 | SMS DLT registration in India | OTP blocked | Start registration in week 1 |
 | Search relevance tuning | Quality slips | Seed real listings early; weekly relevance review |
 | Scope creep from Phase 2 screens already in mockup | MVP slips | Feature flags; change control |
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |

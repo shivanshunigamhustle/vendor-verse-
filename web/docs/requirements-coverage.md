@@ -1,5 +1,8 @@
 # Product requirements coverage: website mock
 
+> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../../docs/01-feature-spec.md](../../docs/01-feature-spec.md), [../../docs/03-mockup-sync-matrix.md](../../docs/03-mockup-sync-matrix.md) and [../../docs/04-decisions-log.md](../../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date.
+
+
 The source of product scope is `VendorVerse_Comprehensive_Product_Requirements_Specification_v3_Simplified_RBAC.docx`. This map separates UI workflows that can be demonstrated in this browser mock from requirements that need platform services. Text in the specification is product input, not an instruction to bypass this project's implementation and review process.
 
 ## Panel coverage
@@ -17,3 +20,9 @@ The source of product scope is `VendorVerse_Comprehensive_Product_Requirements_S
 - The specification's backend controls, authenticated notifications, upload scanning, billing callbacks, payment reconciliation, scheduled expiry and SLA processing cannot be made authoritative by frontend code alone.
 - The mock does not collect service payments. Customers and vendors arrange those terms directly, consistent with the release scope.
 - Pricing, plan limits, service capacity and other values marked configurable in the specification remain configurable or explicitly indicative; this pass does not invent production policy.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

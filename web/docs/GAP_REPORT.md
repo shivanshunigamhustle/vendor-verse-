@@ -1,5 +1,8 @@
 # VendorVerse PRS v3 Global Marketplace gap report
 
+> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../../docs/01-feature-spec.md](../../docs/01-feature-spec.md), [../../docs/03-mockup-sync-matrix.md](../../docs/03-mockup-sync-matrix.md) and [../../docs/04-decisions-log.md](../../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date.
+
+
 Audited: 24 October 2026
 
 Source of product requirements: `VendorVerse_Comprehensive_PRS_v3_Global_Marketplace.docx`, including chapter 26. Its content is treated as product scope. This report records the current browser implementation and the work required to reach the specified product behavior.
@@ -93,3 +96,9 @@ The requested browser-only implementation can simulate persistent records and pr
 - Added persisted country and currency choices alongside the existing language choice in the website header.
 - Removed user-facing non-production wording identified in the audit.
 - Validation: `npm.cmd run build` passes. `package.json` has no lint, type-check or test scripts.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

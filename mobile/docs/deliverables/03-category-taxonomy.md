@@ -1,5 +1,8 @@
 # 03 · Complete Category Taxonomy
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md) where they differ.
+
+
 _Source: `src/globaldata.jsx` (`INDUSTRIES`) and `src/mvpdata.jsx` (`SCHEMA`)._
 
 ## 1. Structure
@@ -104,3 +107,9 @@ Field types: short text, number, single choice, multiple choice, yes/no, file up
 2. Changing a schema **versions** it. Existing listings keep the version they were published under until the vendor edits them.
 3. Retiring a category hides it from search and blocks new listings; existing bookings are unaffected.
 4. Per-country packs (Phase 2) may override attribute labels and verification evidence but not structure.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |

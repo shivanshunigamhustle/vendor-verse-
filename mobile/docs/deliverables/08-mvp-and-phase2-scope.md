@@ -1,5 +1,8 @@
 # 08 · MVP and Phase 2 Scope
 
+> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md), [../../../docs/03-mockup-sync-matrix.md](../../../docs/03-mockup-sync-matrix.md) and [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date.
+
+
 **Business model fixed for MVP:** customers pay vendors directly. Platform revenue = vendor subscriptions + sponsored visibility. The platform holds no customer funds.
 
 ## 1. MVP (Release 1)
@@ -74,3 +77,9 @@ Personalised home and AI search · ML category mapping · fraud-signal ML and co
 | 5 | Plan prices and limits (CFG-01/02), response deadlines, cancellation windows | Business |
 | 6 | Hosting region and cloud provider | Tech lead |
 | 7 | Whether manufacturers launch under Wholesale at MVP | Product |
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

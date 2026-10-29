@@ -1,5 +1,8 @@
 # VendorVerse — user flows & roadmap (review pack)
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../docs/04-decisions-log.md](../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../docs/01-feature-spec.md](../../docs/01-feature-spec.md) where they differ.
+
+
 Generated from the interactive mockup.
 
 ## User flows
@@ -229,3 +232,9 @@ All seven are clickable end to end from the in-app “Demonstration journeys” 
 - [x] Core navigation, notification destinations, empty / error / loading and cancellation states (`notifications`, `ui_states`)
 - [x] Demo data and not-yet-available features are clearly labelled (`vision`)
 - [x] MVP vs Phase 2 vs Future scope is shown before estimates are finalised (`vision`, `flows`)
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |

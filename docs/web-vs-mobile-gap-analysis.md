@@ -1,5 +1,8 @@
 # VendorVerse: Web vs Mobile Mockup Gap Analysis
 
+> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../docs/01-feature-spec.md](../docs/01-feature-spec.md), [../docs/03-mockup-sync-matrix.md](../docs/03-mockup-sync-matrix.md) and [../docs/04-decisions-log.md](../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date.
+
+
 Analysis only. No code was changed. Compared: screen registries, roles and navigation, stores and seed data, READMEs, and the web GAP_REPORT. Counts come from grepping the source, not from clicking through both apps.
 
 **Overall:** the two apps are built on different versions of the requirements. The mobile app models the global-marketplace brief and is the more complete of the two. Web is the older India-centric base with a global layer added on top. It has 88 screens against 162 on mobile.
@@ -122,3 +125,9 @@ Web has 28 admin screens that mobile lacks. Mobile has 24 that web lacks.
 4. Align the plan names and prices: Normal, Pro and Premium against Free, Starter, Growth and Pro (#35).
 5. Decide whether Business is a separate account (mobile) or a vendor variant (web) (#8).
 6. Decide which admin consoles belong on both sides: the web RFQ Console and Ops screens, or the mobile subscription, case and geo screens (#11).
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

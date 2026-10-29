@@ -1,5 +1,8 @@
 # 05 · Booking, RFQ and Order State Diagrams
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md) where they differ.
+
+
 States come from the mockup code (`BK_LABEL` in `src/screens/shared.jsx`, `PO_FLOW`/`rfqStatus` in `src/mvpdata.jsx`). Items marked **(proposed)** are not yet in the mockup and are needed for production.
 
 ## 1. Booking
@@ -168,3 +171,9 @@ stateDiagram-v2
   Appealed --> Decided: human re-review
   Decided --> Closed
 ```
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |

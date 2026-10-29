@@ -1,5 +1,8 @@
 # 02 · Screen-Wise Status — Completed / Partial / Missing / Future
 
+> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md), [../../../docs/03-mockup-sync-matrix.md](../../../docs/03-mockup-sync-matrix.md) and [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date.
+
+
 _Source: `docs/screen-inventory.csv` (156 screens) plus gaps from doc 01._
 
 **Status meaning**
@@ -78,3 +81,9 @@ Personalised home, AI search, ML category mapping, fraud-signal ML, trade financ
 ## 6. Platform scope
 
 Mobile only (Android + iOS). Web is a separate workstream and not tracked here.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

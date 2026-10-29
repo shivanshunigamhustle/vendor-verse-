@@ -1,5 +1,8 @@
 # 04 · Customer, Vendor, Agent and Admin Flowcharts
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md) where they differ.
+
+
 Diagrams use Mermaid (renders on GitHub, VS Code preview, and most docs tools). Screen IDs in brackets match `docs/screen-inventory.csv`.
 
 ## 1. Customer
@@ -139,3 +142,9 @@ flowchart TD
 ```
 
 **Rules:** self-approval blocked (separation of duties); every high-impact action captures a reason; RBAC scopes per staff role; admin sessions require MFA.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |

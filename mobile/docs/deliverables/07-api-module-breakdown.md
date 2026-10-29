@@ -1,5 +1,8 @@
 # 07 · API Module Breakdown
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md) where they differ.
+
+
 **Style:** REST/JSON over HTTPS, versioned `/v1`, OpenAPI-first. Server-sent events or WebSocket for chat and live status. Background jobs for deadlines, billing, search indexing and notifications.
 **Deployment recommendation:** a modular monolith (one deployable, hard module boundaries) for MVP, with search, notifications and file scanning as separate workers. Split further only when a module needs independent scaling.
 
@@ -78,3 +81,9 @@ Auth: JWT access token (15 min) + rotating refresh token. Staff require MFA. Eve
 - **Observability:** structured logs, metrics, traces, alerting on queue depth and webhook failures.
 - **Privacy:** PII encrypted at column level for ID documents; contact details gated until booking confirmed.
 - **Contract testing:** OpenAPI schema published; mobile client generated from it; the same schema is shared with the separate web workstream.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |

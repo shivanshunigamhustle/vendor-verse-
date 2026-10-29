@@ -1,5 +1,8 @@
 # 06 · Proposed Database Architecture / ERD
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md) where they differ.
+
+
 ## 1. Architecture choices
 
 | Concern | Choice | Why |
@@ -249,3 +252,9 @@ erDiagram
 | Messages otherwise | 2 years after transaction close |
 | Verification evidence | While vendor active + 1 year |
 | Deleted user PII | Anonymised within 30 days of request unless legal hold |
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |

@@ -1,5 +1,8 @@
 # 01 · Updated Feature Coverage & Gap Analysis
 
+> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md), [../../../docs/03-mockup-sync-matrix.md](../../../docs/03-mockup-sync-matrix.md) and [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date.
+
+
 _Baseline: mobile mockup (156 screens in `docs/screen-inventory.csv`), spec of 19 Oct 2026. Updated 28 Oct 2026._
 
 **Scope: mobile only (Android + iOS).** Web is being handled separately by another developer and is not covered in these documents.
@@ -72,3 +75,9 @@ Legend: ✅ covered in mockup · 🟡 partial · ❌ missing · 🔮 future (Pha
 2. **Shared backend with the web workstream**: agree the API contract (doc 07) with the web developer so both clients use one backend.
 3. **Manufacturing industry** (`i_manu`) is tagged Phase 2 while the supplier/manufacturer onboarding path is MVP. Recommendation: allow manufacturers in the `Wholesale` industry at MVP; open `Manufacturing & OEM` in Phase 2.
 4. **Agent commissions**: mockup shows conversion metrics only. Confirm agents are paid outside the platform.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

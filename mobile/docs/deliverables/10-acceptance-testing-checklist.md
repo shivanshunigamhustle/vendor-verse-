@@ -1,5 +1,8 @@
 # 10 · Acceptance Testing Checklist
 
+> **Detail document, not yet reviewed against the 2026-10-29 decisions** (see [../../../docs/04-decisions-log.md](../../../docs/04-decisions-log.md)). Phase labels follow the spec in [../../../docs/01-feature-spec.md](../../../docs/01-feature-spec.md) where they differ.
+
+
 Run against the real build (not the mockup). Each item should record: tester, date, build number, pass/fail, defect link.
 Format: `[ ]` = not yet run. Severity on failure: **S1** blocks release · **S2** must fix before launch · **S3** can follow.
 
@@ -142,3 +145,9 @@ Format: `[ ]` = not yet run. Severity on failure: **S1** blocks release · **S2*
 | Tech lead | | | |
 | Security | | | |
 | Client sponsor | | | |
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Added pointer to the new docs/ set; content review still outstanding |
