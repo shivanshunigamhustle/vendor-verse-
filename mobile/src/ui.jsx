@@ -1,0 +1,720 @@
+import { Children, useEffect, useRef, useState } from 'react'
+import {
+  ArrowLeft, Check, ChevronRight, ChevronDown, Star, X, Search, Info, AlertTriangle, CheckCircle2, XCircle, Clock,
+  FileText, Upload, Inbox, Megaphone, ShieldCheck, CircleHelp, Hourglass, ShieldAlert,
+} from 'lucide-react'
+import { useNav } from './nav.jsx'
+import { useApp, STATE_HI } from './store.jsx'
+import { fmtC, convert, PHASES, TIERS } from './globaldata.jsx'
+
+export const cx = (...a) => a.filter(Boolean).join(' ')
+export const fmt = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN')
+
+/* ---------- colour tones ---------- */
+export const GRAD = {
+  amber: 'from-amber-400 to-orange-500',
+  sky: 'from-sky-400 to-blue-500',
+  emerald: 'from-emerald-400 to-teal-500',
+  violet: 'from-violet-400 to-purple-500',
+  rose: 'from-rose-400 to-pink-500',
+  teal: 'from-teal-400 to-cyan-600',
+  indigo: 'from-indigo-400 to-blue-600',
+  slate: 'from-slate-400 to-slate-600',
+  lime: 'from-lime-400 to-green-600',
+  orange: 'from-orange-400 to-red-500',
+}
+export const SOFT = {
+  amber: 'bg-amber-50 text-amber-700',
+  sky: 'bg-sky-50 text-sky-700',
+  emerald: 'bg-emerald-50 text-emerald-700',
+  violet: 'bg-violet-50 text-violet-700',
+  rose: 'bg-rose-50 text-rose-700',
+  teal: 'bg-teal-50 text-teal-700',
+  indigo: 'bg-indigo-50 text-indigo-700',
+  slate: 'bg-slate-100 text-slate-700',
+  brand: 'bg-brand-50 text-brand-700',
+  ink: 'bg-ink-100 text-ink-700',
+  lime: 'bg-lime-50 text-lime-700',
+  orange: 'bg-orange-50 text-orange-700',
+}
+
+const TONE = {
+  green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  amber: 'bg-amber-50 text-amber-700 ring-amber-200',
+  red: 'bg-red-50 text-red-700 ring-red-200',
+  blue: 'bg-sky-50 text-sky-700 ring-sky-200',
+  gray: 'bg-ink-100 text-ink-600 ring-ink-200',
+  purple: 'bg-violet-50 text-violet-700 ring-violet-200',
+  teal: 'bg-brand-50 text-brand-700 ring-brand-200',
+}
+
+/* status → label + tone, shared across every workflow (state codes are language-neutral) */
+export const STATUS = {
+  // account
+  active: ['Active', 'green'], restricted: ['Restricted', 'amber'], suspended: ['Suspended', 'red'], deletion: ['Deletion requested', 'gray'],
+  // verification (spec §5.2)
+  not_started: ['Not started', 'gray'], submitted: ['Submitted', 'blue'], more_info: ['More information required', 'amber'],
+  approved: ['Approved', 'green'], rejected: ['Rejected', 'red'], expired: ['Expired', 'red'], revoked: ['Revoked', 'red'],
+  verified: ['Verified', 'green'], missing: ['Missing', 'red'], pending: ['In review', 'amber'],
+  // listing lifecycle
+  draft: ['Draft', 'gray'], changes: ['Changes requested', 'amber'], published: ['Published', 'green'], hidden: ['Hidden', 'gray'], paused: ['Paused', 'gray'], removed: ['Removed', 'gray'],
+  // booking (spec §8.2)
+  requested: ['Requested', 'blue'], confirmed: ['Confirmed', 'teal'], declined: ['Rejected by vendor', 'red'], in_progress: ['In progress', 'purple'],
+  awaiting: ['Completed — confirm', 'amber'], closed: ['Closed', 'gray'], cancelled: ['Cancelled', 'gray'], case: ['Support case linked', 'purple'],
+  // rfq + quote
+  open: ['Open', 'blue'], accepted: ['Accepted', 'green'], no_quotes: ['No quotes', 'gray'], quote_pending: ['Pending', 'blue'], unsuccessful: ['Unsuccessful', 'gray'], withdrawn: ['Withdrawn', 'gray'],
+  // subscription
+  grace: ['Grace period', 'amber'], sub_cancelled: ['Auto-renew off', 'gray'], none: ['No plan', 'gray'],
+  // cases + moderation
+  triage: ['Triage', 'amber'], evidence: ['Evidence requested', 'purple'], decided: ['Decision made', 'teal'], appealed: ['Appeal open', 'purple'], upheld: ['Decision upheld', 'gray'], held: ['Held for review', 'amber'],
+  live: ['Live', 'green'], blocked: ['Blocked', 'red'], low: ['Low', 'gray'], medium: ['Medium', 'amber'], high: ['High', 'red'], critical: ['Critical', 'red'],
+  proposed: ['Proposed', 'blue'], negotiating: ['Negotiating', 'purple'], renewal_due: ['Renewal due', 'amber'], completed: ['Completed', 'green'], terminated: ['Terminated', 'red'],
+  released: ['Released to vendor', 'green'], held: ['Held in escrow', 'amber'], refunded: ['Refunded', 'gray'], scheduled: ['Scheduled', 'blue'], paid: ['Paid', 'green'], soon: ['Coming soon', 'amber'], later: ['Planned', 'gray'],
+  payment_failed: ['Payment failed', 'red'], disputed: ['Disputed', 'red'],
+  rfq_draft: ['Draft', 'gray'], rfq_submitted: ['Submitted', 'blue'], rfq_sent: ['Sent to vendors', 'blue'], rfq_quotes: ['Quotations received', 'teal'], rfq_negotiating: ['Comparing / negotiating', 'purple'],
+  rfq_withdrawn: ['Withdrawn', 'gray'], rfq_expired: ['Expired', 'amber'], rfq_rejected: ['Rejected', 'red'], quote_rejected: ['Rejected', 'gray'],
+  po_created: ['PO created', 'blue'], po_accepted: ['Supplier accepted', 'teal'], po_paid: ['Payment / terms confirmed', 'teal'], po_processing: ['Processing', 'purple'], po_shipped: ['Shipped', 'purple'], po_delivered: ['Delivered', 'green'],
+  po_completed: ['Completed', 'green'], po_rejected: ['Rejected', 'red'], po_cancelled: ['Cancelled', 'gray'], po_payment_failed: ['Payment failed', 'red'], po_exception: ['Delivery exception', 'amber'], po_disputed: ['Disputed', 'red'],
+  inactive: ['Inactive', 'gray'], done: ['Done', 'green'], overdue: ['Overdue', 'red'], new: ['New', 'blue'], resolved: ['Resolved', 'green'],
+}
+
+export function Badge({ tone = 'gray', children, className }) {
+  return (
+    <span className={cx('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset', TONE[tone], className)}>
+      {children}
+    </span>
+  )
+}
+export function StatusBadge({ s, className }) {
+  const { lang } = useApp()
+  const [label, tone] = STATUS[s] || [String(s), 'gray']
+  return <Badge tone={tone} className={className}>{lang === 'hi' && STATE_HI[s] ? STATE_HI[s] : label}</Badge>
+}
+
+/* ---------- buttons ---------- */
+const BTN = {
+  primary: 'bg-brand-600 text-white shadow-sm shadow-brand-700/20 active:bg-brand-700 hover:bg-brand-700',
+  secondary: 'bg-white text-ink-800 ring-1 ring-inset ring-ink-200 hover:bg-ink-50 active:bg-ink-100',
+  soft: 'bg-brand-50 text-brand-700 hover:bg-brand-100 active:bg-brand-100',
+  ghost: 'text-brand-700 hover:bg-brand-50',
+  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-700',
+  dangerSoft: 'bg-red-50 text-red-700 hover:bg-red-100',
+  dark: 'bg-ink-900 text-white hover:bg-ink-800',
+}
+export function Button({ variant = 'primary', size = 'md', icon: Icon, full, children, className, ...p }) {
+  const sz = size === 'sm' ? 'h-9 px-3 text-[13px] gap-1.5' : size === 'lg' ? 'h-13 px-5 text-[15px] gap-2' : 'h-11 px-4 text-sm gap-2'
+  return (
+    <button
+      {...p}
+      className={cx('inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-xl font-semibold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-45', sz, BTN[variant], full && 'w-full', className)}
+    >
+      {Icon && <Icon size={size === 'sm' ? 15 : 17} />}
+      {children}
+    </button>
+  )
+}
+export function IconBtn({ children, className, label, ...p }) {
+  return (
+    <button aria-label={label} {...p} className={cx('relative grid size-10 shrink-0 place-items-center rounded-full text-ink-800 transition hover:bg-ink-100 active:bg-ink-200', className)}>
+      {children}
+    </button>
+  )
+}
+
+/* ---------- layout ---------- */
+export function Screen({ title, subtitle, back = true, right, children, footer, overlay, pad = true, bg = 'bg-ink-50', headerless, headerClass }) {
+  const nav = useNav()
+  const [scrolled, setScrolled] = useState(false)
+  return (
+    <div className="relative flex h-full flex-col bg-white">
+      {!headerless && (
+        <header className={cx('z-10 flex h-14 shrink-0 items-center gap-1 border-b bg-white/95 px-2 backdrop-blur transition-shadow duration-200', scrolled ? 'border-transparent shadow-[0_6px_16px_-8px_rgba(20,40,75,0.28)]' : 'border-ink-100', headerClass)}>
+          <div className="mx-auto flex w-full max-w-[640px] items-center gap-1">
+          {back ? (
+            <IconBtn label="Back" onClick={nav.back}><ArrowLeft size={21} /></IconBtn>
+          ) : <div className="w-2" />}
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-[17px] font-bold leading-tight text-ink-900">{title}</h1>
+            {subtitle && <p className="truncate text-xs text-ink-500">{subtitle}</p>}
+          </div>
+          <div className="flex shrink-0 items-center">{right}</div>
+          </div>
+        </header>
+      )}
+      <div onScroll={(e) => { const s = e.currentTarget.scrollTop > 4; if (s !== scrolled) setScrolled(s) }} className={cx('min-h-0 flex-1 overflow-y-auto overscroll-contain overflow-x-hidden scroll-smooth no-scrollbar [overflow-wrap:anywhere]', bg)}>
+        <div className={cx('mx-auto w-full max-w-[640px]', pad && 'space-y-4 p-4')}>{children}</div>
+      </div>
+      {footer && <div className="shrink-0 border-t border-ink-100 bg-white p-3"><div className="mx-auto w-full max-w-[640px]">{footer}</div></div>}
+      {overlay}
+    </div>
+  )
+}
+
+export function Card({ children, className, onClick, pad = true }) {
+  const Tag = onClick ? 'button' : 'div'
+  return (
+    <Tag onClick={onClick} className={cx('block w-full rounded-2xl bg-white text-left shadow-[0_1px_2px_rgba(20,40,75,0.05),0_8px_24px_-12px_rgba(20,40,75,0.12)] ring-1 ring-ink-100/80', pad && 'p-4', onClick && 'transition duration-150 active:scale-[0.985] active:bg-ink-50', className)}>
+      {children}
+    </Tag>
+  )
+}
+
+export function Section({ title, action, onAction, children, className }) {
+  return (
+    <section className={className}>
+      {(title || action) && (
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-[15px] font-bold text-ink-900">{title}</h2>
+          {action && <button onClick={onAction} className="flex items-center text-[13px] font-semibold text-brand-700">{action}<ChevronRight size={15} /></button>}
+        </div>
+      )}
+      {children}
+    </section>
+  )
+}
+
+export function ListRow({ icon: Icon, tone = 'teal', title, subtitle, right, onClick, danger, last }) {
+  const Tag = onClick ? 'button' : 'div'
+  return (
+    <Tag onClick={onClick} className={cx('flex w-full items-center gap-3 px-4 py-3 text-left', onClick && 'active:bg-ink-50', !last && 'border-b border-ink-100')}>
+      {Icon && (
+        <span className={cx('grid size-9 shrink-0 place-items-center rounded-xl', danger ? 'bg-red-50 text-red-600' : SOFT[tone] || SOFT.teal)}><Icon size={18} /></span>
+      )}
+      <span className="min-w-0 flex-1">
+        <span className={cx('block truncate text-sm font-semibold', danger ? 'text-red-600' : 'text-ink-900')}>{title}</span>
+        {subtitle && <span className="mt-0.5 block truncate text-xs text-ink-500">{subtitle}</span>}
+      </span>
+      {right}
+      {onClick && !right && <ChevronRight size={17} className="shrink-0 text-ink-300" />}
+    </Tag>
+  )
+}
+export function Group({ children, className }) {
+  return <Card pad={false} className={cx('overflow-hidden', className)}>{children}</Card>
+}
+
+export function Thumb({ tone = 'teal', icon: Icon, size = 56, className, round = 'rounded-2xl' }) {
+  return (
+    <div style={{ width: size, height: size }} className={cx('relative grid shrink-0 place-items-center overflow-hidden bg-gradient-to-br text-white', GRAD[tone] || GRAD.teal, round, className)}>
+      <div className="absolute -right-3 -top-3 size-1/2 rounded-full bg-white/20" />
+      <div className="absolute -bottom-4 -left-2 size-2/3 rounded-full bg-black/10" />
+      {Icon && <Icon size={Math.round(size * 0.44)} className="relative" strokeWidth={1.8} />}
+    </div>
+  )
+}
+
+export function Avatar({ name = '?', size = 40, tone }) {
+  const t = tone || Object.keys(GRAD)[(name.charCodeAt(0) + name.length) % 8]
+  const initials = name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
+  return (
+    <div style={{ width: size, height: size, fontSize: size * 0.38 }} className={cx('grid shrink-0 place-items-center rounded-full bg-gradient-to-br font-bold text-white', GRAD[t])}>{initials}</div>
+  )
+}
+
+export function Rating({ value, count, size = 13 }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink-800">
+      <Star size={size} className="fill-amber-400 text-amber-400" />
+      {value?.toFixed ? value.toFixed(1) : value}
+      {count != null && <span className="font-normal text-ink-400">({count})</span>}
+    </span>
+  )
+}
+export function Stars({ value, onChange, size = 28 }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button key={n} type="button" onClick={() => onChange?.(n)} aria-label={`${n} star`}>
+          <Star size={size} className={n <= value ? 'fill-amber-400 text-amber-400' : 'text-ink-300'} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function Banner({ tone = 'blue', icon, title, children, action }) {
+  const map = { blue: 'bg-sky-50 text-sky-900 ring-sky-200', amber: 'bg-amber-50 text-amber-900 ring-amber-200', red: 'bg-red-50 text-red-900 ring-red-200', green: 'bg-emerald-50 text-emerald-900 ring-emerald-200', teal: 'bg-brand-50 text-brand-900 ring-brand-200', gray: 'bg-ink-100 text-ink-800 ring-ink-200' }
+  const Icon = icon || { blue: Info, amber: AlertTriangle, red: XCircle, green: CheckCircle2, teal: Info, gray: Info }[tone]
+  return (
+    <div className={cx('flex gap-3 rounded-2xl p-3.5 ring-1 ring-inset', map[tone])}>
+      <Icon size={20} className="mt-0.5 shrink-0" />
+      <div className="min-w-0 flex-1 text-[13px] leading-snug">
+        {title && <p className="font-bold">{title}</p>}
+        {children && <div className={cx(title && 'mt-0.5', 'opacity-90')}>{children}</div>}
+        {action && <div className="mt-2">{action}</div>}
+      </div>
+    </div>
+  )
+}
+
+export function EmptyState({ icon: Icon = Inbox, title, body, action }) {
+  return (
+    <div className="flex flex-col items-center px-6 py-12 text-center">
+      <div className="grid size-16 place-items-center rounded-full bg-ink-100 text-ink-400"><Icon size={28} /></div>
+      <p className="mt-4 text-[15px] font-bold text-ink-900">{title}</p>
+      {body && <p className="mt-1 text-[13px] text-ink-500">{body}</p>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  )
+}
+
+export function Stat({ label, value, icon: Icon, tone = 'teal', delta, onClick }) {
+  return (
+    <Card onClick={onClick} className="!p-3.5">
+      <div className="flex items-start justify-between">
+        <p className="text-xs font-medium text-ink-500">{label}</p>
+        {Icon && <span className={cx('grid size-8 place-items-center rounded-lg', SOFT[tone])}><Icon size={16} /></span>}
+      </div>
+      <p className="mt-1 text-[22px] font-extrabold leading-none tracking-tight text-ink-900">{value}</p>
+      {delta && <p className={cx('mt-1.5 text-[11px] font-semibold', delta.startsWith('-') ? 'text-red-600' : 'text-emerald-600')}>{delta} <span className="font-normal text-ink-400">vs last week</span></p>}
+    </Card>
+  )
+}
+
+/* ---------- forms ---------- */
+export function useForm(initial) {
+  const [v, setV] = useState(initial)
+  const set = (k) => (e) => setV((s) => ({ ...s, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
+  return [v, set, setV]
+}
+
+const fieldBase = 'w-full rounded-xl bg-white px-3.5 text-sm text-ink-900 outline-none ring-1 ring-inset ring-ink-200 transition placeholder:text-ink-400 focus:ring-2 focus:ring-brand-500'
+export function Field({ label, hint, error, children, required }) {
+  return (
+    <label className="block">
+      {label && <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{label}{required && <span className="text-red-500"> *</span>}</span>}
+      {children}
+      {error ? <span className="mt-1 flex items-center gap-1 text-xs font-medium text-red-600"><AlertTriangle size={12} />{error}</span>
+        : hint && <span className="mt-1 block text-xs text-ink-500">{hint}</span>}
+    </label>
+  )
+}
+export function Input({ label, hint, error, required, icon: Icon, textarea, rows = 3, prefix, className, ...p }) {
+  return (
+    <Field label={label} hint={hint} error={error} required={required}>
+      <div className="relative">
+        {Icon && <Icon size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />}
+        {prefix && <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-ink-500">{prefix}</span>}
+        {textarea ? (
+          <textarea rows={rows} {...p} className={cx(fieldBase, 'resize-none py-3', error && '!ring-red-400', className)} />
+        ) : (
+          <input {...p} className={cx(fieldBase, 'h-12', Icon && '!pl-10', prefix && '!pl-8', error && '!ring-red-400', className)} />
+        )}
+      </div>
+    </Field>
+  )
+}
+/* Themed dropdown — replaces the OS-styled <select> so every picker matches the app. onChange receives { target: { value } } like a native event. */
+export function Select({ label, hint, error, required, options, value, onChange, placeholder = 'Select…', disabled }) {
+  const [open, setOpen] = useState(false)
+  const [q, setQ] = useState('')
+  const ref = useRef(null)
+  const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o))
+  const cur = opts.find((o) => String(o.value) === String(value))
+  useEffect(() => {
+    if (!open) return
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    document.addEventListener('touchstart', h)
+    return () => { document.removeEventListener('mousedown', h); document.removeEventListener('touchstart', h) }
+  }, [open])
+  useEffect(() => { if (open) ref.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }) }, [open])
+  const shown = q ? opts.filter((o) => String(o.label).toLowerCase().includes(q.toLowerCase())) : opts
+  const pick = (o) => { onChange?.({ target: { value: o.value } }); setOpen(false); setQ('') }
+  return (
+    <div className="block" ref={ref}>
+      {label && <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{label}{required && <span className="text-red-500"> *</span>}</span>}
+      <div className="relative">
+        <button type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)} className={cx(fieldBase, 'flex h-12 items-center justify-between gap-2 text-left disabled:opacity-50', open && '!ring-2 !ring-brand-500', error && '!ring-red-400')}>
+          <span className={cx('min-w-0 flex-1 truncate', !cur && 'text-ink-400')}>{cur ? cur.label : placeholder}</span>
+          <ChevronDown size={17} className={cx('shrink-0 text-ink-400 transition-transform', open && 'rotate-180 text-brand-600')} />
+        </button>
+        {open && (
+          <div role="listbox" className="absolute inset-x-0 top-full z-30 mt-1.5 animate-fade-in overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_-12px_rgba(20,40,75,0.35)] ring-1 ring-ink-200">
+            {opts.length > 7 && (
+              <div className="border-b border-ink-100 p-2"><div className="relative"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" /><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="h-9 w-full rounded-lg bg-ink-50 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-brand-500" /></div></div>
+            )}
+            <div className="no-scrollbar max-h-60 overflow-y-auto p-1.5">
+              {shown.map((o) => {
+                const on = String(o.value) === String(value)
+                return (
+                  <button type="button" role="option" aria-selected={on} key={String(o.value)} onClick={() => pick(o)} className={cx('flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm', on ? 'bg-brand-50 font-bold text-brand-800' : 'font-medium text-ink-800 hover:bg-ink-50 active:bg-ink-100')}>
+                    <span className="min-w-0 flex-1">{o.label}</span>{on && <Check size={16} className="shrink-0 text-brand-600" strokeWidth={3} />}
+                  </button>
+                )
+              })}
+              {!shown.length && <p className="px-3 py-4 text-center text-sm text-ink-400">No match</p>}
+            </div>
+          </div>
+        )}
+      </div>
+      {error ? <span className="mt-1 flex items-center gap-1 text-xs font-medium text-red-600"><AlertTriangle size={12} />{error}</span> : hint && <span className="mt-1 block text-xs text-ink-500">{hint}</span>}
+    </div>
+  )
+}
+
+export function Toggle({ on, onChange, label, desc }) {
+  return (
+    <div className="flex items-center gap-3 py-1">
+      <div className="min-w-0 flex-1">
+        {label && <p className="text-sm font-semibold text-ink-900">{label}</p>}
+        {desc && <p className="text-xs text-ink-500">{desc}</p>}
+      </div>
+      <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', on ? 'bg-brand-600' : 'bg-ink-300')}>
+        <span className={cx('absolute top-0.5 size-6 rounded-full bg-white shadow transition-all', on ? 'left-[22px]' : 'left-0.5')} />
+      </button>
+    </div>
+  )
+}
+export function Checkbox({ checked, onChange, children }) {
+  return (
+    <button type="button" onClick={() => onChange(!checked)} className="flex items-start gap-3 text-left">
+      <span className={cx('mt-0.5 grid size-5 shrink-0 place-items-center rounded-md ring-1 ring-inset transition', checked ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white ring-ink-300')}>
+        {checked && <Check size={14} strokeWidth={3} />}
+      </span>
+      <span className="text-[13px] leading-snug text-ink-700">{children}</span>
+    </button>
+  )
+}
+export function Chips({ options, value, onChange, multi, className, scroll = true }) {
+  const isOn = (id) => (multi ? value.includes(id) : value === id)
+  const pick = (id) => onChange(multi ? (value.includes(id) ? value.filter((x) => x !== id) : [...value, id]) : id)
+  return (
+    <div className={cx('flex gap-2', scroll ? 'no-scrollbar -mx-4 overflow-x-auto px-4' : 'flex-wrap', className)}>
+      {options.map((o) => {
+        const id = o.id ?? o
+        const label = o.label ?? o
+        return (
+          <button key={id} type="button" onClick={() => pick(id)} className={cx('shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ring-1 ring-inset transition', isOn(id) ? 'bg-ink-900 text-white ring-ink-900' : 'bg-white text-ink-600 ring-ink-200 hover:bg-ink-50')}>
+            {label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+export function Segmented({ options, value, onChange, className }) {
+  return (
+    <div className={cx('flex rounded-xl bg-ink-100 p-1', className)}>
+      {options.map((o) => (
+        <button key={o.id} onClick={() => onChange(o.id)} className={cx('flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold transition', value === o.id ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500')}>
+          {o.label}
+          {o.count != null && <span className={cx('rounded-full px-1.5 text-[10px]', value === o.id ? 'bg-brand-600 text-white' : 'bg-ink-200 text-ink-600')}>{o.count}</span>}
+        </button>
+      ))}
+    </div>
+  )
+}
+export function SearchBar({ value, onChange, placeholder = 'Search', right, onClick, autoFocus }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div onClick={onClick} className="relative flex-1">
+        <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
+        <input autoFocus={autoFocus} readOnly={!onChange} value={value} onChange={onChange} placeholder={placeholder} className="h-11 w-full rounded-xl bg-white pl-10 pr-3 text-sm text-ink-900 outline-none ring-1 ring-inset ring-ink-200 placeholder:text-ink-400 focus:ring-2 focus:ring-brand-500" />
+      </div>
+      {right}
+    </div>
+  )
+}
+
+/* ---------- overlays ---------- */
+export function Sheet({ open, onClose, title, children, footer }) {
+  if (!open) return null
+  return (
+    <div className="absolute inset-0 z-40 flex flex-col justify-end">
+      <div onClick={onClose} className="absolute inset-0 animate-fade-in bg-ink-900/50" />
+      <div className="relative flex max-h-[88%] animate-sheet-up flex-col rounded-t-3xl bg-white shadow-2xl">
+        <div className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-ink-200" />
+        <div className="flex items-center justify-between px-5 pb-2 pt-3">
+          <h3 className="text-base font-bold">{title}</h3>
+          <IconBtn label="Close" onClick={onClose} className="!size-8"><X size={18} /></IconBtn>
+        </div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto no-scrollbar px-5 pb-4 pt-1">{children}</div>
+        {footer && <div className="shrink-0 border-t border-ink-100 p-3">{footer}</div>}
+      </div>
+    </div>
+  )
+}
+export function Dialog({ open, onClose, title, children, actions }) {
+  if (!open) return null
+  return (
+    <div className="absolute inset-0 z-50 grid place-items-center p-6">
+      <div onClick={onClose} className="absolute inset-0 animate-fade-in bg-ink-900/55" />
+      <div className="relative w-full animate-fade-in rounded-3xl bg-white p-5 shadow-2xl">
+        <h3 className="text-base font-bold">{title}</h3>
+        <div className="mt-2 space-y-3 text-sm text-ink-600">{children}</div>
+        <div className="mt-5 flex gap-2">{actions}</div>
+      </div>
+    </div>
+  )
+}
+
+/* ---------- data display ---------- */
+export function Timeline({ steps }) {
+  return (
+    <ol className="relative">
+      {steps.map((s, i) => (
+        <li key={i} className="relative flex gap-3 pb-5 last:pb-0">
+          {i < steps.length - 1 && <span className={cx('absolute left-[11px] top-6 h-[calc(100%-1.25rem)] w-0.5', s.done ? 'bg-brand-500' : 'bg-ink-200')} />}
+          <span className={cx('z-10 mt-0.5 grid size-6 shrink-0 place-items-center rounded-full ring-4 ring-white', s.done ? 'bg-brand-600 text-white' : s.current ? 'bg-white text-brand-600 ring-brand-100' : 'bg-ink-200 text-ink-400')}>
+            {s.done ? <Check size={13} strokeWidth={3} /> : s.current ? <span className="size-2.5 rounded-full bg-brand-600" /> : <span className="size-2 rounded-full bg-ink-300" />}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className={cx('text-sm font-semibold', s.done || s.current ? 'text-ink-900' : 'text-ink-400')}>{s.label}</p>
+            {(s.at || s.note) && <p className="text-xs text-ink-500">{[s.at, s.note].filter(Boolean).join(' · ')}</p>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+export function KV({ rows, className }) {
+  return (
+    <dl className={cx('space-y-2.5', className)}>
+      {rows.filter(Boolean).map(([k, v, strong]) => (
+        <div key={k} className="flex items-start justify-between gap-4 text-sm">
+          <dt className="shrink-0 text-ink-500">{k}</dt>
+          <dd className={cx('text-right text-ink-900', strong ? 'font-extrabold' : 'font-semibold')}>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+export function DocTile({ name, status = 'pending', note, onAction, actionLabel }) {
+  const tone = { verified: 'text-emerald-600 bg-emerald-50', pending: 'text-amber-600 bg-amber-50', rejected: 'text-red-600 bg-red-50', missing: 'text-ink-400 bg-ink-100' }[status]
+  return (
+    <div className="flex items-center gap-3 rounded-xl p-3 ring-1 ring-inset ring-ink-200">
+      <span className={cx('grid size-10 place-items-center rounded-lg', tone)}>{status === 'missing' ? <Upload size={18} /> : <FileText size={18} />}</span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{name}</p>
+        <p className="truncate text-xs text-ink-500">{note || (status === 'missing' ? 'Not uploaded yet' : 'PDF · 1.2 MB')}</p>
+      </div>
+      {onAction ? <button onClick={onAction} className="text-[13px] font-bold text-brand-700">{actionLabel}</button> : <StatusBadge s={status === 'pending' ? 'pending' : status} />}
+    </div>
+  )
+}
+
+export function Stepper({ steps, current }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {steps.map((s, i) => (
+        <div key={s} className="flex flex-1 flex-col gap-1.5">
+          <div className={cx('h-1.5 rounded-full', i <= current ? 'bg-brand-600' : 'bg-ink-200')} />
+          <span className={cx('text-[10px] font-semibold', i === current ? 'text-brand-700' : 'text-ink-400')}>{s}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ---------- mini charts ---------- */
+export function BarChart({ data, height = 120, color = 'bg-brand-500', money }) {
+  const max = Math.max(...data.map((d) => d.value), 1)
+  return (
+    <div className="flex items-end gap-2" style={{ height: height + 22 }}>
+      {data.map((d) => (
+        <div key={d.label} className="flex h-full flex-1 flex-col items-center gap-1.5">
+          <div className="flex w-full flex-1 items-end">
+            <div title={String(d.value)} className={cx('w-full rounded-t-md', color)} style={{ height: `${Math.max((d.value / max) * 100, 4)}%` }} />
+          </div>
+          <span className="text-[10px] font-medium text-ink-500">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+export function Spark({ points, color = '#00857c', h = 36, w = 110 }) {
+  const max = Math.max(...points), min = Math.min(...points)
+  const xs = points.map((p, i) => [(i / (points.length - 1)) * w, h - 4 - ((p - min) / (max - min || 1)) * (h - 8)])
+  const d = xs.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ')
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <path d={`${d} L${w} ${h} L0 ${h} Z`} fill={color} opacity="0.1" />
+      <path d={d} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+export function HBar({ label, value, max, right, color = 'bg-brand-500' }) {
+  return (
+    <div>
+      <div className="mb-1 flex justify-between text-xs"><span className="font-semibold text-ink-700">{label}</span><span className="text-ink-500">{right ?? value}</span></div>
+      <div className="h-2 overflow-hidden rounded-full bg-ink-100"><div className={cx('h-full rounded-full', color)} style={{ width: `${(value / (max || 1)) * 100}%` }} /></div>
+    </div>
+  )
+}
+
+export function Pill({ children, icon: Icon, className }) {
+  return <span className={cx('inline-flex items-center gap-1 rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-600', className)}>{Icon && <Icon size={12} />}{children}</span>
+}
+
+export function Meta({ icon: Icon, children }) {
+  return <span className="inline-flex items-center gap-1 text-xs text-ink-500"><Icon size={13} className="shrink-0" />{children}</span>
+}
+
+export function Due({ date }) {
+  return <span className="inline-flex items-center gap-1 text-xs text-ink-500"><Clock size={12} />{date}</span>
+}
+
+/* swipeable scroll-snap carousel with dots (and optional auto-advance) */
+export function Carousel({ children, auto = 0, counter, dotsClass }) {
+  const ref = useRef(null)
+  const idx = useRef(0)
+  const [i, setI] = useState(0)
+  const n = Children.count(children)
+  const go = (k) => ref.current?.scrollTo({ left: k * ref.current.clientWidth, behavior: 'smooth' })
+  useEffect(() => {
+    if (!auto) return
+    const t = setInterval(() => go((idx.current + 1) % n), auto)
+    return () => clearInterval(t)
+  }, [auto, n])
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        onScroll={(e) => { const k = Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth); if (k !== idx.current) { idx.current = k; setI(k) } }}
+        className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth"
+      >
+        {Children.map(children, (c) => <div className="w-full shrink-0 snap-center">{c}</div>)}
+      </div>
+      {counter && <span className="absolute right-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">{i + 1}/{n}</span>}
+      <div className={cx('absolute inset-x-0 flex justify-center gap-1.5', dotsClass || 'bottom-3')}>
+        {Array.from({ length: n }).map((_, k) => <button key={k} aria-label={`Slide ${k + 1}`} onClick={() => go(k)} className={cx('h-1.5 rounded-full transition-all', k === i ? 'w-5 bg-white' : 'w-1.5 bg-white/50')} />)}
+      </div>
+    </div>
+  )
+}
+
+
+/* ---------- spec-driven building blocks ---------- */
+
+/* Missing data is shown transparently (spec §1, §7.4) — never zero, never estimated. */
+export function Missing({ children, className }) {
+  return <span className={cx('inline-flex items-center gap-1 text-[12px] font-medium italic text-ink-400', className)}><CircleHelp size={12} className="shrink-0 not-italic" />{children}</span>
+}
+export const priceText = (l, disp = 'local') => {
+  if (l.priceMin == null) return null
+  const from = l.cur || 'INR'
+  const to = disp === 'local' ? from : disp
+  const f = (n) => fmtC(convert(n, from, to), to)
+  return l.priceMax ? `${f(l.priceMin)} – ${f(l.priceMax)}` : f(l.priceMin)
+}
+export function Price({ l, big, className }) {
+  const { dispCur } = useApp()
+  const p = priceText(l, dispCur)
+  if (!p) return <Missing className={className}>Price not provided</Missing>
+  return (
+    <span className={className}>
+      <span className={cx('font-extrabold text-ink-900', big ? 'text-2xl' : 'text-[15px]')}>{p}</span>
+      <span className="text-xs text-ink-400"> /{l.unit}</span>
+    </span>
+  )
+}
+/* a money amount in its own currency, converted when the user picked a display currency */
+export function Money({ n, cur = 'INR', className }) {
+  const { dispCur } = useApp()
+  const to = dispCur === 'local' ? cur : dispCur
+  return <span className={className}>{fmtC(convert(n, cur, to), to)}</span>
+}
+
+/* MVP / Phase 2 / Phase 3 — every future capability in the mockup is labelled so the roadmap stays honest */
+export function PhaseTag({ p = 'MVP', className }) {
+  const ph = PHASES[p] || PHASES.MVP
+  const tone = { green: 'bg-emerald-100 text-emerald-800', blue: 'bg-sky-100 text-sky-800', purple: 'bg-violet-100 text-violet-800' }[ph.tone]
+  return <span className={cx('inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide', tone, className)}>{ph.label}</span>
+}
+export function PhaseBanner({ p = 'P2', title, children }) {
+  const ph = PHASES[p]
+  return (
+    <div className={cx('flex gap-3 rounded-2xl p-3.5 ring-1 ring-inset', p === 'P2' ? 'bg-sky-50 text-sky-900 ring-sky-200' : 'bg-violet-50 text-violet-900 ring-violet-200')}>
+      <PhaseTag p={p} className="mt-0.5 h-fit shrink-0" />
+      <div className="min-w-0 text-[13px] leading-snug"><p className="font-bold">{title || `${ph.label} — not in the MVP launch`}</p>{children && <div className="mt-0.5 opacity-90">{children}</div>}</div>
+    </div>
+  )
+}
+export function TierBadge({ tier = 0, className }) {
+  const t = TIERS[tier] || TIERS[0]
+  const tone = { gray: 'bg-ink-100 text-ink-600 ring-ink-200', blue: 'bg-sky-50 text-sky-700 ring-sky-200', teal: 'bg-brand-50 text-brand-700 ring-brand-200', green: 'bg-emerald-50 text-emerald-700 ring-emerald-200' }[t.tone]
+  return <span className={cx('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset', tone, className)}><ShieldCheck size={11} />{tier === 0 ? 'Unverified' : `Tier ${tier} · ${t.name}`}</span>
+}
+
+/* Paid visibility must always be labelled (spec §7.2, §11.3). */
+export function SponsoredTag({ className }) {
+  const { t } = useApp()
+  return <span className={cx('inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-amber-800', className)}><Megaphone size={10} />{t('sponsoredLabel')}</span>
+}
+
+/* Countdown chip: tone escalates as a response deadline approaches (spec §8.3). */
+export function Countdown({ mins, label = 'left', className }) {
+  if (mins == null) return null
+  const tone = mins <= 0 ? 'red' : mins < 120 ? 'red' : mins < 360 ? 'amber' : 'blue'
+  const h = Math.floor(Math.abs(mins) / 60), m = Math.abs(mins) % 60
+  const txt = mins <= 0 ? 'Expired' : h >= 24 ? `${Math.floor(h / 24)}d ${h % 24}h ${label}` : h ? `${h}h ${m}m ${label}` : `${m}m ${label}`
+  return <Badge tone={tone} className={className}><Hourglass size={11} />{txt}</Badge>
+}
+
+/* One row of the publication decision (spec §5.3). */
+export function GateRow({ g, last }) {
+  return (
+    <div className={cx('flex gap-3 px-4 py-3', !last && 'border-b border-ink-100')}>
+      <span className={cx('mt-0.5 grid size-6 shrink-0 place-items-center rounded-full', g.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600')}>{g.ok ? <Check size={14} strokeWidth={3} /> : <X size={14} strokeWidth={3} />}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[13px] font-bold text-ink-900">{g.label}</p>
+        <p className={cx('text-xs', g.ok ? 'text-ink-500' : 'font-medium text-red-600')}>{g.detail}</p>
+        {!g.ok && g.fix && <p className="mt-0.5 text-xs font-semibold text-brand-700">→ {g.fix}</p>}
+      </div>
+      <span className="shrink-0 self-start rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-bold text-ink-500">{g.who}</span>
+    </div>
+  )
+}
+
+/* Reason capture before any high-impact action (spec §4.3, §13.2). */
+export function ReasonSheet({ open, onClose, title, intro, confirmLabel = 'Confirm', danger, reasons, onConfirm, extra }) {
+  const [r, setR] = useState('')
+  const [note, setNote] = useState('')
+  if (!open) return null
+  const ok = r && (r !== 'Other' || note.trim().length > 4)
+  return (
+    <Sheet open={open} onClose={onClose} title={title} footer={<Button full variant={danger ? 'danger' : 'primary'} disabled={!ok} onClick={() => { onConfirm([r, note].filter(Boolean).join(' — ')); setR(''); setNote('') }}>{confirmLabel}</Button>}>
+      {intro && <p className="text-sm text-ink-600">{intro}</p>}
+      {extra}
+      <div className="space-y-2">
+        {reasons.map((x) => (
+          <button key={x} onClick={() => setR(x)} className={cx('flex w-full items-center gap-3 rounded-xl p-3 text-left text-sm font-semibold ring-1 ring-inset', r === x ? 'bg-brand-50 text-brand-800 ring-2 ring-brand-600' : 'bg-white text-ink-700 ring-ink-200')}>
+            <span className={cx('grid size-5 shrink-0 place-items-center rounded-full ring-1 ring-inset', r === x ? 'bg-brand-600 text-white ring-brand-600' : 'ring-ink-300')}>{r === x && <Check size={12} strokeWidth={3} />}</span>{x}
+          </button>
+        ))}
+      </div>
+      <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Add a note (recorded in the audit trail)" className="w-full resize-none rounded-xl bg-white px-3.5 py-3 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-brand-500" />
+      <p className="flex items-center gap-1.5 text-[11px] text-ink-400"><ShieldCheck size={12} />Reason, actor and time are stored in the audit log.</p>
+    </Sheet>
+  )
+}
+
+export function Evidence({ items = [], onAdd }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((e) => <span key={e} className="flex items-center gap-1.5 rounded-lg bg-ink-100 px-2.5 py-1.5 text-xs font-semibold text-ink-700"><FileText size={13} />{e}</span>)}
+      {onAdd && <button onClick={onAdd} className="flex items-center gap-1.5 rounded-lg border-2 border-dashed border-ink-300 px-2.5 py-1.5 text-xs font-semibold text-ink-500"><Upload size={13} />Add file</button>}
+    </div>
+  )
+}
+
+export function Dot() { return <span className="text-ink-300">·</span> }
+export function Scan({ children = 'Scanned for malware · private to participants' }) {
+  return <p className="flex items-center gap-1.5 text-[11px] text-ink-400"><ShieldAlert size={12} />{children}</p>
+}
+
+export function SkeletonList({ n = 3 }) {
+  return (
+    <div className="space-y-3" aria-busy="true" aria-label="Loading">
+      {Array.from({ length: n }).map((_, i) => (
+        <div key={i} className="flex animate-pulse gap-3 rounded-2xl bg-white p-3 ring-1 ring-ink-100">
+          <div className="size-16 shrink-0 rounded-xl bg-ink-100" />
+          <div className="flex-1 space-y-2 pt-1"><div className="h-3.5 w-3/4 rounded bg-ink-100" /><div className="h-3 w-1/2 rounded bg-ink-100" /><div className="h-3 w-2/3 rounded bg-ink-100" /></div>
+        </div>
+      ))}
+    </div>
+  )
+}
