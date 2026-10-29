@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VendorVerse — Logo concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root { --teal:#00857c; --ink:#14284b; --amber:#ffd166; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Inter, system-ui, sans-serif; background:#eef2f7; color:var(--ink); padding:32px 20px 60px; }
+  h1 { margin:0 0 4px; font-size:28px; letter-spacing:-.02em; }
+  .sub { color:#5e6c88; margin:0 0 28px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:20px; max-width:1180px; margin:auto; }
+  .card { background:#fff; border-radius:24px; padding:22px; box-shadow:0 1px 2px rgba(20,40,75,.06),0 12px 32px -16px rgba(20,40,75,.18); }
+  .num { font-size:12px; font-weight:800; color:var(--teal); letter-spacing:.08em; text-transform:uppercase; }
+  h2 { margin:4px 0 6px; font-size:20px; }
+  p { margin:0; color:#5e6c88; font-size:14px; line-height:1.45; }
+  .row { display:flex; align-items:center; gap:14px; margin:18px 0 14px; flex-wrap:wrap; }
+  .tile { width:84px; height:84px; border-radius:22px; display:grid; place-items:center; }
+  .tile.sm { width:44px; height:44px; border-radius:12px; }
+  .teal { background:linear-gradient(135deg,#00968a,#006b64); }
+  .navy { background:linear-gradient(135deg,#1d2d52,#14284b); }
+  .white { background:#fff; border:1px solid #dde3ec; }
+  .lockup { display:flex; align-items:center; gap:10px; font-weight:800; font-size:24px; letter-spacing:-.03em; }
+  .lockup span { color:var(--teal); }
+  .dark { background:#14284b; color:#fff; border-radius:16px; padding:14px 18px; }
+  .dark .lockup span { color:#5fe0d3; }
+  .tag { display:inline-block; margin-top:10px; font-size:12px; font-weight:600; background:#e8f7f5; color:#006b64; padding:4px 10px; border-radius:99px; }
+</style>
+</head>
+<body>
+<h1>VendorVerse — logo concepts</h1>
+<p class="sub">Six directions. Each is shown as an app icon (teal / navy / white) and as a horizontal lockup on light and dark.</p>
+<div class="grid" id="grid"></div>
+
+<script>
+const marks = [
+  { n:'01', t:'Orbit V (current)', d:'A bold V inside an orbit ring with a bright satellite dot — the “verse” of vendors around you.', tag:'Safe · tech-friendly',
+    svg:(f,a)=>`<path d="M18 21h8.2l5.8 15.6L37.8 21H46L35.5 46h-7L18 21Z" fill="${f}"/><circle cx="32" cy="32" r="21" fill="none" stroke="${f}" stroke-opacity=".3" stroke-width="2"/><circle cx="48" cy="19" r="4.5" fill="${a}"/>` },
+  { n:'02', t:'Talk Bubbles', d:'Two overlapping chat bubbles — the product is built around customers talking to vendors.', tag:'Best fit for the messaging-first model',
+    svg:(f,a)=>`<rect x="9" y="13" width="31" height="24" rx="9" fill="${f}"/><path d="M16 36v11l11-11z" fill="${f}"/><rect x="24" y="26" width="31" height="24" rx="9" fill="${a}"/><path d="M47 49v9l-9-9z" fill="${a}"/><circle cx="19" cy="25" r="2.4" fill="#00857c"/><circle cx="25" cy="25" r="2.4" fill="#00857c"/><circle cx="31" cy="25" r="2.4" fill="#00857c"/>` },
+  { n:'03', t:'Verified V', d:'The letter V drawn as a check-mark — trust and verification, the core promise of the marketplace.', tag:'Trust · compliance',
+    svg:(f,a)=>`<path d="M14 24 31 45 52 15" fill="none" stroke="${f}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="14" r="4.5" fill="${a}"/>` },
+  { n:'04', t:'Hex Network', d:'A hexagon with connected nodes and a V at its centre — a network of vendors, agents and customers.', tag:'Platform · B2B',
+    svg:(f,a)=>`<polygon points="32,8 52,20 52,44 32,56 12,44 12,20" fill="none" stroke="${f}" stroke-width="3.5" stroke-linejoin="round"/><path d="M23 24h5.4L32 35l3.6-11H41L34.6 42h-5.2z" fill="${f}"/><circle cx="32" cy="8" r="4" fill="${a}"/><circle cx="52" cy="44" r="4" fill="${a}"/><circle cx="12" cy="44" r="4" fill="${a}"/>` },
+  { n:'05', t:'Storefront V', d:'A shop awning with a V-shaped door — a friendly local-marketplace feel for vendors and shoppers.', tag:'Marketplace · friendly',
+    svg:(f,a)=>`<path d="M13 14h38l6 14H7z" fill="${f}"/><circle cx="14" cy="28" r="5" fill="${a}"/><circle cx="26" cy="28" r="5" fill="${a}"/><circle cx="38" cy="28" r="5" fill="${a}"/><circle cx="50" cy="28" r="5" fill="${a}"/><rect x="12" y="34" width="40" height="20" rx="3" fill="${f}" fill-opacity=".92"/><path d="M24 38l8 11 8-11" fill="none" stroke="${f==='#fff'?'#00857c':'#00857c'}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>` },
+  { n:'06', t:'Spark V', d:'A sharp geometric V with a spark/quote corner — modern and minimal, scales well down to favicon size.', tag:'Minimal · modern',
+    svg:(f,a)=>`<path d="M13 16h12l7 18 7-18h12L38 50H26z" fill="${f}"/><path d="M42 12h10v10z" fill="${a}"/>` },
+  { n:'07', t:'Local Pin', d:'A map pin holding a V — find verified vendors near you, city by city.', tag:'Location · discovery',
+    svg:(f,a)=>`<path d="M32 5c-11.5 0-20 8.4-20 19 0 14 20 35 20 35s20-21 20-35C52 13.400 43.500 5 32 5z" fill="${f}"/><circle cx="32" cy="24" r="12" fill="${a}"/><path d="M25.500 19h4.300l2.200 6.500 2.200-6.500h4.300l-4.800 12h-3.400z" fill="${f}"/>` },
+  { n:'08', t:'Two Circles', d:'Customer and vendor circles overlapping — the meeting point is where deals happen.', tag:'Connection · simple',
+    svg:(f,a)=>`<circle cx="23" cy="32" r="17" fill="${f}" fill-opacity=".85"/><circle cx="41" cy="32" r="17" fill="${a}" fill-opacity=".85"/>` },
+  { n:'09', t:'Ribbon V', d:'Two ribbons folding into a V in brand teal and warm amber — energetic and distinctive.', tag:'Bold · memorable',
+    svg:(f,a)=>`<path d="M9 13h14l11 32-7 11z" fill="${f}"/><path d="M55 13H41L30 45l7 11z" fill="${a}"/>` },
+  { n:'10', t:'Trust Shield', d:'A shield with a check-mark — verified vendors, protected conversations and data.', tag:'Security · verification',
+    svg:(f,a)=>`<path d="M32 5 54 13v17c0 14-9.500 23-22 29C19.500 53 10 44 10 30V13z" fill="${f}"/><path d="M21 31l8 8 14-16" fill="none" stroke="${a}" stroke-width="5.500" stroke-linecap="round" stroke-linejoin="round"/>` },
+  { n:'11', t:'Market Box', d:'An isometric cube in two tones — goods, services and the marketplace that holds them.', tag:'Products · catalogue',
+    svg:(f,a)=>`<path d="M32 6 54 18 32 30 10 18z" fill="${f}" fill-opacity=".6"/><path d="M10 18 32 30v27L10 45z" fill="${f}"/><path d="M54 18 32 30v27l22-12z" fill="${a}"/>` },
+  { n:'12', t:'Cut-out Bubble', d:'A speech bubble with a V cut out of it — the cleanest way to say “conversation” and “VendorVerse”.', tag:'Clean · confident',
+    svg:(f,a)=>`<mask id="m12"><rect width="64" height="64" fill="#fff"/><path d="M21 19h6.500l4.500 13 4.500-13H43L35 43h-6z" fill="#000"/></mask><g mask="url(#m12)"><rect x="8" y="9" width="48" height="37" rx="13" fill="${f}"/><path d="M19 44v13l14-13z" fill="${f}"/></g><circle cx="53" cy="13" r="5" fill="${a}"/>` },
+]
+const word = (m, color) => `<div class="lockup"><svg class="mk" width="44" height="44" viewBox="0 0 64 64">${m.svg(color==='dark'?'#fff':'#00857c', '#f5b301')}</svg><div>Vendor<span>Verse</span></div></div>`
+const g = document.getElementById('grid')
+g.innerHTML = marks.map(m => `
+  <div class="card">
+    <div class="num">Concept ${m.n}</div><h2>${m.t}</h2><p>${m.d}</p>
+    <div class="row">
+      <div class="tile teal"><svg width="52" height="52" viewBox="0 0 64 64">${m.svg('#fff','#ffd166')}</svg></div>
+      <div class="tile navy"><svg width="52" height="52" viewBox="0 0 64 64">${m.svg('#fff','#5fe0d3')}</svg></div>
+      <div class="tile white"><svg width="52" height="52" viewBox="0 0 64 64">${m.svg('#00857c','#f5b301')}</svg></div>
+      <div class="tile sm teal"><svg width="28" height="28" viewBox="0 0 64 64">${m.svg('#fff','#ffd166')}</svg></div>
+    </div>
+    ${word(m,'light')}
+    <div class="dark" style="margin-top:14px">${word(m,'dark')}</div>
+    <span class="tag">${m.tag}</span>
+  </div>`).join('')
+</script>
+</body>
+</html>

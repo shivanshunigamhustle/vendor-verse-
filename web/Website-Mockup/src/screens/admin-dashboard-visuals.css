@@ -1,0 +1,172 @@
+/* Super Admin screens use the supplied dashboard theme within Website-Mockup only. */
+.vv-admin-shell { display: flex; flex-direction: row; overflow: hidden; }
+.vv-admin-main { display: flex; min-height: 0; flex-direction: column; }
+.vv-admin-sidebar-nav { padding: 10px 9px 20px; overflow-y: auto; }
+.vv-admin-sidebar-group { margin-bottom: 12px; }
+.vv-admin-sidebar-label { margin: 12px 9px 5px; color: #81919c; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.vv-admin-sidebar-nav .vv-agent-sidebar-link { min-height: 38px; margin: 1px 0; }
+.vv-admin-reference-dashboard { min-height: 100%; padding: 26px clamp(16px, 3vw, 34px) 36px; background: #fbfcfd; color: #283663; }
+.vv-admin-reference-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.vv-admin-reference-heading p { margin: 0 0 3px; color: #788399; font-size: 13px; }
+.vv-admin-reference-heading h1 { margin: 0; color: #293567; font-size: clamp(24px, 2.2vw, 32px); font-weight: 850; letter-spacing: -.04em; }
+.vv-admin-reference-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+.vv-admin-reference-kpis > * { min-height: 142px; border: 1px solid #edf0f5; background: #fff; box-shadow: 0 10px 28px rgba(42, 54, 99, .06); }
+.vv-admin-reference-grid { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 18px; align-items: start; }
+.vv-admin-reference-panel { border: 1px solid #edf0f5; background: #fff; box-shadow: 0 10px 28px rgba(42, 54, 99, .06); }
+.vv-admin-reference-panel h2 { margin: 0 0 14px; color: #293567; font-size: 16px; font-weight: 800; }
+.vv-admin-reference-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #edf0f5; }
+.vv-admin-reference-panel-head h2 { margin: 0; }
+.vv-admin-reference-panel-head p { margin: 3px 0 0; color: #8993a5; font-size: 12px; }
+.vv-admin-reference-table-head, .vv-admin-reference-row { display: grid; grid-template-columns: 1.35fr 1.05fr 1.15fr .55fr; align-items: center; gap: 12px; padding: 12px 18px; text-align: left; }
+.vv-admin-reference-table-head { color: #7b8494; border-bottom: 1px solid #edf0f5; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.vv-admin-reference-row { width: 100%; border-bottom: 1px solid #f0f2f6; color: #55617a; font-size: 13px; }
+.vv-admin-reference-row:hover { background: #f8f9ff; }
+.vv-admin-moderation-row { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; padding: 11px 12px; border-radius: 12px; background: #fff9e8; font-size: 12px; font-weight: 700; }
+.vv-admin-moderation-row:nth-of-type(2) { background: #fff0f0; }
+.vv-admin-moderation-row:nth-of-type(3) { background: #f0f0ff; }
+.vv-admin-moderation-row svg:last-child { margin-left: auto; }
+.vv-admin-reference-footer-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 18px; }
+.vv-admin-reference-footer-stats button { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid #edf0f5; border-radius: 16px; background: #fff; text-align: left; box-shadow: 0 10px 28px rgba(42, 54, 99, .05); }
+.vv-admin-reference-footer-stats b { color: #293567; font-size: 23px; }
+.vv-admin-reference-footer-stats span { color: #8993a5; font-size: 12px; }
+@media (max-width: 1050px) { .vv-admin-reference-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .vv-admin-reference-grid { grid-template-columns: 1fr; } }
+@media (max-width: 620px) { .vv-admin-reference-dashboard { padding: 18px 14px 26px; } .vv-admin-reference-kpis, .vv-admin-reference-footer-stats { grid-template-columns: 1fr; } .vv-admin-reference-table-head { display: none; } .vv-admin-reference-row { grid-template-columns: 1fr auto; gap: 5px; } .vv-admin-reference-row span:nth-child(2), .vv-admin-reference-row span:nth-child(3) { grid-column: 1; font-size: 11px; } .vv-admin-reference-row span:nth-child(3) { display: none; } .vv-admin-reference-row > :last-child { grid-column: 2; grid-row: 1 / span 2; } }
+@media (min-width: 821px) { .vv-admin-shell .vv-admin-main > header nav[aria-label="Main navigation"] { display: none; } }
+
+.vv-admin-route {
+  --vv-admin-brand: #0b7180;
+  --vv-admin-brand-2: #54a99f;
+  --vv-admin-ink: #193543;
+  --vv-admin-muted: #627985;
+  --vv-admin-line: #d8e4e8;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  color: var(--vv-admin-ink);
+  background: radial-gradient(ellipse at 92% 0%, #dff2ef 0, transparent 34%), linear-gradient(145deg, #eef3f7, #edf7f5 58%, #f6fafb);
+}
+
+.vv-admin-route .vv-screen-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+}
+
+.vv-admin-route .vv-screen-layout > header {
+  min-height: 64px;
+  border-color: var(--vv-admin-line);
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 5px 20px rgba(20, 57, 69, .04);
+  backdrop-filter: blur(16px);
+}
+.vv-admin-route .vv-screen-layout > header h1 { color: var(--vv-admin-ink); font-weight: 850; letter-spacing: -.025em; }
+
+.vv-admin-route .vv-screen-scroll {
+  display: block;
+  width: 100%;
+  height: 0;
+  min-height: 0;
+  flex: 1 1 0%;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #91aeb2 #e9f0f1;
+  background: radial-gradient(ellipse at 92% 0%, #dff2ef 0, transparent 34%), linear-gradient(145deg, #eef3f7, #edf7f5 58%, #f6fafb);
+}
+.vv-admin-route .vv-screen-scroll > div {
+  width: min(100%, 1200px);
+  min-width: 0;
+  min-height: max-content;
+  margin-inline: auto;
+  padding: 22px clamp(16px, 2.6vw, 32px) max(26px, env(safe-area-inset-bottom));
+}
+.vv-admin-route .vv-screen-scroll::-webkit-scrollbar { display: block; width: 8px; }
+.vv-admin-route .vv-screen-scroll::-webkit-scrollbar-track { border-radius: 10px; background: #e9f0f1; }
+.vv-admin-route .vv-screen-scroll::-webkit-scrollbar-thumb { border: 2px solid #e9f0f1; border-radius: 10px; background: #91aeb2; background-clip: padding-box; }
+
+/* Use a full width teal hero; keep the dashboard cards below it with a clear gap. */
+.vv-admin-route .vv-screen-scroll > div > .bg-gradient-to-b {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: -22px calc(clamp(16px, 2.6vw, 32px) * -1) 0;
+  padding: 25px clamp(20px, 3vw, 36px) 26px;
+  border-radius: 0 0 26px 26px;
+  background: linear-gradient(120deg, #0b7180, #218b8a 56%, #54a99f);
+  box-shadow: 0 18px 34px rgba(22, 125, 132, .2);
+  animation: vv-admin-rise .48s cubic-bezier(.2, .8, .2, 1) both;
+}
+.vv-admin-route .vv-screen-scroll > div > .bg-gradient-to-b::before,
+.vv-admin-route .vv-screen-scroll > div > .bg-gradient-to-b::after {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .13);
+  content: '';
+  animation: vv-admin-float 7s ease-in-out infinite;
+}
+.vv-admin-route .vv-screen-scroll > div > .bg-gradient-to-b::before { top: -112px; right: -48px; width: 210px; height: 210px; }
+.vv-admin-route .vv-screen-scroll > div > .bg-gradient-to-b::after { right: 170px; bottom: -78px; width: 118px; height: 118px; animation-delay: -3s; }
+.vv-admin-route .vv-screen-scroll > div > .bg-gradient-to-b h1 { font-size: clamp(22px, 2.5vw, 30px); letter-spacing: -.035em; }
+.vv-admin-route .vv-screen-scroll > div > .-mt-10 { position: relative; margin-top: 16px; padding-bottom: max(22px, env(safe-area-inset-bottom)); }
+
+/* Animate cards and panels without changing their actions or data flow. */
+.vv-admin-route .vv-screen-scroll > div.space-y-4 > *,
+.vv-admin-route .vv-screen-scroll > div > .-mt-10 > *,
+.vv-admin-route .vv-screen-scroll > div > :not(.bg-gradient-to-b) > * {
+  min-width: 0;
+  animation: vv-admin-rise .44s cubic-bezier(.2, .8, .2, 1) both;
+}
+.vv-admin-route .vv-screen-scroll > div.space-y-4 > :nth-child(2),
+.vv-admin-route .vv-screen-scroll > div > .-mt-10 > :nth-child(2) { animation-delay: 55ms; }
+.vv-admin-route .vv-screen-scroll > div.space-y-4 > :nth-child(3),
+.vv-admin-route .vv-screen-scroll > div > .-mt-10 > :nth-child(3) { animation-delay: 100ms; }
+.vv-admin-route .vv-screen-scroll [class*="shadow-[0_1px"] {
+  min-width: 0;
+  border: 1px solid #e1eaed;
+  box-shadow: 0 8px 22px rgba(20, 57, 69, .065);
+  transition: border-color .18s ease, box-shadow .2s ease, transform .2s ease;
+}
+@media (hover:hover) and (pointer:fine) {
+  .vv-admin-route .vv-screen-scroll [class*="shadow-[0_1px"]:hover { border-color: #c5dcdd; box-shadow: 0 13px 26px rgba(20, 57, 69, .1); }
+}
+.vv-admin-route .vv-screen-scroll :is(button, a) { transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .2s ease, transform .2s ease; }
+.vv-admin-route .vv-screen-scroll input,
+.vv-admin-route .vv-screen-scroll textarea,
+.vv-admin-route .vv-screen-scroll select { max-width: 100%; border-color: #d8e4e8; border-radius: 13px; }
+.vv-admin-route .vv-screen-scroll :is(input, textarea, select):focus { border-color: #54a99f; box-shadow: 0 0 0 3px rgba(84, 169, 159, .16); }
+.vv-admin-route .vv-screen-scroll svg { max-width: 100%; }
+
+@keyframes vv-admin-rise { from { opacity: 0; transform: translateY(11px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes vv-admin-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+@media (max-width: 820px) {
+  .vv-admin-sidebar { display: none; }
+  .vv-admin-shell { flex-direction: column; }
+  .vv-admin-main { width: 100%; flex: 1 1 auto; }
+}
+@media (max-width: 680px) {
+  .vv-admin-route .vv-screen-scroll > div { padding: 16px 14px max(24px, env(safe-area-inset-bottom)); }
+  .vv-admin-route .vv-screen-scroll > div > .bg-gradient-to-b { margin: -16px -14px 0; padding: 21px 18px 24px; }
+  .vv-admin-route .vv-screen-scroll > div > .-mt-10 { margin-top: 12px; }
+  .vv-admin-route .vv-screen-scroll .grid-cols-2 { grid-template-columns: minmax(0, 1fr); }
+  .vv-admin-route .vv-screen-scroll [class*="grid-cols-\[1fr_repeat"] { overflow-x: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vv-admin-route *, .vv-admin-route *::before, .vv-admin-route *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

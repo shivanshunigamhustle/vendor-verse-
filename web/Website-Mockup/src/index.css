@@ -1,0 +1,182 @@
+﻿@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-50: #e5f7ef;
+  --color-brand-100: #c6ecdc;
+  --color-brand-200: #9bd7bd;
+  --color-brand-300: #63c79b;
+  --color-brand-400: #2bb77a;
+  --color-brand-500: #16a875;
+  --color-brand-600: #087f5b;
+  --color-brand-700: #066b4c;
+  --color-brand-800: #064e3b;
+  --color-brand-900: #043d2e;
+  --color-ink-50: #f8faf8;
+  --color-ink-100: #eef3ef;
+  --color-ink-200: #dde5de;
+  --color-ink-300: #bccbc1;
+  --color-ink-400: #8b9a91;
+  --color-ink-500: #718078;
+  --color-ink-600: #52645a;
+  --color-ink-700: #394b42;
+  --color-ink-800: #263a31;
+  --color-ink-900: #172923;
+  --animate-slide-in: slide-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-sheet-up: sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-toast: toast 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  @keyframes slide-in { from { transform: translateX(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes toast { from { transform: translateY(-16px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes vv-orbit { to { transform: rotate(360deg); } }
+  @keyframes vv-orbit-reverse { to { transform: rotate(-360deg); } }
+}
+
+html, body, #root { height: 100%; }
+body { margin: 0; font-family: var(--font-sans); background: #f8faf8; color: var(--color-ink-900); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4 { font-family: var(--font-display); }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.thin-scroll { scrollbar-width: thin; scrollbar-color: var(--color-ink-200) transparent; }
+input[type="date"], input[type="time"] { min-height: 1.5rem; }
+.vv-splash-loader { position: relative; width: 132px; height: 132px; perspective: 700px; }
+.vv-splash-core { position: absolute; inset: 27px; display: grid; place-items: center; transform: translateZ(35px); filter: drop-shadow(0 18px 16px rgba(0,0,0,.22)); }
+.vv-splash-orbit { position: absolute; inset: 7px; border: 2px solid rgba(153,246,228,.72); border-radius: 50%; transform: rotateX(65deg) rotateZ(15deg); animation: vv-orbit 2.6s linear infinite; box-shadow: 0 0 22px rgba(45,212,191,.28); }
+.vv-splash-orbit-a::after, .vv-splash-orbit-b::after { content: ''; position: absolute; top: -6px; left: 50%; width: 10px; height: 10px; border-radius: 999px; background: #ffd166; box-shadow: 0 0 12px #ffd166; }
+.vv-splash-orbit-b { inset: 16px -5px; transform: rotateY(65deg) rotateZ(-20deg); animation: vv-orbit-reverse 2.1s linear infinite; border-color: rgba(255,255,255,.55); }
+.vv-explore-card-grid > * { min-width: 0; }
+.vv-explore-card-grid .vv-card { min-width: 0; overflow: hidden; }
+.vv-explore-card-grid > * { height: 100%; }
+.listing-card-body, .vendor-card-body { min-width: 0; overflow: hidden; }
+.listing-card-body > div:last-child { min-width: 0; flex: 1 1 auto; }
+.listing-card-body p, .vendor-card-body p { min-width: 0; overflow: hidden; }
+.listing-card-body .text-base, .listing-card-body .text-xs { white-space: nowrap; }
+.listing-card-body .text-base { overflow: hidden; text-overflow: ellipsis; }
+.listing-card-body > div:last-child > div { min-width: 0; flex-wrap: wrap; row-gap: .4rem; }
+.vendor-card-body { align-items: flex-start; }
+.vendor-card-body > div:last-child { min-width: 0; flex: 1 1 auto; padding-top: .1rem; }
+.vendor-card-body > div:last-child > div { min-width: 0; flex-wrap: wrap; row-gap: .35rem; }
+.vv-market-vendors .group { min-width: 0; overflow: hidden; }
+.vv-market-vendors .group > div:last-child { min-width: 0; min-height: 190px; padding: 1.25rem 1rem 1rem; }
+.vv-market-vendors .group h3 { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vv-market-vendors .group p { min-width: 0; overflow-wrap: anywhere; }
+.vv-c-home .vv-market-content > section:first-child { display: none; }
+
+/* Keep the shared marketplace header in one stable desktop row. */
+@media (min-width: 768px) {
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child {
+    flex: 0 0 auto;
+    min-width: max-content;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] > button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-width: max-content;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child > span {
+    min-width: 0;
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative {
+    min-width: 0;
+    flex: 0 1 210px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative > button {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1180px) {
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] {
+    gap: 6px;
+    padding-inline: 12px;
+    overflow: hidden;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] > button {
+    gap: 5px;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] {
+    justify-content: flex-start;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child > span {
+    max-width: 170px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative {
+    flex-basis: 155px;
+  }
+}
+
+/* Compact tablet navbar: keep the first item fully visible and prevent the
+   brand/navigation groups from competing for the same horizontal space. */
+@media (min-width: 768px) and (max-width: 980px) {
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child {
+    width: 42px;
+    overflow: visible;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > button:first-child > span {
+    display: none;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] nav[aria-label="Main navigation"] {
+    flex: 1 1 0;
+    justify-content: flex-start;
+    padding-inline: 4px;
+    scroll-padding-inline: 4px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative {
+    flex-basis: 132px;
+  }
+
+  header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child > div.relative > button {
+    padding-inline: 8px;
+  }
+}
