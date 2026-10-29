@@ -11,6 +11,7 @@ This is a front-end mockup. Data is in memory and resets on reload; there is no 
 From this folder:
 
 ```bash
+cd web
 npm install
 npm run dev
 npm run build
