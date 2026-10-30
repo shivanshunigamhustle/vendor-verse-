@@ -8,7 +8,8 @@ Checks:
   * every feature ID in 01-feature-spec.md is unique, has a valid phase, and appears in 03-mockup-sync-matrix.md
   * every feature ID in the matrix exists in the spec
   * every screen ID in the matrix exists in the web / mobile registry
-  * every registry screen is mapped to a feature or listed as retired
+  * every registry screen is mapped to a feature; retired screens (RET-xx) are no longer in the web registry
+  * the mobile registry has no admin (`ad_*`) screens: the admin portal is web only (D-015)
   * statuses are from the allowed set
 """
 import re
@@ -78,11 +79,12 @@ def main():
         elif line.startswith("| RET-"):
             c = cells(line)
             for s in re.findall(r"`(\w+)`", c[1]):
-                if s not in web_ids:
-                    errors.append(f"{c[0]}: web screen `{s}` not in web registry")
-                mapped_web.add(s)
+                if s in web_ids:
+                    errors.append(f"{c[0]}: retired web screen `{s}` is still in the web registry")
             if c[3] not in feats:
                 errors.append(f"{c[0]}: folds into unknown feature {c[3]}")
+    for s in sorted(x for x in mob_ids if x.startswith("ad_")):
+        errors.append(f"mobile screen `{s}`: the admin portal is web only (D-015)")
     for i in {x for x in matrix_ids if matrix_ids.count(x) > 1}:
         errors.append(f"duplicate feature ID in matrix: {i}")
     for fid in feats:

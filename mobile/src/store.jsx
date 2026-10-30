@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import {
   VENDORS0, LISTINGS0, BOOKINGS0, RFQS0, LEADS0, CASES0, APPEALS0, USERS0, STAFF0, AGENTS0, AUDIT0,
-  NOTIFS0, THREADS0, SETTINGS0, REVIEWS0, SUB_EVENTS, CAMPAIGNS0, ME, ME_C, MY_LOC, isPublished, gatesFor,
+  NOTIFS0, THREADS0, SETTINGS0, REVIEWS0, SUB_EVENTS, CAMPAIGNS0, ME, ME_C, MY_LOC, isPublished, gatesFor, AGENT_COMM0,
 } from './data.jsx'
 import { GEO, CONTRACTS0, PAYMENTS0, PAYOUTS0, COMMISSION0, CAT_REQUESTS0, CUR, TAX0, INVOICES0, REFUNDS0, WALLET0, BANKS0 } from './globaldata.jsx'
 import { ORDERS0, TEAM0, TASKS0, COMPANY0 } from './mvpdata.jsx'
@@ -31,7 +31,7 @@ const DICT = {
     login: 'Log in', welcomeTitle: 'Every vendor. Every industry. Worldwide.',
     welcomeBody: 'The global marketplace for every industry — find service providers, suppliers, manufacturers and contractors, then book, request quotes or sign contracts.',
     browse: 'Browse without login', language: 'Language', logout: 'Log out', book: 'Request booking', rfq: 'Request quote',
-    bookings: 'Bookings', quotes: 'Quotes', subscription: 'Subscription', switchVendor: 'Switch to vendor mode', switchCustomer: 'Switch to customer mode',
+    earnings: 'Earnings', bookings: 'Bookings', quotes: 'Quotes', subscription: 'Subscription', switchVendor: 'Switch to vendor mode', switchCustomer: 'Switch to customer mode',
   },
   hi: {
     home: 'होम', explore: 'खोजें', activity: 'गतिविधि', messages: 'संदेश', profile: 'प्रोफ़ाइल',
@@ -43,7 +43,7 @@ const DICT = {
     login: 'लॉग इन', welcomeTitle: 'हर वेंडर। हर उद्योग। पूरी दुनिया।',
     welcomeBody: 'हर उद्योग के लिए वैश्विक मार्केटप्लेस — सेवा प्रदाता, सप्लायर, निर्माता और ठेकेदार खोजें; बुक करें, कोटेशन माँगें या अनुबंध करें।',
     browse: 'बिना लॉगिन के देखें', language: 'भाषा', logout: 'लॉग आउट', book: 'बुकिंग माँगें', rfq: 'कोटेशन माँगें',
-    bookings: 'बुकिंग', quotes: 'कोटेशन', subscription: 'सब्सक्रिप्शन', switchVendor: 'वेंडर मोड में जाएं', switchCustomer: 'ग्राहक मोड में जाएं',
+    earnings: 'कमाई', bookings: 'बुकिंग', quotes: 'कोटेशन', subscription: 'सब्सक्रिप्शन', switchVendor: 'वेंडर मोड में जाएं', switchCustomer: 'ग्राहक मोड में जाएं',
   },
 }
 /* Hindi labels for the state codes shown in badges (codes themselves stay language-neutral) */
@@ -100,6 +100,7 @@ export function AppProvider({ children, initialMe }) {
   const [refunds, setRefunds] = useState(REFUNDS0)
   const [wallet, setWallet] = useState(WALLET0)
   const [banks, setBanks] = useState(BANKS0)
+  const [agentComm, setAgentComm] = useState(AGENT_COMM0)
 
   const toast = useCallback((msg, tone = 'ok') => {
     const id = Date.now()
@@ -137,6 +138,7 @@ export function AppProvider({ children, initialMe }) {
       toggleSaved: (id) => setSaved((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])),
       toggleCompare: (id) => setCompare((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? c : [...c, id])),
       stamp,
+      agentComm, setAgentComm, patchAgentComm: patch(setAgentComm),
       orders, setOrders, patchOrder: patch(setOrders), companies, setCompanies, saveCompany: (id, ch) => setCompanies((c) => ({ ...c, [id]: { ...(c[id] || { id }), ...ch } })), team, setTeam, tasks, setTasks, patchTask: patch(setTasks), journey, setJourney, catsVer, touchCats: () => setCatsVer((v) => v + 1),
       taxes, setTaxes, invoices, setInvoices, refunds, setRefunds, patchRefund: patch(setRefunds), wallet, setWallet, banks, setBanks, patchBank: patch(setBanks),
       geo, setGeo, contracts, setContracts, patchContract: patch(setContracts), payments, setPayments, payouts, setPayouts, commission, setCommission, catRequests, setCatRequests, patchCatRequest: patch(setCatRequests), waitlist, setWaitlist, dispCur, setDispCur, customCats, setCustomCats,
@@ -145,7 +147,7 @@ export function AppProvider({ children, initialMe }) {
         setVendors((vs) => vs.map((v) => (v.id === vendorId ? { ...v, sub: { ...v.sub, status, ...extra } } : v)))
       },
     }
-  }, [me, lang, loc, vendors, listings, bookings, rfqs, leads, cases, appeals, users, staff, agents, audit, notifs, threads, settings, reviews, reviewed, subEvents, campaigns, saved, compare, toastMsg, prefs, contactShare, deletion, geo, contracts, payments, payouts, commission, catRequests, waitlist, dispCur, customCats, orders, companies, team, tasks, journey, catsVer, taxes, invoices, refunds, wallet, banks, toast, addAudit, notify, patch])
+  }, [agentComm, me, lang, loc, vendors, listings, bookings, rfqs, leads, cases, appeals, users, staff, agents, audit, notifs, threads, settings, reviews, reviewed, subEvents, campaigns, saved, compare, toastMsg, prefs, contactShare, deletion, geo, contracts, payments, payouts, commission, catRequests, waitlist, dispCur, customCats, orders, companies, team, tasks, journey, catsVer, taxes, invoices, refunds, wallet, banks, toast, addAudit, notify, patch])
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }

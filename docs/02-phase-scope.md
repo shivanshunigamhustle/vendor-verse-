@@ -199,7 +199,7 @@ Where the same capability starts in Phase 1 and grows in Phase 2, it is split in
 
 ## 4. How Phase 2 and Phase 3 appear in the mockups
 
-- **Phase 2:** the screen exists on both web and mobile, reachable from normal navigation, with a visible "Phase 2" badge (D-010). A Phase 2 screen must not change what a Phase 1 flow does. For example, a Phase 1 booking never routes through checkout.
+- **Phase 2:** the screen exists on both web and mobile (admin screens on web only, D-015), reachable from normal navigation, with a visible "Phase 2" badge (D-010). A Phase 2 screen must not change what a Phase 1 flow does. For example, a Phase 1 booking never routes through checkout.
 - **Phase 3:** appears only in the roadmap / vision screen and in these docs.
 - **OPEN:** the screen, if it exists, is left unchanged and is not badged until the decision is closed.
 
@@ -217,4 +217,5 @@ Where this file and the PRS disagree, this file wins and the difference is recor
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-29 17:21 | Shil1517 | Modified: section 4, Phase 2 screens on both apps except admin | Admin portal is web only (D-015). Phase lists are unchanged. |
 | 2026-10-29 16:27 | Shil1517 | Added: phase definitions, split-capability table, generated phase lists | The old docs gave the phase split in three places that disagreed; one view per phase now comes from the spec. |

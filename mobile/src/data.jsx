@@ -397,3 +397,12 @@ const enrichVendor = (v) => {
 export const VENDORS0 = [..._V, ...GLOBAL_VENDORS, ...MFR_VENDORS].map(enrichVendor)
 const INSTANT = ['l1', 'l11', 'l12', 'l23', 'l26']
 export const LISTINGS0 = [..._L, ...GLOBAL_LISTINGS, ...PRODUCT_LISTINGS].map((l) => ({ scope: 'city', cur: 'INR', instant: INSTANT.includes(l.id), remote: ['it', 'prof'].includes(l.cat), ...l }))
+
+/* ---------- Agent commissions (D-006). Sample amounts only — the commission model is open (O-03). ---------- */
+export const AGENT_COMM0 = [
+  { id: 'cm1', lead: 'Nova Logistics Pvt Ltd', kind: 'Customer first order', amount: 250, status: 'pending', date: '18 Oct 2026' },
+  { id: 'cm2', lead: 'Sharma Electricals & Hardware', kind: 'Vendor activation', amount: 500, status: 'paid', date: '06 Mar 2026' },
+  { id: 'cm3', lead: 'Royal Feast Caterers', kind: 'Vendor activation', amount: 500, status: 'paid', date: '30 Jan 2026' },
+  { id: 'cm4', lead: 'TechNova Systems', kind: 'Vendor activation', amount: 500, status: 'awaiting', date: '17 Oct 2026' },
+  { id: 'cm5', lead: 'SparkleClean Co.', kind: 'Vendor activation', amount: 500, status: 'approved', date: '09 Jan 2026' },
+]

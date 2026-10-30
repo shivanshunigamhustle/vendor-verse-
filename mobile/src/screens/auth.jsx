@@ -122,7 +122,7 @@ export function Login() {
               </button>
             ))}
           </div>
-          <p className="mt-2.5 text-xs text-ink-500">Sales Agents and Super Admins are invited by the platform and sign in with their own individual accounts (admins also need MFA).</p>
+          <p className="mt-2.5 text-xs text-ink-500">{VISIBLE_ROLES.some((r) => r.id === 'admin') ? 'Sales Agents and Super Admins are invited by the platform and sign in with their own individual accounts (admins also need MFA).' : 'Sales Agents are invited by the platform and sign in with their own individual account.'}</p>
         </div>
         <p className="text-center text-sm text-ink-500">New to VendorVerse? <button onClick={() => nav.replace('register')} className="font-bold text-brand-700">Create account</button></p>
       </div>
@@ -148,7 +148,7 @@ export function Otp({ params }) {
   const verify = () => {
     if (code.length < 6) return setErr('Enter all 6 digits')
     if (code !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
-    if (step === 0 && role === 'admin') { setStep(1); setCode(''); setErr(''); return }
+    if (step === 0 && role === 'admin') { setStep(1); setCode(''); setErr(''); return } // admin MFA exists on the web admin portal only
     if (mode === 'register') {
       if (role === 'business') {
         setMe({ role: 'business', loggedIn: true, guest: false, vendorId: null, hasVendor: false, bizId: 'biz-me', name: name || ME.business, biz })

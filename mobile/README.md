@@ -1,4 +1,4 @@
-﻿# VendorVerse — Release 1 mobile mockup
+# VendorVerse — Release 1 mobile mockup
 
 Interactive mobile mockup of the **VendorVerse Comprehensive Product Requirements Specification** (ADRS Techno Private Limited, 19 Oct 2026).
 React 19 + Vite + Tailwind CSS v4. No backend — all data is mock data held in memory, but the business rules (publication gates, booking and quote state machines, subscription lifecycle, RBAC rules) are really evaluated, so the screens behave like the product would.
@@ -9,16 +9,16 @@ npm run dev      # http://localhost:5173
 npm run build
 ```
 
-Demo OTP `123456` · admin authenticator `654321`. Deep links: `/#/c_home`, `/#/v_listing_gate`, `/#/ad_case` …
+Demo OTP `123456`. Deep links: `/#/c_home`, `/#/v_listing_gate`, `/#/c_case` … The admin portal is **web only** (decision D-015) and is not part of this app.
 
 ## Global marketplace vision (latest brief)
 The mockup now covers the long-term product, with **MVP / Phase 2 / Phase 3** clearly tagged on screens and in the roadmap (`Product vision` screen, `docs/user-flows-and-roadmap.md`):
-country → state → city picker with launch status and waitlists · 30-industry dynamic taxonomy with “suggest a category” and an admin taxonomy builder · geo rollout manager · supplier / manufacturer listings with MOQ, volume pricing, certifications and multi-currency · instant, scheduled, RFQ and contract bookings · 4-tier verification, trust score and 4-dimension ratings · customer (individual / business) and vendor public profiles · customer dashboard · Phase 2 checkout/escrow, payouts and commission engine.
+country → state → city picker with launch status and waitlists · 30-industry dynamic taxonomy with “suggest a category” and the taxonomy builder and geo rollout manager (both in the web admin portal) · supplier / manufacturer listings with MOQ, volume pricing, certifications and multi-currency · instant, scheduled, RFQ and contract bookings · 4-tier verification, trust score and 4-dimension ratings · customer (individual / business) and vendor public profiles · customer dashboard · Phase 2 checkout/escrow, payouts and commission engine.
 MVP keeps the confirmed model: customers pay vendors directly; platform revenue is subscriptions and sponsored visibility.
-Review pack: `docs/screen-inventory.csv` (111 screens with role, phase, spec section) and `docs/user-flows-and-roadmap.md`. The in-app **User flows** screen opens every step.
+Review pack: `docs/screen-inventory.csv` (132 screens with role, phase, spec section) and `docs/user-flows-and-roadmap.md`. The in-app **User flows** screen opens every step.
 
 ## How to explore
-* **Left panel (desktop)** — role switcher and a directory of all 93 screens. Chips show the spec section (§8) and the number of scenarios (SC) each screen demonstrates.
+* **Left panel (desktop)** — role switcher and a directory of all 132 screens. Chips show the spec section (§8) and the number of scenarios (SC) each screen demonstrates.
 * **Right panel (wide desktop)** — the requirements for the *current screen*: the relevant spec sections, the scenarios it demonstrates, plus tabs for all 40 scenarios (tap one to jump to the screens that show it), booking/verification state tables, roles, release gates, deferred scope and the open-configuration register (CFG-01…12).
 * **“Mockup controls”** cards on some screens (grey) fire events that normally come from the other side or from the platform — vendor accepts, deadline passes, billing webhook fails, credential expires, two quote acceptances race. They are labelled as mockup-only.
 
@@ -40,3 +40,20 @@ Product checkout, platform-held payments, vendor staff accounts, enterprise proc
 
 ## Structure
 `src/data.jsx` mock data + publication logic · `src/store.jsx` shared state · `src/ui.jsx` design kit · `src/registry.jsx` screen map (with spec/scenario links) · `src/specs.js` spec content · `src/screens/*` — `customer1` discovery · `customer_book` bookings · `customer_rfq` RFQs · `customer_misc` activity/chat/reviews/cases/profile · `vendor_a` onboarding & listings · `vendor_b` work, quotes, subscription · `agent` · `admin_a` queues & cases · `admin_b` subscriptions, RBAC, config, analytics, audit.
+
+## Docker
+
+```bash
+cd mobile
+docker build -t vendorverse-mobile .
+docker run --rm -p 8081:80 vendorverse-mobile
+```
+
+Then open http://localhost:8081. The image builds the Vite app and serves it with nginx.
+
+## Change Log
+
+| Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
+|---|---|---|---|
+| 2026-10-30 11:30 | Shil1517 | Added: Dockerfile, nginx.conf and .dockerignore for the mobile app; Docker run section | Owner asked for an individual Docker setup per app. |
+| 2026-10-29 17:21 | Shil1517 | Modified: admin portal removed from the mobile app; screen counts; demo credentials; deep-link example | Admin portal is web only (D-015); counts come from the registry. |

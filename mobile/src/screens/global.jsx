@@ -240,7 +240,7 @@ export function Flows() {
               <li key={i} className="relative flex gap-3 pb-3 last:pb-0">
                 {i < f.steps.length - 1 && <span className="absolute left-[11px] top-6 h-[calc(100%-1rem)] w-0.5 bg-brand-200" />}
                 <span className="z-10 grid size-6 shrink-0 place-items-center rounded-full bg-brand-600 text-[11px] font-bold text-white">{i + 1}</span>
-                <button onClick={() => go(id)} className="flex flex-1 items-center justify-between rounded-xl bg-ink-50 px-3 py-2 text-left text-[13px] font-semibold hover:bg-brand-50">{l}<ChevronRight size={14} className="text-ink-400" /></button>
+                <button disabled={!window.__SCREENS?.[id]} onClick={() => go(id)} className="flex flex-1 items-center justify-between rounded-xl bg-ink-50 px-3 py-2 text-left text-[13px] font-semibold hover:bg-brand-50 disabled:opacity-50 disabled:hover:bg-ink-50">{l}{window.__SCREENS?.[id] ? <ChevronRight size={14} className="text-ink-400" /> : <span className="text-[10.5px] font-bold text-ink-400">Admin portal · web</span>}</button>
               </li>
             ))}
           </ol>

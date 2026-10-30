@@ -3,7 +3,7 @@ import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriang
 import { AppProvider, useApp } from './store.jsx'
 import { JOURNEYS } from './mvpdata.jsx'
 import { NavProvider, useNav } from './nav.jsx'
-import { HOME, TABS, ROLES, VISIBLE_ROLES, HIDE_ADMIN } from './roles.js'
+import { HOME, TABS, ROLES, VISIBLE_ROLES } from './roles.js'
 import { SCREENS, GROUPS, phaseOf } from './registry.jsx'
 import { ME } from './data.jsx'
 import { Logo } from './screens/auth.jsx'
@@ -43,7 +43,7 @@ function StatusBar({ tone = 'light' }) {
 
 function TabBar() {
   const nav = useNav()
-  const { me, t, threads, vendors, leads, listings, bookings, cases } = useApp()
+  const { me, t, threads, leads, bookings } = useApp()
   const tabs = TABS[me.role] || []
   // a vendor searching to buy stays inside the Buy tab
   const cur = me.role === 'vendor' && ['c_explore', 'c_explore_suppliers'].includes(nav.id) ? 'v_buy' : nav.id
@@ -52,7 +52,6 @@ function TabBar() {
     if (id === 'messages') return (me.role === 'business' ? threads.business.filter((x) => x.bizId === me.bizId) : me.role === 'vendor' ? threads.vendor : threads.customer.filter((x) => x.owner === me.name)).reduce((s, x) => s + x.unread, 0)
     if (id === 'v_work') return bookings.filter((b) => b.vendorId === me.vendorId && b.state === 'requested').length
     if (id === 'c_activity') return bookings.filter((b) => b.customer === me.name && ['awaiting', 'requested'].includes(b.state)).length
-    if (id === 'ad_approvals') return vendors.filter((v) => ['submitted', 'more_info'].includes(v.ver)).length + listings.filter((l) => l.review === 'pending').length + cases.filter((c) => c.status === 'triage').length
     if (id === 'a_followups') return leads.filter((l) => l.next?.date && new Date(l.next.date) <= new Date('19 Oct 2026')).length
     return 0
   }
@@ -149,7 +148,7 @@ function Directory({ onJump, onClose }) {
   const [grp, setGrp] = useState(SCREENS[nav.id]?.role === 'shared' ? me.role || 'customer' : SCREENS[nav.id]?.role || 'auth')
   const [q, setQ] = useState('')
   const list = useMemo(() => {
-    const all = Object.values(SCREENS).filter((s) => !(HIDE_ADMIN && s.role === 'admin'))
+    const all = Object.values(SCREENS)
     if (q) return all.filter((s) => (s.title + s.id + s.sec.join(' ') + s.sc.join(' ')).toLowerCase().includes(q.toLowerCase()))
     return all.filter((s) => s.role === grp || (s.role === 'shared' && (grp === 'customer' || grp === 'vendor')))
   }, [grp, q])
@@ -171,7 +170,7 @@ function Directory({ onJump, onClose }) {
         <div className="relative"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Search ${Object.keys(SCREENS).length} screens, §8 or SC-012`} className="h-10 w-full rounded-lg bg-ink-50 pl-9 pr-3 text-[13px] outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-brand-500" /></div>
         {!q && (
           <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4">
-            {GROUPS.filter((g) => !(HIDE_ADMIN && g.id === 'admin')).map((g) => <button key={g.id} onClick={() => setGrp(g.id)} className={cx('shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition', grp === g.id ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200')}>{g.label} <span className="opacity-60">{Object.values(SCREENS).filter((s) => s.role === g.id).length}</span></button>)}
+            {GROUPS.map((g) => <button key={g.id} onClick={() => setGrp(g.id)} className={cx('shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition', grp === g.id ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200')}>{g.label} <span className="opacity-60">{Object.values(SCREENS).filter((s) => s.role === g.id).length}</span></button>)}
           </div>
         )}
       </div>
@@ -287,6 +286,7 @@ function Shell() {
 
   const jump = (id) => {
     const reg = SCREENS[id]
+    if (!reg) return // e.g. an admin-portal step in a shared journey: the admin portal is web-only
     if (reg.role === 'auth') setMe({ ...me, role: null, loggedIn: false, guest: false })
     else if (reg.role === 'shared') { if (!['customer', 'vendor'].includes(me.role)) setMe({ ...me, role: 'customer', loggedIn: true, guest: false, vendorId: null, hasVendor: false, name: ME.customer }) }
     else if (reg.as === 'vbuyer') setMe({ ...me, role: 'vendor', loggedIn: true, guest: false, vendorId: 'v-me', hasVendor: true, name: ME.vendor })

@@ -258,10 +258,10 @@ export function Journeys() {
     <Screen title="Demonstration journeys" subtitle="Clickable end-to-end prototype · demo data">
       <Segmented value={tab} onChange={setTab} options={[{ id: 'journeys', label: 'Journeys' }, { id: 'check', label: 'Checklist' }]} />
       <Banner tone="amber" title="Demo data">Names, prices and quantities are sample content. Features marked Phase 2 or Future are not part of the MVP.</Banner>
-      {tab === 'journeys' && JOURNEYS.map((j) => (
+      {tab === 'journeys' && JOURNEYS.filter((j) => j.steps.some(([, sid]) => SCREENS[sid])).map((j) => (
         <Card key={j.id} className="space-y-2">
           <div className="flex items-center justify-between"><p className="text-sm font-extrabold">{j.id} · {j.t}</p><Pill>{j.who}</Pill></div>
-          <ol className="space-y-1">{j.steps.map(([label, id], i) => <li key={id}><button disabled={!SCREENS[id]} onClick={() => { setJourney({ id: j.id, step: i }); jumpTo(id) }} className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left hover:bg-ink-50 disabled:opacity-40"><span className={cx('grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold', journey?.id === j.id && journey.step === i ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-600')}>{i + 1}</span><span className="min-w-0 flex-1 text-[13px]">{label}</span><ArrowRight size={14} className="shrink-0 text-ink-300" /></button></li>)}</ol>
+          <ol className="space-y-1">{j.steps.map(([label, id], i) => <li key={id}><button disabled={!SCREENS[id]} onClick={() => { setJourney({ id: j.id, step: i }); jumpTo(id) }} className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left hover:bg-ink-50 disabled:opacity-40"><span className={cx('grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold', journey?.id === j.id && journey.step === i ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-600')}>{i + 1}</span><span className="min-w-0 flex-1 text-[13px]">{label}</span>{SCREENS[id] ? <ArrowRight size={14} className="shrink-0 text-ink-300" /> : <span className="shrink-0 text-[10.5px] font-bold text-ink-400">Admin portal · web</span>}</button></li>)}</ol>
         </Card>
       ))}
       {tab === 'check' && CHECKLIST.map(([t, ids], i) => (
