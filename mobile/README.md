@@ -49,11 +49,14 @@ docker build -t vendorverse-mobile .
 docker run --rm -p 8081:80 vendorverse-mobile
 ```
 
-Then open http://localhost:8081. The image builds the Vite app and serves it with nginx.
+Then open http://localhost:8081. The image builds the Vite app and serves it with nginx on `$PORT` (80 by default).
+
+**Render:** use the root `render.yaml` Blueprint (New > Blueprint), or create a Docker web service with Dockerfile path `./mobile/Dockerfile` and Docker context `./mobile`.
 
 ## Change Log
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-30 12:10 | Shil1517 | Modified: nginx config now a template that listens on `$PORT`; Added: root `render.yaml` | Render could not find a Dockerfile at the repo root and assigns its own port. |
 | 2026-10-30 11:30 | Shil1517 | Added: Dockerfile, nginx.conf and .dockerignore for the mobile app; Docker run section | Owner asked for an individual Docker setup per app. |
 | 2026-10-29 17:21 | Shil1517 | Modified: admin portal removed from the mobile app; screen counts; demo credentials; deep-link example | Admin portal is web only (D-015); counts come from the registry. |

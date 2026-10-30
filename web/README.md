@@ -27,11 +27,14 @@ docker build -t vendorverse-web .
 docker run --rm -p 8080:80 vendorverse-web
 ```
 
-Then open http://localhost:8080. The image builds the Vite app and serves it with nginx.
+Then open http://localhost:8080. The image builds the Vite app and serves it with nginx on `$PORT` (80 by default).
+
+**Render:** use the root `render.yaml` Blueprint (New > Blueprint), or create a Docker web service with Dockerfile path `./web/Dockerfile` and Docker context `./web`.
 
 ## Change Log
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-30 12:10 | Shil1517 | Modified: nginx config now a template that listens on `$PORT`; Added: root `render.yaml` | Render could not find a Dockerfile at the repo root and assigns its own port. |
 | 2026-10-30 11:30 | Shil1517 | Added: Dockerfile, nginx.conf and .dockerignore for the web app; Docker run section | Owner asked for an individual Docker setup per app. |
 | 2026-10-29 17:21 | Shil1517 | Modified: web now runs the mobile screens and data; admin portal documented as web only | Mockup sync of web to mobile (D-013) and admin portal on web only (D-015). |

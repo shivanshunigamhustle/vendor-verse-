@@ -1,0 +1,14 @@
+# Render Blueprint: one Docker web service per app. Each Dockerfile lives in its own folder.
+services:
+  - type: web
+    name: vendorverse-web
+    runtime: docker
+    dockerfilePath: ./web/Dockerfile
+    dockerContext: ./web
+    plan: free
+  - type: web
+    name: vendorverse-mobile
+    runtime: docker
+    dockerfilePath: ./mobile/Dockerfile
+    dockerContext: ./mobile
+    plan: free
