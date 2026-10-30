@@ -1,6 +1,6 @@
 # VendorVerse Documentation
 
-One product, two mockups (web and mobile), one feature set. The admin portal is web only (D-015). These files are the source of truth for scope, phase and mockup sync.
+One product, two mockups (web and mobile), one feature set. These files are the source of truth for scope, phase and mockup sync.
 
 | # | File | Use it to |
 |---|---|---|
@@ -23,5 +23,4 @@ Repo rule (from [CLAUDE.md](../CLAUDE.md)): any change to a feature updates thes
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
-| 2026-10-29 17:21 | Shil1517 | Modified: intro line (admin portal is web only) | D-015. |
 | 2026-10-29 16:27 | Shil1517 | Added: docs index | Entry point for the new documentation set. |

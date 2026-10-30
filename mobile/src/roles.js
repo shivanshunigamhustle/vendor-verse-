@@ -1,6 +1,6 @@
 import {
   Home, Compass, ClipboardList, MessageCircle, User, LayoutDashboard, Briefcase, Package, MoreHorizontal, Users, CalendarClock,
-  TrendingUp, Building2, ShoppingCart, Wallet,
+  TrendingUp, ShieldCheck, BarChart3, Settings, Building2, ShoppingCart,
 } from 'lucide-react'
 
 export const ROLES = [
@@ -8,15 +8,18 @@ export const ROLES = [
   { id: 'vendor', label: 'Vendor', short: 'Vendor' },
   { id: 'agent', label: 'Sales Agent', short: 'Agent' },
   { id: 'business', label: 'Business', short: 'Business' },
+  { id: 'admin', label: 'Super Admin', short: 'Admin' },
 ]
 
-/* The admin portal is web-only (D-015): no admin role exists in the mobile app. */
-export const VISIBLE_ROLES = ROLES
+/* Admin is kept in the codebase but hidden from every role picker and the screen directory.
+   Flip to false to bring it back. */
+export const HIDE_ADMIN = true
+export const VISIBLE_ROLES = HIDE_ADMIN ? ROLES.filter((r) => r.id !== 'admin') : ROLES
 
 /* Business is a separate account type (company owners only) - it never shares a vendor identity */
 export const vendorSide = (me) => me.role === 'vendor'
 
-export const HOME = { customer: 'c_home', vendor: 'v_dash', agent: 'a_home', business: 'b_home' }
+export const HOME = { customer: 'c_home', vendor: 'v_dash', agent: 'a_home', business: 'b_home', admin: 'ad_dash' }
 
 /* bottom navigation per role — `k` is a dictionary key for Hindi/English labels */
 export const TABS = {
@@ -40,7 +43,6 @@ export const TABS = {
     { id: 'a_leads', k: 'leads', icon: Users },
     { id: 'a_followups', k: 'followups', icon: CalendarClock },
     { id: 'a_perf', k: 'performance', icon: TrendingUp },
-    { id: 'a_earnings', k: 'earnings', icon: Wallet },
     { id: 'a_profile', k: 'profile', icon: User },
   ],
   business: [
@@ -49,6 +51,13 @@ export const TABS = {
     { id: 'b_services', k: 'services', icon: Briefcase },
     { id: 'messages', k: 'messages', icon: MessageCircle },
     { id: 'b_more', k: 'more', icon: MoreHorizontal },
+  ],
+  admin: [
+    { id: 'ad_dash', k: 'dashboard', icon: LayoutDashboard },
+    { id: 'ad_approvals', k: 'approvals', icon: ShieldCheck },
+    { id: 'ad_users', k: 'users', icon: Users },
+    { id: 'ad_analytics', k: 'reports', icon: BarChart3 },
+    { id: 'ad_more', k: 'more', icon: Settings },
   ],
 }
 

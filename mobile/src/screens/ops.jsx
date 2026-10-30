@@ -83,6 +83,23 @@ export function AgentPerms() {
   )
 }
 
+/* ---------- admin: country packs (international readiness) ---------- */
+export function AdminCountry({ params = {} }) {
+  const [code, setCode] = useState(params.code || 'IN')
+  const c = country(code)
+  const pk = packOf(code)
+  const live = Object.keys(COUNTRY_PACKS)
+  return (
+    <Screen title="Country packs" subtitle="Per-country rules without code changes">
+      <Chips scroll value={code} onChange={setCode} options={[...live, ...GEO.map((g) => g.code).filter((x) => !live.includes(x)).slice(0, 8)].map((id) => ({ id, label: `${country(id).flag} ${country(id).name}` }))} />
+      {!COUNTRY_PACKS[code] && <Banner tone="amber" title="Pack not configured">Defaults are shown. Configure tax ID, evidence and rules before launching {c.name}.</Banner>}
+      <Card className="space-y-2"><p className="text-sm font-extrabold">{c.flag} {c.name}</p><KV rows={[['Currency', c.cur || '—'], ['Time zone', pk.tz], ['Tax ID', pk.taxId], ['Date format', pk.calendar], ['SMS / OTP', pk.sms]]} /></Card>
+      <Card className="space-y-2"><p className="text-sm font-extrabold">Verification evidence</p>{Object.entries(pk.docs).map(([k, v]) => <div key={k}><p className="text-xs font-bold capitalize text-ink-500">{k}</p><ul className="list-disc pl-5 text-[13px]">{v.map((d) => <li key={d}>{d}</li>)}</ul></div>)}</Card>
+      <Card className="space-y-1.5"><p className="text-sm font-extrabold">Local rules</p>{pk.rules.map((r) => <p key={r} className="text-[13px]">• {r}</p>)}</Card>
+    </Screen>
+  )
+}
+
 /* ---------- customer: reviews I gave and ones still pending ---------- */
 export function MyReviews() {
   const nav = useNav()

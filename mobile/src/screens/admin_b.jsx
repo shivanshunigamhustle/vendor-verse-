@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   ShieldCheck, Users, Store, ChevronRight, Check, X, Layers, Tag, Settings, ScrollText, LogOut, BarChart3, Download, Plus, Lock, MapPin, Bell, Gavel, Search, Eye, Ban, RotateCcw, KeyRound, CreditCard,
-  Megaphone, ListChecks, UserX, Globe, Percent, Rocket, Languages, ShieldAlert, CircleAlert, Webhook, Undo2, Receipt, UserCog, Network, Building2, Wallet,
+  Megaphone, ListChecks, UserX, Globe, Percent, Rocket, Languages, ShieldAlert, CircleAlert, Webhook, Undo2, Receipt, UserCog, Network, Building2,
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
@@ -9,7 +9,7 @@ import { CategoryAdminPanel } from './catbuilder.jsx'
 import { CATS, cat, REPORT, ME, CFG, AVAIL_LABEL, MODE_LABEL, CANCEL_POLICY, SETTINGS0 } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Banner, EmptyState, Stat, KV, cx, Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar,
-  HBar, BarChart, SearchBar, SOFT, ReasonSheet, Missing, Spark, SponsoredTag, fmt,
+  HBar, BarChart, SearchBar, SOFT, ReasonSheet, Missing, Spark, SponsoredTag,
 } from '../ui.jsx'
 import { NotifBell, VerifiedBadge, LangButton } from './shared.jsx'
 
@@ -307,25 +307,15 @@ export function AdminAgents() {
   )
 }
 export function AdminAgent({ params }) {
-  const { agents, leads, toast, addAudit, me, agentComm, patchAgentComm } = useApp()
+  const { agents, leads, toast, addAudit, me } = useApp()
   const a = agents.find((x) => x.id === (params.id || 'ag1'))
   const mine = leads.filter((l) => a.name === 'Neha Verma')
-  const comm = a.name === 'Neha Verma' ? agentComm : []
-  const moveComm = (c, st) => { patchAgentComm(c.id, { status: st }); addAudit(st === 'approved' ? 'Approved commission' : st === 'paid' ? 'Paid commission' : 'Rejected commission', `${c.lead} · ${fmt(c.amount)}`, 'user', 'Agent commission review (sample amounts, O-03)', me.name || ME.admin); toast(`Commission ${st}`) }
   const [sheet, setSheet] = useState(false)
   return (
     <Screen title={a.name} subtitle={a.region} overlay={<ReasonSheet open={sheet} onClose={() => setSheet(false)} title="Reassign leads" reasons={['Agent on leave', 'Region change', 'Performance review']} onConfirm={(r) => { addAudit('Reassigned agent leads', a.name, 'user', r, me.name || ME.admin); setSheet(false); toast('Leads reassigned') }} />}>
       <div className="grid grid-cols-3 gap-2">{[['Leads', a.leads], ['Registered', a.registered], ['Subscribed', a.subscribed]].map(([k, v]) => <Card key={k} className="!p-3 text-center"><p className="text-xl font-extrabold">{v}</p><p className="text-[11px] text-ink-500">{k}</p></Card>)}</div>
       <Card className="space-y-3"><HBar label="Lead → registered" value={a.registered} max={a.leads || 1} /><HBar label="Registered → subscribed" value={a.subscribed} max={a.registered || 1} color="bg-emerald-500" /></Card>
       {mine.length > 0 && <Section title="Assigned leads"><Group>{mine.map((l, i) => <ListRow key={l.id} last={i === mine.length - 1} icon={Store} tone="sky" title={l.name} subtitle={`${l.stage} · ${l.city}`} />)}</Group></Section>}
-      <Section title="Commissions"><Banner tone="blue" title="Sample amounts">The commission model is still open (O-03). Approving or paying here only records a status and writes the audit log.</Banner>
-        {comm.length === 0 ? <Card className="text-center text-sm text-ink-500">No commission items are recorded for this agent.</Card> : <Group>{comm.map((c, i) => (
-          <div key={c.id} className={i === comm.length - 1 ? '' : 'border-b border-ink-100'}>
-            <ListRow icon={Wallet} tone="emerald" title={c.lead} subtitle={`${c.kind} · ${c.date}`} right={<div className="text-right"><p className="text-sm font-extrabold">{fmt(c.amount)}</p><Badge tone={{ pending: 'amber', awaiting: 'amber', approved: 'blue', paid: 'green', rejected: 'red' }[c.status]}>{c.status}</Badge></div>} last />
-            {['pending', 'approved'].includes(c.status) && <div className="flex gap-2 px-4 pb-3">{c.status === 'pending' && <><Button size="sm" onClick={() => moveComm(c, 'approved')}>Approve</Button><Button size="sm" variant="secondary" onClick={() => moveComm(c, 'rejected')}>Reject</Button></>}{c.status === 'approved' && <Button size="sm" onClick={() => moveComm(c, 'paid')}>Mark paid</Button>}</div>}
-          </div>
-        ))}</Group>}
-      </Section>
       <Button full variant="secondary" onClick={() => setSheet(true)}>Reassign leads</Button>
     </Screen>
   )

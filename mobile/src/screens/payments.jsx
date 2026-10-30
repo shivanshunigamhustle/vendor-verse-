@@ -414,3 +414,46 @@ export function Fees() {
   )
 }
 
+/* ================= ADMIN: REVENUE, COMMISSION, TAX, REFUNDS ================= */
+export function AdminCommission() {
+  const { commission, setCommission, payments, payouts, vendors, refunds, taxes, setTaxes, invoices, toast, addAudit, me } = useApp()
+  const [tab, setTab] = useState('revenue')
+  const [rules, setRules] = useState(commission)
+  const [tx, setTx] = useState(taxes)
+  const [sheet, setSheet] = useState(null)
+  const subRev = vendors.reduce((s, v) => s + ({ Starter: 499, Growth: 1499, Pro: 3999 }[v.sub.plan] || 0) * (['active', 'grace', 'cancelled'].includes(v.sub.status) ? 1 : 0), 0)
+  const gstCollected = Math.round(subRev * 0.18)
+  const set = (i, k, val) => setRules(rules.map((r, j) => (j === i ? { ...r, [k]: val } : r)))
+  return (
+    <Screen title="Revenue & commission" overlay={sheet && <ReasonSheet open onClose={() => setSheet(null)} title={sheet === 'tax' ? 'Save tax rates' : 'Save commission rules'} reasons={['Rollout of a new region', 'Pricing review', 'Tax rate change', 'Correction']} confirmLabel="Save" onConfirm={(r) => { if (sheet === 'tax') setTaxes(tx); else setCommission(rules); addAudit(sheet === 'tax' ? 'Changed tax rates' : 'Changed commission rules', sheet === 'tax' ? 'Tax' : 'Commission', 'config', r, me.name); setSheet(null); toast('Saved — applies to new invoices and payments only') }} />}>
+      <Chips value={tab} onChange={setTab} options={[['revenue', 'Revenue'], ['rules', 'Commission'], ['tax', 'Tax'], ['payouts', 'Payouts'], ['refunds', 'Refunds']].map(([id, label]) => ({ id, label }))} />
+      {tab === 'revenue' && (<>
+        <div className="grid grid-cols-2 gap-3"><Stat label="Subscriptions / mo" value={fmtC(subRev)} icon={CreditCard} tone="emerald" delta="+9%" /><Stat label="GST collected / mo" value={fmtC(gstCollected)} icon={Receipt} tone="sky" /><Stat label="Sponsored / mo" value={fmtC(18600)} icon={TrendingUp} tone="amber" delta="+14%" /><Stat label="Invoices issued" value={invoices.length} icon={FileText} tone="violet" /></div>
+        <div className="flex items-center gap-2"><PhaseTag p="MVP" /><span className="text-xs text-ink-500">Subscription + sponsored are the only platform revenue at launch</span></div>
+        <PhaseBanner p="P2" title="Commission & payment fees" />
+        <div className="grid grid-cols-2 gap-3"><Stat label="GMV in escrow" value={fmtC(payments.filter((p) => p.status === 'held').reduce((s, p) => s + p.amount, 0))} icon={Lock} tone="violet" /><Stat label="Commission (est.)" value={fmtC(payments.reduce((s, p) => s + p.fee, 0))} icon={Percent} tone="sky" /></div>
+        <Card><p className="mb-3 text-sm font-bold">Revenue mix (projected at scale)</p><div className="space-y-3"><HBar label="Subscriptions" value={46} max={100} right="46%" /><HBar label="Commission" value={38} max={100} right="38%" color="bg-sky-500" /><HBar label="Sponsored visibility" value={16} max={100} right="16%" color="bg-amber-500" /></div></Card>
+      </>)}
+      {tab === 'rules' && (<>
+        <PhaseBanner p="P2" title="Commission rules by category & region" />
+        {rules.map((r, i) => <Card key={r.id} className="space-y-3"><div className="flex items-center justify-between"><p className="text-sm font-extrabold">{r.scope}</p><Pill icon={Globe}>{r.region}</Pill></div><div className="grid grid-cols-3 gap-3"><Input label="Rate %" inputMode="decimal" value={String(r.rate)} onChange={(e) => set(i, 'rate', e.target.value.replace(/[^\d.]/g, ''))} /><Input label="Min fee" inputMode="numeric" value={String(r.min)} onChange={(e) => set(i, 'min', e.target.value.replace(/\D/g, ''))} /><Input label="Cap" inputMode="numeric" value={String(r.cap)} onChange={(e) => set(i, 'cap', e.target.value.replace(/\D/g, ''))} /></div><p className="text-xs text-ink-500">Example on ₹10,000: vendor pays {fmtC(feeSplit({ amount: 10000, rate: +r.rate || 0, min: +r.min || 0, cap: +r.cap || 1e9 }).commission)} + tax.</p></Card>)}
+        <Button full size="lg" onClick={() => setSheet('rules')}>Save rules</Button>
+      </>)}
+      {tab === 'tax' && (<>
+        <Banner tone="blue" title="Tax on platform charges">Applied to subscriptions, sponsored visibility and (Phase 2) commission. Vendors’ own taxes appear on their invoices.</Banner>
+        {tx.map((t, i) => <Card key={t.code} className="space-y-2"><div className="flex items-center justify-between"><p className="text-sm font-extrabold">{t.name}</p><Pill>{t.label}</Pill></div><Input label="Rate %" inputMode="decimal" value={String(t.rate)} onChange={(e) => setTx(tx.map((x, j) => (j === i ? { ...x, rate: +e.target.value.replace(/[^\d.]/g, '') || 0 } : x)))} />{t.note && <p className="text-xs text-ink-500">{t.note}</p>}</Card>)}
+        <Button full size="lg" onClick={() => setSheet('tax')}>Save tax rates</Button>
+      </>)}
+      {tab === 'payouts' && (<>
+        <PhaseBanner p="P2" title="Payout queue" />
+        {payouts.map((p) => <Card key={p.id} className="!p-3.5"><div className="flex items-center justify-between"><span className="text-xs font-bold text-ink-500">{p.id}</span><StatusBadge s={p.status === 'paid' ? 'paid' : 'scheduled'} /></div><p className="mt-1 text-lg font-extrabold">{fmtC(p.amount, p.cur)}</p><p className="text-xs text-ink-500">{p.items} payments · {p.bank}</p>{p.status === 'scheduled' && <div className="mt-2 flex gap-2"><Button size="sm" variant="secondary" className="flex-1" onClick={() => toast('Payout placed on hold — reason required in production')}>Hold</Button><Button size="sm" className="flex-1" onClick={() => toast('Released to bank')}>Release now</Button></div>}</Card>)}
+        <Banner tone="blue" title="Controls">Holds apply for disputes, fraud review and unverified bank accounts. Billing operators can’t change trust state; trust staff can’t release funds.</Banner>
+      </>)}
+      {tab === 'refunds' && (<>
+        <PhaseBanner p="P2" title="Refunds & disputes" />
+        {refunds.map((r) => <Card key={r.id} className="!p-3.5"><div className="flex items-center justify-between"><span className="text-xs font-bold text-ink-500">{r.id} · {r.ref}</span><StatusBadge s={r.status === 'refunded' ? 'refunded' : r.status === 'requested' ? 'pending' : r.status} /></div><p className="mt-1 text-sm font-bold">{r.vendor}</p><p className="text-lg font-extrabold">{fmtC(r.amount, r.cur)}</p><p className="text-xs text-ink-500">{r.reason} · {r.policy}</p></Card>)}
+        <Banner tone="blue" title="Policy">Escrowed funds refund instantly under the cancellation policy. Released funds are the vendor’s to refund; support facilitates and can enforce platform policy but never refunds from its own funds.</Banner>
+      </>)}
+    </Screen>
+  )
+}

@@ -403,3 +403,33 @@ export function BizPublic({ params = {} }) {
   )
 }
 
+/* ---------- admin: review company submissions ---------- */
+export function AdminCompany({ params = {} }) {
+  const { companies, saveCompany, notify, toast, addAudit, me } = useApp()
+  const list = Object.values(companies).filter((c) => c.status !== 'not_started')
+  const [sel, setSel] = useState(params.id || null)
+  const [act, setAct] = useState(null)
+  const c = sel && companies[sel]
+  const decide = (status, reason) => {
+    saveCompany(c.id, { status, decision: reason })
+    notify('business', status === 'approved' ? 'Company approved' : status === 'more_info' ? 'Company: more information needed' : 'Company rejected', reason, 'onboarding', ['b_company', {}])
+    addAudit(`Company ${status}`, c.legal, 'onboarding', reason, me.name || 'Admin')
+    toast(status === 'approved' ? 'Company approved — badge is live' : 'Decision recorded')
+    setAct(null)
+  }
+  return (
+    <Screen title="Company verification" subtitle={`${list.filter((x) => x.status === 'submitted').length} awaiting review`} overlay={c && <ReasonSheet open={!!act} onClose={() => setAct(null)} title={act === 'approved' ? 'Approve company' : act === 'more_info' ? 'Request more information' : 'Reject company'} reasons={act === 'approved' ? ['Evidence verified', 'Site photos / audit reviewed'] : act === 'more_info' ? ['Registration number unclear', 'Certificate expired', 'Bank details mismatch'] : ['Registration not found', 'Documents do not match', 'Unable to verify entity', 'Other']} confirmLabel={act === 'approved' ? 'Approve' : act === 'more_info' ? 'Send request' : 'Reject'} danger={act === 'rejected'} onConfirm={(r) => decide(act, r)} />}>
+      {!c && (list.length === 0 ? <EmptyState icon={Building2} title="No submissions" body="Company profiles submitted by Business owners appear here." /> : list.map((x) => (
+        <Card key={x.id} onClick={() => setSel(x.id)} className="space-y-1"><div className="flex items-start justify-between gap-2"><p className="text-sm font-bold">{x.legal}</p><SBadge s={x.status} /></div><p className="text-xs text-ink-500">{x.entity} · {x.hq.city} · submitted {x.submittedAt}</p></Card>
+      )))}
+      {c && (
+        <>
+          <Button variant="ghost" size="sm" onClick={() => setSel(null)}>← All submissions</Button>
+          <Card className="space-y-2"><div className="flex items-start justify-between gap-2"><p className="text-base font-extrabold">{c.legal}</p><SBadge s={c.status} /></div>
+            <KV rows={[['Entity', `${c.entity} · est. ${c.year}`], ['Registration', c.regNo], ['Tax ID', c.gstin], ['Address', `${c.hq.addr}, ${c.hq.city}`], ['Industry', INDUSTRIES.find((i) => i.id === c.industry)?.name], ['Capacity', `${c.capacity} ${c.capUnit}`], ['Facilities', c.facilities.map((x) => x.name).join(', ')], ['Certifications', c.certs.map((x) => x.name).join(', ') || '—'], ['Signatory', `${c.signatory.name} · ${c.signatory.desig}`], ['Eligibility', c.eligibility ? `${c.eligibility.designation} · operating ${c.eligibility.years} yrs · registered` : '—'], ['Bank', `${c.bank.holder} · ${c.bank.acc}`]]} /></Card>
+          {['submitted', 'more_info'].includes(c.status) ? <div className="grid grid-cols-1 gap-2"><Button full onClick={() => setAct('approved')}>Approve</Button><Button full variant="secondary" onClick={() => setAct('more_info')}>Ask for more information</Button><Button full variant="danger" onClick={() => setAct('rejected')}>Reject</Button></div> : <Banner tone={c.status === 'approved' ? 'green' : 'red'} title={STATUS[c.status][0]}>{c.decision}</Banner>}
+        </>
+      )}
+    </Screen>
+  )
+}

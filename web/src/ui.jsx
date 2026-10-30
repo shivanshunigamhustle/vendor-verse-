@@ -1,14 +1,18 @@
 import { Children, useEffect, useRef, useState } from 'react'
 import {
-  ArrowLeft, Check, ChevronRight, ChevronDown, Star, X, Search, Info, AlertTriangle, CheckCircle2, XCircle, Clock,
-  FileText, Upload, Inbox, Megaphone, ShieldCheck, CircleHelp, Hourglass, ShieldAlert,
+  ArrowLeft, Check, ChevronRight, Star, X, Search, Info, AlertTriangle, CheckCircle2, XCircle, Clock, Smartphone, ShieldCheck,
+  FileText, Upload, Inbox,
 } from 'lucide-react'
 import { useNav } from './nav.jsx'
-import { useApp, STATE_HI } from './store.jsx'
-import { fmtC, convert, PHASES, TIERS } from './globaldata.jsx'
 
 export const cx = (...a) => a.filter(Boolean).join(' ')
-export const fmt = (n) => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN')
+export const fmt = (n, currency) => {
+  let active = currency
+  if (!active && typeof window !== 'undefined') {
+    try { active = JSON.parse(window.localStorage.getItem('vendorverse.website.state.v2') || '{}')?.locale?.currency } catch { /* use INR */ }
+  }
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: active || 'INR', maximumFractionDigits: 0 }).format(Math.round(Number(n) || 0))
+}
 
 /* ---------- colour tones ---------- */
 export const GRAD = {
@@ -32,8 +36,6 @@ export const SOFT = {
   teal: 'bg-teal-50 text-teal-700',
   indigo: 'bg-indigo-50 text-indigo-700',
   slate: 'bg-slate-100 text-slate-700',
-  brand: 'bg-brand-50 text-brand-700',
-  ink: 'bg-ink-100 text-ink-700',
   lime: 'bg-lime-50 text-lime-700',
   orange: 'bg-orange-50 text-orange-700',
 }
@@ -48,34 +50,27 @@ const TONE = {
   teal: 'bg-brand-50 text-brand-700 ring-brand-200',
 }
 
-/* status → label + tone, shared across every workflow (state codes are language-neutral) */
+/* status → label + tone, shared across every workflow */
 export const STATUS = {
-  // account
-  active: ['Active', 'green'], restricted: ['Restricted', 'amber'], suspended: ['Suspended', 'red'], deletion: ['Deletion requested', 'gray'],
-  // verification (spec §5.2)
-  not_started: ['Not started', 'gray'], submitted: ['Submitted', 'blue'], more_info: ['More information required', 'amber'],
-  approved: ['Approved', 'green'], rejected: ['Rejected', 'red'], expired: ['Expired', 'red'], revoked: ['Revoked', 'red'],
-  verified: ['Verified', 'green'], missing: ['Missing', 'red'], pending: ['In review', 'amber'],
-  // listing lifecycle
-  draft: ['Draft', 'gray'], changes: ['Changes requested', 'amber'], published: ['Published', 'green'], hidden: ['Hidden', 'gray'], paused: ['Paused', 'gray'], removed: ['Removed', 'gray'],
-  // booking (spec §8.2)
-  requested: ['Requested', 'blue'], confirmed: ['Confirmed', 'teal'], declined: ['Rejected by vendor', 'red'], in_progress: ['In progress', 'purple'],
-  awaiting: ['Completed — confirm', 'amber'], closed: ['Closed', 'gray'], cancelled: ['Cancelled', 'gray'], case: ['Support case linked', 'purple'],
-  // rfq + quote
-  open: ['Open', 'blue'], accepted: ['Accepted', 'green'], no_quotes: ['No quotes', 'gray'], quote_pending: ['Pending', 'blue'], unsuccessful: ['Unsuccessful', 'gray'], withdrawn: ['Withdrawn', 'gray'],
-  // subscription
-  grace: ['Grace period', 'amber'], sub_cancelled: ['Auto-renew off', 'gray'], none: ['No plan', 'gray'],
-  // cases + moderation
-  triage: ['Triage', 'amber'], evidence: ['Evidence requested', 'purple'], decided: ['Decision made', 'teal'], appealed: ['Appeal open', 'purple'], upheld: ['Decision upheld', 'gray'], held: ['Held for review', 'amber'],
-  live: ['Live', 'green'], blocked: ['Blocked', 'red'], low: ['Low', 'gray'], medium: ['Medium', 'amber'], high: ['High', 'red'], critical: ['Critical', 'red'],
-  proposed: ['Proposed', 'blue'], negotiating: ['Negotiating', 'purple'], renewal_due: ['Renewal due', 'amber'], completed: ['Completed', 'green'], terminated: ['Terminated', 'red'],
-  released: ['Released to vendor', 'green'], held: ['Held in escrow', 'amber'], refunded: ['Refunded', 'gray'], scheduled: ['Scheduled', 'blue'], paid: ['Paid', 'green'], soon: ['Coming soon', 'amber'], later: ['Planned', 'gray'],
-  payment_failed: ['Payment failed', 'red'], disputed: ['Disputed', 'red'],
-  rfq_draft: ['Draft', 'gray'], rfq_submitted: ['Submitted', 'blue'], rfq_sent: ['Sent to vendors', 'blue'], rfq_quotes: ['Quotations received', 'teal'], rfq_negotiating: ['Comparing / negotiating', 'purple'],
-  rfq_withdrawn: ['Withdrawn', 'gray'], rfq_expired: ['Expired', 'amber'], rfq_rejected: ['Rejected', 'red'], quote_rejected: ['Rejected', 'gray'],
-  po_created: ['PO created', 'blue'], po_accepted: ['Supplier accepted', 'teal'], po_paid: ['Payment / terms confirmed', 'teal'], po_processing: ['Processing', 'purple'], po_shipped: ['Shipped', 'purple'], po_delivered: ['Delivered', 'green'],
-  po_completed: ['Completed', 'green'], po_rejected: ['Rejected', 'red'], po_cancelled: ['Cancelled', 'gray'], po_payment_failed: ['Payment failed', 'red'], po_exception: ['Delivery exception', 'amber'], po_disputed: ['Disputed', 'red'],
-  inactive: ['Inactive', 'gray'], done: ['Done', 'green'], overdue: ['Overdue', 'red'], new: ['New', 'blue'], resolved: ['Resolved', 'green'],
+  // verification
+  draft: ['Draft', 'gray'], submitted: ['Submitted', 'blue'], info: ['More info needed', 'amber'],
+  approved: ['Approved', 'green'], rejected: ['Rejected', 'red'], suspended: ['Suspended', 'red'], pending: ['Pending review', 'amber'],
+  removed: ['Removed', 'gray'], verified: ['Verified', 'green'], missing: ['Missing', 'red'],
+  // orders
+  placed: ['Placed', 'blue'], confirmed: ['Confirmed', 'teal'], packed: ['Packed', 'purple'], shipped: ['Shipped', 'purple'],
+  delivered: ['Delivered', 'green'], cancelled: ['Cancelled', 'gray'], rejected: ['Rejected', 'red'], payment_confirmed: ['Payment / terms confirmed', 'teal'], payment_failed: ['Payment failed', 'red'], delivery_exception: ['Delivery exception', 'amber'], disputed: ['Disputed', 'red'], return_requested: ['Return requested', 'amber'], returned: ['Returned', 'gray'], refunded: ['Refunded', 'gray'],
+  // bookings
+  requested: ['Requested', 'blue'], accepted: ['Accepted', 'teal'], declined: ['Declined', 'red'], in_progress: ['In progress', 'purple'],
+  completed: ['Completed', 'green'], payment_failed: ['Payment failed', 'red'], disputed: ['Disputed', 'red'], reschedule: ['Reschedule requested', 'amber'],
+  // rfq
+  open: ['Open', 'blue'], submitted: ['Submitted to vendors', 'blue'], quoted: ['Quotes received', 'teal'], comparing: ['Comparing', 'purple'], negotiating: ['Negotiating', 'amber'], withdrawn: ['Withdrawn', 'gray'], expired: ['Expired', 'gray'], no_quotes: ['No quotes', 'amber'], closed: ['Closed', 'gray'], revised: ['Revised', 'purple'],
+  // payments
+  paid: ['Paid', 'green'], unpaid: ['Unpaid', 'amber'], failed: ['Failed', 'red'], cod: ['Pay on delivery', 'gray'], settled: ['Settled', 'green'], processing: ['Processing', 'blue'],
+  // disputes
+  under_review: ['Under review', 'purple'], resolved: ['Resolved', 'green'], escalated: ['Escalated', 'red'],
+  // users / misc
+  active: ['Active', 'green'], inactive: ['Inactive', 'gray'], live: ['Live', 'green'], scheduled: ['Scheduled', 'blue'], done: ['Done', 'green'],
+  overdue: ['Overdue', 'red'], new: ['New', 'blue'],
 }
 
 export function Badge({ tone = 'gray', children, className }) {
@@ -86,9 +81,8 @@ export function Badge({ tone = 'gray', children, className }) {
   )
 }
 export function StatusBadge({ s, className }) {
-  const { lang } = useApp()
   const [label, tone] = STATUS[s] || [String(s), 'gray']
-  return <Badge tone={tone} className={className}>{lang === 'hi' && STATE_HI[s] ? STATE_HI[s] : label}</Badge>
+  return <Badge tone={tone} className={className}>{label}</Badge>
 }
 
 /* ---------- buttons ---------- */
@@ -106,12 +100,40 @@ export function Button({ variant = 'primary', size = 'md', icon: Icon, full, chi
   return (
     <button
       {...p}
+      type={p.type || 'button'}
       className={cx('inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-xl font-semibold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-45', sz, BTN[variant], full && 'w-full', className)}
     >
       {Icon && <Icon size={size === 'sm' ? 15 : 17} />}
       {children}
     </button>
   )
+}
+
+/* ---------- PhonePe-like browser demo payment ---------- */
+export function DemoPhonePePayment({ open, amount, title = 'PhonePe demo payment', onClose, onSuccess }) {
+  const [step, setStep] = useState('upi')
+  const [upi, setUpi] = useState('demo.user@upi')
+  const [pin, setPin] = useState('')
+  useEffect(() => { if (open) { setStep('upi'); setPin('') } }, [open])
+  if (!open) return null
+  const proceed = () => { if (/^[\w.-]+@[\w.-]+$/.test(upi.trim())) setStep('pin') }
+  const pay = () => {
+    if (!/^\d{4,6}$/.test(pin)) return
+    setStep('processing')
+    setTimeout(() => { setStep('success'); onSuccess?.({ ref: `PHPE-DEMO-${Date.now().toString().slice(-8)}` }) }, 1600)
+  }
+  return <div className="fixed inset-0 z-[80] grid place-items-center bg-ink-950/65 p-4">
+    <div className="w-full max-w-sm overflow-hidden rounded-[26px] bg-white shadow-2xl ring-1 ring-black/10">
+      <div className="bg-gradient-to-r from-[#5f259f] to-[#7b35c7] px-5 pb-5 pt-4 text-white"><div className="flex items-center justify-between"><div className="flex items-center gap-2.5"><span className="grid size-10 place-items-center rounded-xl bg-white text-xl font-black text-[#5f259f]">पे</span><div><p className="text-base font-black">PhonePe</p><p className="text-[11px] text-white/70">Secure demo checkout</p></div></div>{step !== 'processing' && <button aria-label="Close payment" onClick={onClose} className="rounded-full p-1.5 text-white/80 hover:bg-white/10"><X size={19} /></button>}</div><div className="mt-5 flex items-end justify-between"><div><p className="text-[11px] text-white/70">{title}</p><p className="mt-1 text-2xl font-black">₹{Number(amount || 0).toLocaleString('en-IN')}</p></div><ShieldCheck size={25} className="text-emerald-200" /></div></div>
+      <div className="space-y-4 p-5">
+        {step === 'upi' && <><div><p className="text-sm font-bold text-ink-900">Pay using UPI</p><p className="mt-1 text-xs text-ink-500">Enter a demo UPI ID to continue to PIN verification.</p></div><div className="rounded-2xl border border-violet-200 bg-violet-50 p-4 text-center"><div className="mx-auto grid size-24 place-items-center rounded-xl bg-white text-4xl font-black text-[#5f259f] shadow-sm">⌁</div><p className="mt-2 text-[11px] font-semibold text-violet-800">Scan / enter UPI ID</p></div><label className="block text-xs font-semibold text-ink-700">UPI ID<input value={upi} onChange={(e) => setUpi(e.target.value)} className="mt-1 h-11 w-full rounded-xl bg-ink-50 px-3.5 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-[#5f259f]" placeholder="name@upi" /></label><Button full onClick={proceed}>Continue</Button></>}
+        {step === 'pin' && <><div><p className="text-sm font-bold text-ink-900">Enter UPI PIN</p><p className="mt-1 text-xs text-ink-500">Demo only — use any 4 to 6 digit PIN.</p></div><div className="rounded-2xl bg-ink-50 p-4 text-center"><Smartphone size={25} className="mx-auto text-[#5f259f]" /><p className="mt-2 text-sm font-bold">{upi}</p><p className="mt-1 text-xs text-ink-500">Amount ₹{Number(amount || 0).toLocaleString('en-IN')}</p></div><input autoFocus type="password" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} className="h-14 w-full rounded-xl bg-white text-center text-2xl font-black tracking-[.6em] outline-none ring-2 ring-inset ring-[#5f259f]" placeholder="••••••" aria-label="UPI PIN" /><Button full onClick={pay}>Pay securely</Button><button onClick={() => setStep('upi')} className="w-full text-center text-xs font-bold text-[#5f259f]">Change UPI ID</button></>}
+        {step === 'processing' && <div className="py-8 text-center"><div className="mx-auto size-14 animate-spin rounded-full border-4 border-violet-100 border-t-[#5f259f]" /><p className="mt-5 text-base font-black text-ink-900">Processing payment…</p><p className="mt-1 text-xs text-ink-500">Do not close this window</p></div>}
+        {step === 'success' && <div className="py-5 text-center"><div className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-100 text-emerald-600"><Check size={34} strokeWidth={3} /></div><p className="mt-4 text-xl font-black">Payment successful</p><p className="mt-1 text-sm text-ink-500">Demo transaction completed securely.</p><p className="mt-4 rounded-xl bg-ink-50 p-3 text-xs font-bold text-ink-700">Reference: PHPE-DEMO</p><Button full className="mt-5" onClick={onClose}>Done</Button></div>}
+        <p className="text-center text-[10px] text-ink-400">PhonePe-style UI for demonstration only. No real money is charged.</p>
+      </div>
+    </div>
+  </div>
 }
 export function IconBtn({ children, className, label, ...p }) {
   return (
@@ -122,17 +144,13 @@ export function IconBtn({ children, className, label, ...p }) {
 }
 
 /* ---------- layout ---------- */
-// Desktop theme: pages sit in a centred column on a tinted canvas with a page header (back, title, actions)
-// instead of the phone app bar. wide = 1200px list/dashboard pages, footer pages = 760px forms, others 960px.
-export function Screen({ title, subtitle, back = true, right, children, footer, overlay, pad = true, bg = 'bg-ink-50', headerless, headerClass, wide }) {
+export function Screen({ title, subtitle, back = true, right, children, footer, overlay, pad = true, bg = 'bg-ink-50', headerless, headerClass, scrollClass = '' }) {
   const nav = useNav()
   const [scrolled, setScrolled] = useState(false)
-  const W = wide ? 'md:max-w-[1200px]' : footer ? 'md:max-w-[760px]' : 'md:max-w-[960px]'
   return (
-    <div className="relative flex h-full flex-col bg-white">
+    <div className="vv-screen-layout relative flex h-full flex-col bg-white">
       {!headerless && (
-        <header className={cx('z-10 flex h-14 shrink-0 items-center gap-1 border-b bg-white/95 px-2 backdrop-blur transition-shadow duration-200 md:hidden', scrolled ? 'border-transparent shadow-[0_6px_16px_-8px_rgba(20,40,75,0.28)]' : 'border-ink-100', headerClass)}>
-          <div className="mx-auto flex w-full max-w-[640px] items-center gap-1">
+        <header className={cx('z-10 flex h-14 shrink-0 items-center gap-1 border-b bg-white/95 px-2 backdrop-blur transition-shadow duration-200', scrolled ? 'border-transparent shadow-[0_6px_16px_-8px_rgba(20,40,75,0.28)]' : 'border-ink-100', headerClass)}>
           {back ? (
             <IconBtn label="Back" onClick={nav.back}><ArrowLeft size={21} /></IconBtn>
           ) : <div className="w-2" />}
@@ -140,26 +158,13 @@ export function Screen({ title, subtitle, back = true, right, children, footer, 
             <h1 className="truncate text-[17px] font-bold leading-tight text-ink-900">{title}</h1>
             {subtitle && <p className="truncate text-xs text-ink-500">{subtitle}</p>}
           </div>
-          <div className="flex shrink-0 items-center">{right}</div>
-          </div>
+          <div className="flex items-center">{right}</div>
         </header>
       )}
-      <div onScroll={(e) => { const s = e.currentTarget.scrollTop > 4; if (s !== scrolled) setScrolled(s) }} className={cx('min-h-0 flex-1 overflow-y-auto overscroll-contain overflow-x-hidden scroll-smooth no-scrollbar [overflow-wrap:anywhere]', bg)}>
-        {!headerless && (
-          <div className="hidden border-b border-ink-100 bg-white md:block">
-            <div className={cx('mx-auto flex w-full items-center gap-4 px-8 py-6', W)}>
-              {back && <IconBtn label="Back" onClick={nav.back} className="ring-1 ring-ink-200"><ArrowLeft size={20} /></IconBtn>}
-              <div className="min-w-0 flex-1">
-                <h1 className="truncate text-[28px] font-extrabold leading-tight tracking-tight text-ink-900">{title}</h1>
-                {subtitle && <p className="mt-0.5 truncate text-sm text-ink-500">{subtitle}</p>}
-              </div>
-              <div className="flex shrink-0 items-center gap-2">{right}</div>
-            </div>
-          </div>
-        )}
-        <div className={cx('mx-auto w-full max-w-[640px]', W, pad && 'space-y-4 p-4 md:space-y-6 md:p-8')}>{children}</div>
+      <div onScroll={(e) => { const s = e.currentTarget.scrollTop > 4; if (s !== scrolled) setScrolled(s) }} className={cx('vv-screen-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth no-scrollbar', bg, scrollClass)}>
+        <div className={cx(pad && 'space-y-4 p-4')}>{children}</div>
       </div>
-      {footer && <div className="shrink-0 border-t border-ink-100 bg-white p-3 md:px-8 md:py-4"><div className={cx('mx-auto w-full max-w-[640px]', W)}>{footer}</div></div>}
+      {footer && <div className="shrink-0 border-t border-ink-100 bg-white p-3">{footer}</div>}
       {overlay}
     </div>
   )
@@ -319,55 +324,15 @@ export function Input({ label, hint, error, required, icon: Icon, textarea, rows
     </Field>
   )
 }
-/* Themed dropdown — replaces the OS-styled <select> so every picker matches the app. onChange receives { target: { value } } like a native event. */
-export function Select({ label, hint, error, required, options, value, onChange, placeholder = 'Select…', disabled }) {
-  const [open, setOpen] = useState(false)
-  const [q, setQ] = useState('')
-  const ref = useRef(null)
-  const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o))
-  const cur = opts.find((o) => String(o.value) === String(value))
-  useEffect(() => {
-    if (!open) return
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    document.addEventListener('touchstart', h)
-    return () => { document.removeEventListener('mousedown', h); document.removeEventListener('touchstart', h) }
-  }, [open])
-  useEffect(() => { if (open) ref.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }) }, [open])
-  const shown = q ? opts.filter((o) => String(o.label).toLowerCase().includes(q.toLowerCase())) : opts
-  const pick = (o) => { onChange?.({ target: { value: o.value } }); setOpen(false); setQ('') }
+export function Select({ label, hint, error, required, options, ...p }) {
   return (
-    <div className="block" ref={ref}>
-      {label && <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{label}{required && <span className="text-red-500"> *</span>}</span>}
-      <div className="relative">
-        <button type="button" disabled={disabled} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)} className={cx(fieldBase, 'flex h-12 items-center justify-between gap-2 text-left disabled:opacity-50', open && '!ring-2 !ring-brand-500', error && '!ring-red-400')}>
-          <span className={cx('min-w-0 flex-1 truncate', !cur && 'text-ink-400')}>{cur ? cur.label : placeholder}</span>
-          <ChevronDown size={17} className={cx('shrink-0 text-ink-400 transition-transform', open && 'rotate-180 text-brand-600')} />
-        </button>
-        {open && (
-          <div role="listbox" className="absolute inset-x-0 top-full z-30 mt-1.5 animate-fade-in overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_-12px_rgba(20,40,75,0.35)] ring-1 ring-ink-200">
-            {opts.length > 7 && (
-              <div className="border-b border-ink-100 p-2"><div className="relative"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" /><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="h-9 w-full rounded-lg bg-ink-50 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-brand-500" /></div></div>
-            )}
-            <div className="no-scrollbar max-h-60 overflow-y-auto p-1.5">
-              {shown.map((o) => {
-                const on = String(o.value) === String(value)
-                return (
-                  <button type="button" role="option" aria-selected={on} key={String(o.value)} onClick={() => pick(o)} className={cx('flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm', on ? 'bg-brand-50 font-bold text-brand-800' : 'font-medium text-ink-800 hover:bg-ink-50 active:bg-ink-100')}>
-                    <span className="min-w-0 flex-1">{o.label}</span>{on && <Check size={16} className="shrink-0 text-brand-600" strokeWidth={3} />}
-                  </button>
-                )
-              })}
-              {!shown.length && <p className="px-3 py-4 text-center text-sm text-ink-400">No match</p>}
-            </div>
-          </div>
-        )}
-      </div>
-      {error ? <span className="mt-1 flex items-center gap-1 text-xs font-medium text-red-600"><AlertTriangle size={12} />{error}</span> : hint && <span className="mt-1 block text-xs text-ink-500">{hint}</span>}
-    </div>
+    <Field label={label} hint={hint} error={error} required={required}>
+      <select {...p} className={cx(fieldBase, 'h-12 appearance-none bg-[url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2716%27 height=%2716%27 fill=%27none%27 stroke=%27%238793ab%27 stroke-width=%272.2%27%3E%3Cpath d=%27m3 6 5 5 5-5%27/%3E%3C/svg%3E")] bg-[length:16px] bg-[right_14px_center] bg-no-repeat pr-10', error && '!ring-red-400')}>
+        {options.map((o) => (typeof o === 'string' ? <option key={o} value={o}>{o}</option> : <option key={o.value} value={o.value}>{o.label}</option>))}
+      </select>
+    </Field>
   )
 }
-
 export function Toggle({ on, onChange, label, desc }) {
   return (
     <div className="flex items-center gap-3 py-1">
@@ -497,6 +462,27 @@ export function KV({ rows, className }) {
   )
 }
 
+export function PriceBreakdown({ lines, total, note }) {
+  return (
+    <Card>
+      <p className="mb-3 text-sm font-bold">Price breakdown</p>
+      <div className="space-y-2">
+        {lines.map(([k, v, hint]) => (
+          <div key={k} className="flex justify-between text-sm">
+            <span className="text-ink-500">{k}{hint && <span className="ml-1 text-xs text-ink-400">{hint}</span>}</span>
+            <span className={cx('font-semibold', v === 'FREE' && 'text-emerald-600')}>{typeof v === 'number' ? fmt(v) : v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center justify-between border-t border-dashed border-ink-200 pt-3">
+        <span className="text-sm font-bold">Total payable</span>
+        <span className="text-xl font-extrabold text-brand-700">{fmt(total)}</span>
+      </div>
+      {note && <p className="mt-2 text-xs text-ink-500">{note}</p>}
+    </Card>
+  )
+}
+
 export function DocTile({ name, status = 'pending', note, onAction, actionLabel }) {
   const tone = { verified: 'text-emerald-600 bg-emerald-50', pending: 'text-amber-600 bg-amber-50', rejected: 'text-red-600 bg-red-50', missing: 'text-ink-400 bg-ink-100' }[status]
   return (
@@ -597,139 +583,6 @@ export function Carousel({ children, auto = 0, counter, dotsClass }) {
       <div className={cx('absolute inset-x-0 flex justify-center gap-1.5', dotsClass || 'bottom-3')}>
         {Array.from({ length: n }).map((_, k) => <button key={k} aria-label={`Slide ${k + 1}`} onClick={() => go(k)} className={cx('h-1.5 rounded-full transition-all', k === i ? 'w-5 bg-white' : 'w-1.5 bg-white/50')} />)}
       </div>
-    </div>
-  )
-}
-
-
-/* ---------- spec-driven building blocks ---------- */
-
-/* Missing data is shown transparently (spec §1, §7.4) — never zero, never estimated. */
-export function Missing({ children, className }) {
-  return <span className={cx('inline-flex items-center gap-1 text-[12px] font-medium italic text-ink-400', className)}><CircleHelp size={12} className="shrink-0 not-italic" />{children}</span>
-}
-export const priceText = (l, disp = 'local') => {
-  if (l.priceMin == null) return null
-  const from = l.cur || 'INR'
-  const to = disp === 'local' ? from : disp
-  const f = (n) => fmtC(convert(n, from, to), to)
-  return l.priceMax ? `${f(l.priceMin)} – ${f(l.priceMax)}` : f(l.priceMin)
-}
-export function Price({ l, big, className }) {
-  const { dispCur } = useApp()
-  const p = priceText(l, dispCur)
-  if (!p) return <Missing className={className}>Price not provided</Missing>
-  return (
-    <span className={className}>
-      <span className={cx('font-extrabold text-ink-900', big ? 'text-2xl' : 'text-[15px]')}>{p}</span>
-      <span className="text-xs text-ink-400"> /{l.unit}</span>
-    </span>
-  )
-}
-/* a money amount in its own currency, converted when the user picked a display currency */
-export function Money({ n, cur = 'INR', className }) {
-  const { dispCur } = useApp()
-  const to = dispCur === 'local' ? cur : dispCur
-  return <span className={className}>{fmtC(convert(n, cur, to), to)}</span>
-}
-
-/* MVP / Phase 2 / Phase 3 — every future capability in the mockup is labelled so the roadmap stays honest */
-export function PhaseTag({ p = 'MVP', className }) {
-  const ph = PHASES[p] || PHASES.MVP
-  const tone = { green: 'bg-emerald-100 text-emerald-800', blue: 'bg-sky-100 text-sky-800', purple: 'bg-violet-100 text-violet-800' }[ph.tone]
-  return <span className={cx('inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide', tone, className)}>{ph.label}</span>
-}
-export function PhaseBanner({ p = 'P2', title, children }) {
-  const ph = PHASES[p]
-  return (
-    <div className={cx('flex gap-3 rounded-2xl p-3.5 ring-1 ring-inset', p === 'P2' ? 'bg-sky-50 text-sky-900 ring-sky-200' : 'bg-violet-50 text-violet-900 ring-violet-200')}>
-      <PhaseTag p={p} className="mt-0.5 h-fit shrink-0" />
-      <div className="min-w-0 text-[13px] leading-snug"><p className="font-bold">{title || `${ph.label} — not in the MVP launch`}</p>{children && <div className="mt-0.5 opacity-90">{children}</div>}</div>
-    </div>
-  )
-}
-export function TierBadge({ tier = 0, className }) {
-  const t = TIERS[tier] || TIERS[0]
-  const tone = { gray: 'bg-ink-100 text-ink-600 ring-ink-200', blue: 'bg-sky-50 text-sky-700 ring-sky-200', teal: 'bg-brand-50 text-brand-700 ring-brand-200', green: 'bg-emerald-50 text-emerald-700 ring-emerald-200' }[t.tone]
-  return <span className={cx('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset', tone, className)}><ShieldCheck size={11} />{tier === 0 ? 'Unverified' : `Tier ${tier} · ${t.name}`}</span>
-}
-
-/* Paid visibility must always be labelled (spec §7.2, §11.3). */
-export function SponsoredTag({ className }) {
-  const { t } = useApp()
-  return <span className={cx('inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-amber-800', className)}><Megaphone size={10} />{t('sponsoredLabel')}</span>
-}
-
-/* Countdown chip: tone escalates as a response deadline approaches (spec §8.3). */
-export function Countdown({ mins, label = 'left', className }) {
-  if (mins == null) return null
-  const tone = mins <= 0 ? 'red' : mins < 120 ? 'red' : mins < 360 ? 'amber' : 'blue'
-  const h = Math.floor(Math.abs(mins) / 60), m = Math.abs(mins) % 60
-  const txt = mins <= 0 ? 'Expired' : h >= 24 ? `${Math.floor(h / 24)}d ${h % 24}h ${label}` : h ? `${h}h ${m}m ${label}` : `${m}m ${label}`
-  return <Badge tone={tone} className={className}><Hourglass size={11} />{txt}</Badge>
-}
-
-/* One row of the publication decision (spec §5.3). */
-export function GateRow({ g, last }) {
-  return (
-    <div className={cx('flex gap-3 px-4 py-3', !last && 'border-b border-ink-100')}>
-      <span className={cx('mt-0.5 grid size-6 shrink-0 place-items-center rounded-full', g.ok ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600')}>{g.ok ? <Check size={14} strokeWidth={3} /> : <X size={14} strokeWidth={3} />}</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-bold text-ink-900">{g.label}</p>
-        <p className={cx('text-xs', g.ok ? 'text-ink-500' : 'font-medium text-red-600')}>{g.detail}</p>
-        {!g.ok && g.fix && <p className="mt-0.5 text-xs font-semibold text-brand-700">→ {g.fix}</p>}
-      </div>
-      <span className="shrink-0 self-start rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-bold text-ink-500">{g.who}</span>
-    </div>
-  )
-}
-
-/* Reason capture before any high-impact action (spec §4.3, §13.2). */
-export function ReasonSheet({ open, onClose, title, intro, confirmLabel = 'Confirm', danger, reasons, onConfirm, extra }) {
-  const [r, setR] = useState('')
-  const [note, setNote] = useState('')
-  if (!open) return null
-  const ok = r && (r !== 'Other' || note.trim().length > 4)
-  return (
-    <Sheet open={open} onClose={onClose} title={title} footer={<Button full variant={danger ? 'danger' : 'primary'} disabled={!ok} onClick={() => { onConfirm([r, note].filter(Boolean).join(' — ')); setR(''); setNote('') }}>{confirmLabel}</Button>}>
-      {intro && <p className="text-sm text-ink-600">{intro}</p>}
-      {extra}
-      <div className="space-y-2">
-        {reasons.map((x) => (
-          <button key={x} onClick={() => setR(x)} className={cx('flex w-full items-center gap-3 rounded-xl p-3 text-left text-sm font-semibold ring-1 ring-inset', r === x ? 'bg-brand-50 text-brand-800 ring-2 ring-brand-600' : 'bg-white text-ink-700 ring-ink-200')}>
-            <span className={cx('grid size-5 shrink-0 place-items-center rounded-full ring-1 ring-inset', r === x ? 'bg-brand-600 text-white ring-brand-600' : 'ring-ink-300')}>{r === x && <Check size={12} strokeWidth={3} />}</span>{x}
-          </button>
-        ))}
-      </div>
-      <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Add a note (recorded in the audit trail)" className="w-full resize-none rounded-xl bg-white px-3.5 py-3 text-sm outline-none ring-1 ring-inset ring-ink-200 focus:ring-2 focus:ring-brand-500" />
-      <p className="flex items-center gap-1.5 text-[11px] text-ink-400"><ShieldCheck size={12} />Reason, actor and time are stored in the audit log.</p>
-    </Sheet>
-  )
-}
-
-export function Evidence({ items = [], onAdd }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {items.map((e) => <span key={e} className="flex items-center gap-1.5 rounded-lg bg-ink-100 px-2.5 py-1.5 text-xs font-semibold text-ink-700"><FileText size={13} />{e}</span>)}
-      {onAdd && <button onClick={onAdd} className="flex items-center gap-1.5 rounded-lg border-2 border-dashed border-ink-300 px-2.5 py-1.5 text-xs font-semibold text-ink-500"><Upload size={13} />Add file</button>}
-    </div>
-  )
-}
-
-export function Dot() { return <span className="text-ink-300">·</span> }
-export function Scan({ children = 'Scanned for malware · private to participants' }) {
-  return <p className="flex items-center gap-1.5 text-[11px] text-ink-400"><ShieldAlert size={12} />{children}</p>
-}
-
-export function SkeletonList({ n = 3 }) {
-  return (
-    <div className="space-y-3" aria-busy="true" aria-label="Loading">
-      {Array.from({ length: n }).map((_, i) => (
-        <div key={i} className="flex animate-pulse gap-3 rounded-2xl bg-white p-3 ring-1 ring-ink-100">
-          <div className="size-16 shrink-0 rounded-xl bg-ink-100" />
-          <div className="flex-1 space-y-2 pt-1"><div className="h-3.5 w-3/4 rounded bg-ink-100" /><div className="h-3 w-1/2 rounded bg-ink-100" /><div className="h-3 w-2/3 rounded bg-ink-100" /></div>
-        </div>
-      ))}
     </div>
   )
 }

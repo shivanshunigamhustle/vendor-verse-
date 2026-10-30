@@ -1,11 +1,11 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
-  VENDORS0, LISTINGS0, BOOKINGS0, RFQS0, LEADS0, CASES0, APPEALS0, USERS0, STAFF0, AGENTS0, AUDIT0,
-  NOTIFS0, THREADS0, SETTINGS0, REVIEWS0, SUB_EVENTS, CAMPAIGNS0, ME, ME_C, MY_LOC, isPublished, gatesFor, AGENT_COMM0,
+  VENDORS0, LISTINGS0, ORDERS0, BOOKINGS0, RFQS0, LEADS0, COMMISSIONS0, DISPUTES0, USERS0, AGENTS0, AUDIT0,
+  NOTIFS0, THREADS0, SETTINGS0, REVIEWS0, ME,
 } from './data.jsx'
-import { GEO, CONTRACTS0, PAYMENTS0, PAYOUTS0, COMMISSION0, CAT_REQUESTS0, CUR, TAX0, INVOICES0, REFUNDS0, WALLET0, BANKS0 } from './globaldata.jsx'
-import { ORDERS0, TEAM0, TASKS0, COMPANY0 } from './mvpdata.jsx'
-import { BOOKINGS_EXTRA, RFQS_EXTRA } from './mvpseed.jsx'
+import { CATS } from './data.jsx'
+import { clearState, loadState, saveState } from './services/browserRepository.js'
+import { can, ownsCustomerRecord, ownsVendor } from './services/authorization.js'
 
 const Ctx = createContext(null)
 export const useApp = () => useContext(Ctx)
@@ -17,137 +17,149 @@ export const stamp = () => {
   const m = String(d.getMinutes()).padStart(2, '0')
   return `${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]}, ${String(h).padStart(2, '0')}:${m} ${d.getHours() >= 12 ? 'PM' : 'AM'}`
 }
-export const NOW_LABEL = '19 Oct, 01:25 PM'
 
-/* English / Hindi dictionary (spec §2.1 — launch languages; language-neutral state codes are kept in data) */
+/* Hindi / English dictionary (SRS §4 Localization). Covers navigation + headline strings. */
 const DICT = {
   en: {
-    home: 'Home', explore: 'Explore', activity: 'Activity', messages: 'Messages', profile: 'Profile',
-    dashboard: 'Dashboard', work: 'Work', listings: 'Listings', buy: 'Buy', more: 'More', leads: 'Leads', followups: 'Follow-ups', performance: 'Performance',
-    approvals: 'Queues', users: 'Users', reports: 'Analytics', company: 'Company', services: 'Services', orders: 'Orders',
-    hello: 'Hello', whatNeed: 'Find a trusted vendor near you', searchPh: 'Search services, vendors or a pincode',
-    categories: 'Categories', seeAll: 'See all', featured: 'Verified vendors near you', sponsoredLabel: 'Sponsored',
-    rfqTitle: 'Need a quote for a bigger job?', rfqBody: 'Describe the work once and compare structured quotations from eligible vendors.', rfqCta: 'Request quotation',
-    login: 'Log in', welcomeTitle: 'Every vendor. Every industry. Worldwide.',
-    welcomeBody: 'The global marketplace for every industry — find service providers, suppliers, manufacturers and contractors, then book, request quotes or sign contracts.',
-    browse: 'Browse without login', language: 'Language', logout: 'Log out', book: 'Request booking', rfq: 'Request quote',
-    earnings: 'Earnings', bookings: 'Bookings', quotes: 'Quotes', subscription: 'Subscription', switchVendor: 'Switch to vendor mode', switchCustomer: 'Switch to customer mode',
+    home: 'Home', explore: 'Explore', activity: 'Activity', quotes: 'Quotes', messages: 'Messages', profile: 'Profile',
+    dashboard: 'Dashboard', work: 'Work', listings: 'Listings', more: 'More', leads: 'Leads', followups: 'Follow-ups', earnings: 'Earnings',
+    approvals: 'Approvals', users: 'Users', reports: 'Reports',
+    hello: 'Hello', whatNeed: 'What do you need today?', searchPh: 'Search vendors, products, services',
+    categories: 'Categories', seeAll: 'See all', featured: 'Top verified vendors', popular: 'Popular right now',
+    rfqTitle: 'Need a bulk quote?', rfqBody: 'Post a requirement and get quotations from verified vendors.', rfqCta: 'Request quotation',
+    login: 'Log in', continue: 'Continue', welcomeTitle: 'One marketplace for products, services & quotes',
+    welcomeBody: 'Order products, book services and compare vendor quotations — all in one place.',
+    browse: 'Browse without login', language: 'Language', logout: 'Log out',
+    local: 'Local', nationwide: 'Nationwide', worldwide: 'Worldwide', remote: 'Remote', nearCity: 'Near your city', acrossCountry: 'Across your country', international: 'International suppliers', anywhere: 'Work from anywhere', searchLocation: 'Search location', location: 'Location', allCategories: 'All categories', allResults: 'All results', products: 'Products', services: 'Services', vendors: 'Vendors', clearAll: 'Clear all', noMatches: 'No matches found', requestQuote: 'Request quotation', marketplaceTag: 'A trusted global marketplace', heroTitle: 'Find the right vendor. Get work moving.', heroBody: 'Discover verified suppliers and service professionals, compare quotations, and talk directly to the people who can help.', searchMarketplace: 'Search marketplace', browseNeed: 'Browse by need', exploreCategories: 'Explore categories', featuredVendors: 'Featured verified vendors', browseVendors: 'Browse vendors', popularProducts: 'Products and services', viewMarketplace: 'View marketplace', universalTitle: 'Find the right kind of partner', universalBody: 'Services, products, sourcing and recurring business relationships in one place.', discoveryTitle: 'Choose how far you want to search', discoveryBody: 'Change location here on Home. Currency updates automatically when the country changes.', progressTitle: 'No confusing dead ends', progressEyebrow: 'Clear progress, at every step', businessBuying: 'Business buying', compareQuotes: 'Compare quotations', scheduled: 'Scheduled', instant: 'Instant', vendorSourcing: 'Vendor-to-vendor sourcing', statusLoading: 'Loading', statusNoMatch: 'No match yet', statusAttention: 'Needs attention', statusReview: 'In review', statusCompleted: 'Completed', statusProtected: 'Protected', globalPicks: 'GLOBAL PICKS', popularWorldwide: 'Popular worldwide', exploreAll: 'Explore all listings', verifiedQuality: 'Chosen for quality', evidenceVerified: 'Verified before they are featured', directConversations: 'Direct conversations', evidenceBased: 'Evidence-based verification', changeLocationHome: 'Change location here on Home. Other pages keep this selection read-only.', locationSearchLabel: 'Search by location', homeSearchPlaceholder: 'Try electrical supplies or home cleaning', statusLoadingBody: 'We are finding matching vendors and will keep your request visible.', statusNoMatchBody: 'No quotes received? Expand coverage or refine the requirement.', statusAttentionBody: 'Rejected, expired, cancelled or payment-failed items show the next action clearly.', statusReviewBody: 'Documents and complaints show who is reviewing them.', statusCompletedBody: 'Eligible completed orders unlock reviews and tax invoice details.', statusProtectedBody: 'Disputes, refunds and settlements remain linked to the order.',
   },
   hi: {
+    local: 'स्थानीय', nationwide: 'देशव्यापी', worldwide: 'विश्वव्यापी', remote: 'रिमोट', nearCity: 'आपके शहर के पास', acrossCountry: 'पूरे देश में', international: 'अंतरराष्ट्रीय आपूर्तिकर्ता', anywhere: 'कहीं से भी काम', searchLocation: 'स्थान खोजें', location: 'स्थान', allCategories: 'सभी श्रेणियां', allResults: 'सभी परिणाम', products: 'उत्पाद', services: 'सेवाएं', vendors: 'वेंडर', clearAll: 'सभी हटाएं', noMatches: 'कोई मिलान नहीं मिला', requestQuote: 'कोटेशन मांगें', marketplaceTag: 'एक विश्वसनीय वैश्विक मार्केटप्लेस', heroTitle: 'सही वेंडर खोजें। काम शुरू करें।', heroBody: 'सत्यापित आपूर्तिकर्ताओं और सेवा विशेषज्ञों को खोजें, कोटेशन की तुलना करें और सीधे बात करें।', searchMarketplace: 'मार्केटप्लेस खोजें', browseNeed: 'ज़रूरत के अनुसार खोजें', exploreCategories: 'श्रेणियां देखें', featuredVendors: 'सत्यापित वेंडर', browseVendors: 'वेंडर देखें', popularProducts: 'उत्पाद और सेवाएं', viewMarketplace: 'मार्केटप्लेस देखें', universalTitle: 'सही भागीदार खोजें', universalBody: 'सेवाएं, उत्पाद, सोर्सिंग और नियमित व्यावसायिक संबंध एक ही जगह।', discoveryTitle: 'खोज का दायरा चुनें', discoveryBody: 'स्थान बदलने पर मुद्रा अपने आप अपडेट होगी।', progressTitle: 'कोई भ्रम नहीं', progressEyebrow: 'हर चरण में स्पष्ट प्रगति', businessBuying: 'व्यावसायिक खरीद', compareQuotes: 'कोटेशन की तुलना', scheduled: 'निर्धारित', instant: 'तुरंत', vendorSourcing: 'वेंडर से वेंडर सोर्सिंग', statusLoading: 'लोड हो रहा है', statusNoMatch: 'अभी कोई मिलान नहीं', statusAttention: 'ध्यान आवश्यक', statusReview: 'समीक्षा में', statusCompleted: 'पूरा हुआ', statusProtected: 'सुरक्षित', globalPicks: 'वैश्विक चयन', popularWorldwide: 'दुनियाभर में लोकप्रिय', exploreAll: 'सभी लिस्टिंग देखें', verifiedQuality: 'गुणवत्ता के लिए चुने गए', evidenceVerified: 'फीचर करने से पहले सत्यापित', directConversations: 'सीधी बातचीत', evidenceBased: 'दस्तावेज़ आधारित सत्यापन', changeLocationHome: 'स्थान बदलने के लिए होम का उपयोग करें।', locationSearchLabel: 'स्थान के अनुसार खोजें', homeSearchPlaceholder: 'इलेक्ट्रिकल सप्लाई या होम क्लीनिंग खोजें', statusLoadingBody: 'हम सही वेंडर खोज रहे हैं और आपका अनुरोध दिखाई देता रहेगा।', statusNoMatchBody: 'कोटेशन नहीं मिला? दायरा बढ़ाएं या आवश्यकता बदलें।', statusAttentionBody: 'अस्वीकृत, समाप्त, रद्द या भुगतान-विफल आइटम में अगला कदम दिखेगा।', statusReviewBody: 'दस्तावेज़ और शिकायतों की समीक्षा की स्थिति दिखाई देगी।', statusCompletedBody: 'पूरे हुए ऑर्डर के बाद रिव्यू और टैक्स इनवॉइस उपलब्ध होंगे।', statusProtectedBody: 'विवाद, रिफंड और सेटलमेंट ऑर्डर से जुड़े रहेंगे।',
     home: 'होम', explore: 'खोजें', activity: 'गतिविधि', messages: 'संदेश', profile: 'प्रोफ़ाइल',
-    dashboard: 'डैशबोर्ड', work: 'काम', listings: 'लिस्टिंग', buy: 'खरीदें', more: 'और', leads: 'लीड्स', followups: 'फॉलो-अप', performance: 'प्रदर्शन',
-    approvals: 'कतारें', users: 'यूज़र', reports: 'एनालिटिक्स', company: 'कंपनी', services: 'सेवाएँ', orders: 'ऑर्डर',
-    hello: 'नमस्ते', whatNeed: 'अपने पास भरोसेमंद वेंडर खोजें', searchPh: 'सेवा, वेंडर या पिनकोड खोजें',
-    categories: 'श्रेणियां', seeAll: 'सभी देखें', featured: 'आपके पास सत्यापित वेंडर', sponsoredLabel: 'प्रायोजित',
-    rfqTitle: 'बड़े काम के लिए कोटेशन चाहिए?', rfqBody: 'काम एक बार बताएं और योग्य वेंडर के कोटेशन की तुलना करें।', rfqCta: 'कोटेशन माँगें',
-    login: 'लॉग इन', welcomeTitle: 'हर वेंडर। हर उद्योग। पूरी दुनिया।',
-    welcomeBody: 'हर उद्योग के लिए वैश्विक मार्केटप्लेस — सेवा प्रदाता, सप्लायर, निर्माता और ठेकेदार खोजें; बुक करें, कोटेशन माँगें या अनुबंध करें।',
-    browse: 'बिना लॉगिन के देखें', language: 'भाषा', logout: 'लॉग आउट', book: 'बुकिंग माँगें', rfq: 'कोटेशन माँगें',
-    earnings: 'कमाई', bookings: 'बुकिंग', quotes: 'कोटेशन', subscription: 'सब्सक्रिप्शन', switchVendor: 'वेंडर मोड में जाएं', switchCustomer: 'ग्राहक मोड में जाएं',
+    dashboard: 'डैशबोर्ड', work: 'काम', listings: 'लिस्टिंग', more: 'और', leads: 'लीड्स', followups: 'फॉलो-अप', earnings: 'कमाई',
+    approvals: 'अनुमोदन', users: 'यूज़र', reports: 'रिपोर्ट',
+    hello: 'नमस्ते', whatNeed: 'आज आपको क्या चाहिए?', searchPh: 'वेंडर, प्रोडक्ट, सेवाएं खोजें',
+    categories: 'श्रेणियां', seeAll: 'सभी देखें', featured: 'शीर्ष सत्यापित वेंडर', popular: 'अभी लोकप्रिय',
+    rfqTitle: 'थोक में कोटेशन चाहिए?', rfqBody: 'अपनी ज़रूरत पोस्ट करें और सत्यापित वेंडर से कोटेशन पाएं।', rfqCta: 'कोटेशन माँगें',
+    login: 'लॉग इन', continue: 'आगे बढ़ें', welcomeTitle: 'प्रोडक्ट, सेवाएं और कोटेशन — एक ही मार्केटप्लेस',
+    welcomeBody: 'प्रोडक्ट ऑर्डर करें, सेवाएं बुक करें और वेंडर कोटेशन की तुलना करें।',
+    browse: 'बिना लॉगिन के देखें', language: 'भाषा', logout: 'लॉग आउट',
   },
 }
-/* Hindi labels for the state codes shown in badges (codes themselves stay language-neutral) */
-export const STATE_HI = {
-  requested: 'अनुरोध भेजा', confirmed: 'पुष्टि हुई', declined: 'अस्वीकृत', expired: 'समय समाप्त', in_progress: 'जारी है', awaiting: 'पुष्टि की प्रतीक्षा', closed: 'बंद', cancelled: 'रद्द',
-  open: 'खुला', accepted: 'स्वीकृत', approved: 'स्वीकृत', rejected: 'अस्वीकृत', pending: 'लंबित',
+
+export const COUNTRY_SETTINGS = {
+  India: { country: 'IN', currency: 'INR', timeZone: 'Asia/Kolkata' },
+  'United Arab Emirates': { country: 'AE', currency: 'AED', timeZone: 'Asia/Dubai' },
+  'United Kingdom': { country: 'GB', currency: 'GBP', timeZone: 'Europe/London' },
+  'United States': { country: 'US', currency: 'USD', timeZone: 'America/New_York' },
+  Germany: { country: 'DE', currency: 'EUR', timeZone: 'Europe/Berlin' },
+  China: { country: 'CN', currency: 'CNY', timeZone: 'Asia/Shanghai' },
+}
+
+export const LOCATION_PRESETS = {
+  India: { state: 'Rajasthan', city: 'Jaipur' },
+  'United Arab Emirates': { state: 'Dubai', city: 'Dubai' },
+  'United Kingdom': { state: 'England', city: 'London' },
+  'United States': { state: 'New York', city: 'New York' },
+  Germany: { state: 'Bavaria', city: 'Munich' },
+  China: { state: 'Guangdong', city: 'Shenzhen' },
+}
+
+const normalizeLocale = (value) => {
+  const l = value || {}
+  const preset = LOCATION_PRESETS[l.countryName] || LOCATION_PRESETS.India
+  const states = ['Rajasthan', 'Delhi', 'Maharashtra', 'Dubai', 'England', 'New York', 'Bavaria', 'Guangdong']
+  const cities = ['Jaipur', 'Delhi', 'Mumbai', 'Dubai', 'London', 'New York', 'Munich', 'Berlin', 'Shenzhen', 'Shanghai', 'Bengaluru']
+  return l.countryName && l.countryName !== 'India' && (states.includes(l.state) || cities.includes(l.city)) ? { ...l, ...preset } : l
 }
 
 export function AppProvider({ children, initialMe }) {
-  const [me, setMe] = useState(initialMe || { role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '', hasVendor: true, bizId: null })
-  const [lang, setLang] = useState('en')
-  const [loc, setLoc] = useState(MY_LOC)
-  const [vendors, setVendors] = useState(VENDORS0)
-  const [listings, setListings] = useState(LISTINGS0)
-  const [bookings, setBookings] = useState([...BOOKINGS0, ...BOOKINGS_EXTRA, { id: 'BKG-2095', listingId: 'l19', vendorId: 'v12', customer: 'Rakesh Sharma', date: '23 Oct 2026', slot: '11:00 AM', tz: 'IST', addr: 'Video consult', notes: 'GST notice reply for my firm.', state: 'confirmed', price: 'From ₹1,500 per month', policy: 'standard', req: 'REQ-80', history: [{ s: 'requested', at: '18 Oct, 05:00 PM', by: 'Rakesh Sharma' }, { s: 'confirmed', at: '18 Oct, 06:10 PM', by: 'Mehra & Associates (CA)' }] }])
-  const [rfqs, setRfqs] = useState([...RFQS0, ...RFQS_EXTRA])
-  const [leads, setLeads] = useState(LEADS0)
-  const [cases, setCases] = useState(CASES0)
-  const [appeals, setAppeals] = useState(APPEALS0)
-  const [users, setUsers] = useState(USERS0)
-  const [staff, setStaff] = useState(STAFF0)
-  const [agents, setAgents] = useState(AGENTS0)
-  const [audit, setAudit] = useState(AUDIT0)
-  const [notifs, setNotifs] = useState(NOTIFS0)
-  const [threads, setThreads] = useState({ ...THREADS0, customer: [...THREADS0.customer.map((t) => ({ owner: ME_C, ...t })), { id: 't9', owner: 'Rakesh Sharma', name: 'Mehra & Associates (CA)', vendorId: 'v12', link: { type: 'booking', id: 'BKG-2095', label: 'Booking BKG-2095' }, listingId: 'l19', unread: 0, contact: false, msgs: [{ f: 'them', t: 'Confirmed for 23 Oct, 11 AM on video. Please keep the notice copy ready.', at: '18 Oct' }] }] })
-  const [settings, setSettings] = useState(SETTINGS0)
-  const [reviews, setReviews] = useState(REVIEWS0)
-  const [subEvents, setSubEvents] = useState(SUB_EVENTS)
-  const [campaigns, setCampaigns] = useState(CAMPAIGNS0)
-  const [saved, setSaved] = useState(['v2', 'v20', 'v12'])
-  const [compare, setCompare] = useState([])
+  const seed = useMemo(() => ({
+    me: { role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest', accountState: 'active', buyerMode: false },
+    customCategories: [],
+    categoryOverrides: {},
+    industries: ['Construction & Infrastructure', 'Electrical & Energy', 'Office & Technology', 'Home & Facilities', 'Food & Events', 'Professional Services'],
+    lang: 'en', locale: { country: 'IN', countryName: 'India', state: 'Rajasthan', city: 'Jaipur', currency: 'INR', timeZone: 'Asia/Kolkata', coverage: 'local' }, vendors: VENDORS0, listings: LISTINGS0, orders: ORDERS0,
+    bookings: BOOKINGS0, rfqs: RFQS0, leads: LEADS0, commissions: COMMISSIONS0, disputes: DISPUTES0, users: USERS0, agents: AGENTS0,
+    audit: AUDIT0, notifs: NOTIFS0, threads: THREADS0, settings: SETTINGS0, reviews: REVIEWS0, saved: ['l3', 'l11', 'v7'], compare: [],
+    reviewed: [], prefs: { orders: true, bookings: true, quotes: true, promos: false, quiet: false },
+  }), [])
+  const restored = useMemo(() => loadState(seed), [seed])
+  const [me, setMe] = useState(initialMe || restored.me)
+  const [lang, setLang] = useState(restored.lang)
+  const [locale, setLocale] = useState(() => normalizeLocale(restored.locale))
+  const [vendors, setVendors] = useState(restored.vendors)
+  const [listings, setListings] = useState(restored.listings)
+  const [orders, setOrders] = useState(restored.orders)
+  const [bookings, setBookings] = useState(restored.bookings)
+  const [rfqs, setRfqs] = useState(restored.rfqs)
+  const [leads, setLeads] = useState(restored.leads)
+  const [commissions, setCommissions] = useState(restored.commissions)
+  const [disputes, setDisputes] = useState(restored.disputes)
+  const [users, setUsers] = useState(restored.users)
+  const [agents, setAgents] = useState(restored.agents)
+  const [audit, setAudit] = useState(restored.audit)
+  const [notifs, setNotifs] = useState(restored.notifs)
+  const [threads, setThreads] = useState(restored.threads)
+  const [settings, setSettings] = useState(restored.settings)
+  const [reviews, setReviews] = useState(restored.reviews)
+  const [saved, setSaved] = useState(restored.saved)
+  const [compare, setCompare] = useState(restored.compare)
   const [toastMsg, setToast] = useState(null)
-  const [reviewed, setReviewed] = useState([])
-  const [prefs, setPrefs] = useState({ booking: true, rfq: true, messages: true, saved: true, promos: false })
-  const [contactShare, setContactShare] = useState({ t5: true })
-  const [deletion, setDeletion] = useState(null)
-  const [geo, setGeo] = useState(GEO)
-  const [contracts, setContracts] = useState(CONTRACTS0)
-  const [payments, setPayments] = useState(PAYMENTS0)
-  const [payouts, setPayouts] = useState(PAYOUTS0)
-  const [commission, setCommission] = useState(COMMISSION0)
-  const [catRequests, setCatRequests] = useState(CAT_REQUESTS0)
-  const [waitlist, setWaitlist] = useState([])
-  const [dispCur, setDispCur] = useState('local')
-  const [customCats, setCustomCats] = useState([])
-  const [taxes, setTaxes] = useState(TAX0)
-  const [orders, setOrders] = useState(ORDERS0)
-  const [team, setTeam] = useState(TEAM0)
-  const [companies, setCompanies] = useState(COMPANY0)
-  const [tasks, setTasks] = useState(TASKS0)
-  const [journey, setJourney] = useState(null)
-  const [catsVer, setCatsVer] = useState(0)
-  const [invoices, setInvoices] = useState(INVOICES0)
-  const [refunds, setRefunds] = useState(REFUNDS0)
-  const [wallet, setWallet] = useState(WALLET0)
-  const [banks, setBanks] = useState(BANKS0)
-  const [agentComm, setAgentComm] = useState(AGENT_COMM0)
+  const [reviewed, setReviewed] = useState(restored.reviewed)
+  const [prefs, setPrefs] = useState(restored.prefs)
+  const [customCategories, setCustomCategories] = useState(restored.customCategories || [])
+  const [categoryOverrides, setCategoryOverrides] = useState(restored.categoryOverrides || {})
+  const [industries, setIndustries] = useState(restored.industries || [])
+
+  useEffect(() => {
+    saveState({ me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs, customCategories, categoryOverrides, industries })
+  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, reviewed, prefs, customCategories, categoryOverrides, industries])
 
   const toast = useCallback((msg, tone = 'ok') => {
     const id = Date.now()
     setToast({ msg, tone, id })
-    setTimeout(() => setToast((t) => (t && t.id === id ? null : t)), 2800)
+    setTimeout(() => setToast((t) => (t && t.id === id ? null : t)), 2600)
   }, [])
 
-  const addAudit = useCallback((action, target, kind = 'enforcement', reason = '', actor = ME.admin) => {
-    setAudit((a) => [{ id: 'a' + Date.now() + Math.random(), actor, action, target, at: stamp(), kind, reason, corr: 'c-' + Math.random().toString(16).slice(2, 6) }, ...a])
+  const addAudit = useCallback((action, target, kind = 'approval', note) => {
+    setAudit((a) => [{ id: 'a' + Date.now() + Math.random(), actor: ME.admin, action, target, at: stamp(), kind, note }, ...a])
   }, [])
-  const notify = useCallback((role, title, body, type = 'booking', to) => {
-    setNotifs((n) => ({ ...n, [role]: [{ id: 'n' + Date.now() + Math.random(), type, title, body, time: 'Just now', read: false, to }, ...(n[role] || [])] }))
+  const notify = useCallback((role, title, body, type = 'order') => {
+    setNotifs((n) => ({ ...n, [role]: [{ id: 'n' + Date.now() + Math.random(), type, title, body, time: 'Just now', read: false }, ...n[role]] }))
   }, [])
   const patch = useCallback((setter) => (id, changes) => setter((l) => l.map((x) => (x.id === id ? { ...x, ...(typeof changes === 'function' ? changes(x) : changes) } : x))), [])
 
   const api = useMemo(() => {
     const t = (k) => DICT[lang][k] ?? DICT.en[k] ?? k
     const vendor = (id) => vendors.find((v) => v.id === id)
-    const isVerified = (id) => vendor(id)?.ver === 'approved' && !vendor(id)?.docs.some((d) => d.status === 'expired')
-    const published = (l) => isPublished(l, vendor(l.vendorId))
-    const gates = (l) => gatesFor(l, vendor(l.vendorId))
-    const mine = me.role === 'vendor' ? listings.filter((l) => l.vendorId === me.vendorId) : []
+    const isVerified = (id) => vendor(id)?.status === 'approved'
     return {
-      me, setMe, lang, setLang, t, toast, toastMsg, addAudit, notify, loc, setLoc,
+      me, setMe, lang, setLang, locale, setLocale, t, toast, toastMsg, addAudit, notify,
       vendors, setVendors, vendor, isVerified, patchVendor: patch(setVendors),
-      listings, setListings, patchListing: patch(setListings), published, gates, mine,
+      listings, setListings, patchListing: patch(setListings),
+      orders, setOrders, patchOrder: patch(setOrders),
       bookings, setBookings, patchBooking: patch(setBookings),
       rfqs, setRfqs, patchRfq: patch(setRfqs),
       leads, setLeads, patchLead: patch(setLeads),
-      cases, setCases, patchCase: patch(setCases), appeals, setAppeals, patchAppeal: patch(setAppeals),
-      users, setUsers, patchUser: patch(setUsers), staff, setStaff, agents, setAgents,
-      audit, notifs, setNotifs, threads, setThreads, settings, setSettings,
-      reviews, setReviews, reviewed, setReviewed, subEvents, setSubEvents, campaigns, setCampaigns, patchCampaign: patch(setCampaigns),
-      saved, setSaved, compare, setCompare, prefs, setPrefs, contactShare, setContactShare, deletion, setDeletion,
+      commissions, setCommissions, patchCommission: patch(setCommissions),
+      disputes, setDisputes, patchDispute: patch(setDisputes),
+      users, setUsers, patchUser: patch(setUsers),
+      agents, setAgents,
+      audit, notifs, setNotifs, threads, setThreads,
+      settings, setSettings, reviews, setReviews, reviewed, setReviewed,
+      categories: [...CATS.map((c) => ({ ...c, ...(categoryOverrides[c.id] || {}) })), ...customCategories.map((c) => ({ ...c, icon: CATS[0].icon }))], customCategories, setCustomCategories, categoryOverrides, setCategoryOverrides,
+      industries, setIndustries,
+      saved, setSaved, compare, setCompare, prefs, setPrefs,
       toggleSaved: (id) => setSaved((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])),
       toggleCompare: (id) => setCompare((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? c : [...c, id])),
+      can: (permission) => can(me, permission),
+      ownsVendor: (vendorId) => ownsVendor(me, vendorId),
+      ownsCustomerRecord: (record) => ownsCustomerRecord(me, record),
+      resetWorkspace: () => { clearState(); window.location.reload() },
       stamp,
-      agentComm, setAgentComm, patchAgentComm: patch(setAgentComm),
-      orders, setOrders, patchOrder: patch(setOrders), companies, setCompanies, saveCompany: (id, ch) => setCompanies((c) => ({ ...c, [id]: { ...(c[id] || { id }), ...ch } })), team, setTeam, tasks, setTasks, patchTask: patch(setTasks), journey, setJourney, catsVer, touchCats: () => setCatsVer((v) => v + 1),
-      taxes, setTaxes, invoices, setInvoices, refunds, setRefunds, patchRefund: patch(setRefunds), wallet, setWallet, banks, setBanks, patchBank: patch(setBanks),
-      geo, setGeo, contracts, setContracts, patchContract: patch(setContracts), payments, setPayments, payouts, setPayouts, commission, setCommission, catRequests, setCatRequests, patchCatRequest: patch(setCatRequests), waitlist, setWaitlist, dispCur, setDispCur, customCats, setCustomCats,
-      /* Simulated billing-provider callbacks: every change recomputes publication for all of the vendor's listings */
-      setSubStatus: (vendorId, status, extra = {}) => {
-        setVendors((vs) => vs.map((v) => (v.id === vendorId ? { ...v, sub: { ...v.sub, status, ...extra } } : v)))
-      },
     }
-  }, [agentComm, me, lang, loc, vendors, listings, bookings, rfqs, leads, cases, appeals, users, staff, agents, audit, notifs, threads, settings, reviews, reviewed, subEvents, campaigns, saved, compare, toastMsg, prefs, contactShare, deletion, geo, contracts, payments, payouts, commission, catRequests, waitlist, dispCur, customCats, orders, companies, team, tasks, journey, catsVer, taxes, invoices, refunds, wallet, banks, toast, addAudit, notify, patch])
+  }, [me, lang, locale, vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, reviewed, saved, compare, toastMsg, prefs, categoryOverrides, industries, toast, addAudit, notify, patch])
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }
+

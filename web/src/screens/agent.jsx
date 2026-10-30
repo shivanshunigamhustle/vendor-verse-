@@ -1,17 +1,16 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import {
   Users, Phone, MessageSquare, MapPin, Plus, CalendarClock, ChevronRight, Check, Store, User, Wallet, ShieldCheck, Lock, FileText, Clock,
-  TrendingUp, LogOut, Globe, Bell, Flag, Upload, Target, BadgeCheck, AlertTriangle, Search, ArrowDown, ArrowRight, List, Columns3,
+  TrendingUp, LogOut, Globe, Bell, Flag, Upload, Target, BadgeCheck, AlertTriangle, Search, ArrowDown, ArrowRight, List, Columns3, Trash2,
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
-import { STAGES, STAGE_TONE, cat, CATS, liveCats, CITIES } from '../data.jsx'
+import { STAGES, STAGE_TONE, cat, CATS } from '../data.jsx'
 import {
-  Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Badge, Banner, EmptyState, Stat, KV, fmt, cx,
+  Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Badge, Banner, EmptyState, Stat, KV, fmt, cx, BarChart,
   Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar, DocTile, Stepper, HBar, Checkbox, SearchBar, SOFT,
 } from '../ui.jsx'
-import { NotifBell, LangButton } from './shared.jsx'
-import { Logo } from './auth.jsx'
+import { NotifBell } from './shared.jsx'
 
 const parseD = (s) => (s ? new Date(s) : null)
 const TODAY = new Date('19 Oct 2026')
@@ -37,10 +36,10 @@ function LeadCard({ l, onClick }) {
   return (
     <Card onClick={onClick} className="!p-3.5">
       <div className="flex items-start gap-3">
-        <div className="relative"><Thumb tone={cat(l.cat).tone} icon={Store} size={46} round="rounded-xl" /><span className={cx('absolute -right-0.5 -top-0.5 size-3 rounded-full ring-2 ring-white', PRIORITY[l.priority])} /></div>
+        <div className="relative"><Thumb tone={cat(l.cat).tone} icon={l.type === 'vendor' ? Store : User} size={46} round="rounded-xl" /><span className={cx('absolute -right-0.5 -top-0.5 size-3 rounded-full ring-2 ring-white', PRIORITY[l.priority])} /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-bold">{l.name}</p><StageBadge s={l.stage} /></div>
-          <p className="mt-0.5 truncate text-xs text-ink-500">Prospective vendor · {cat(l.cat).name} · {l.city}</p>
+          <p className="mt-0.5 truncate text-xs text-ink-500">{l.type === 'vendor' ? 'Vendor' : 'Customer'} · {cat(l.cat).name} · {l.city}</p>
           {l.next?.date && <p className={cx('mt-1.5 flex items-center gap-1 text-xs font-semibold', k === 'overdue' ? 'text-red-600' : k === 'today' ? 'text-amber-600' : 'text-ink-500')}><CalendarClock size={12} />{k === 'today' ? 'Today' : l.next.date} · {l.next.action}</p>}
         </div>
       </div>
@@ -49,23 +48,22 @@ function LeadCard({ l, onClick }) {
 }
 
 /* ================= PIPELINE VISUALS ================= */
-const MAIN = STAGES.slice(0, 7)
-const LOCKED = ['Approved', 'Subscribed']   // set by Super Admin approval / billing — never by an agent
-const SHORT = ['New', 'Contacted', 'Interested', 'Reg. started', 'Submitted', 'Approved', 'Subscribed']
-const FUNNEL = ['from-sky-500 to-sky-400', 'from-violet-500 to-violet-400', 'from-amber-500 to-amber-400', 'from-orange-500 to-orange-400', 'from-brand-600 to-brand-500', 'from-teal-600 to-teal-500', 'from-emerald-600 to-emerald-500']
+const MAIN = STAGES.slice(0, 6)
+const SHORT = ['New', 'Contacted', 'Interested', 'Reg. started', 'Submitted', 'Converted']
+const FUNNEL = ['from-sky-500 to-sky-400', 'from-violet-500 to-violet-400', 'from-amber-500 to-amber-400', 'from-orange-500 to-orange-400', 'from-brand-600 to-brand-500', 'from-emerald-600 to-emerald-500']
 
 export function PipelineFunnel({ leads, onPick }) {
   const cum = MAIN.map((_, i) => leads.filter((l) => MAIN.indexOf(l.stage) >= i).length)
   const cur = MAIN.map((s) => leads.filter((l) => l.stage === s).length)
   const base = cum[0] || 1
-  const win = leads.length ? Math.round((cum[6] / leads.length) * 100) : 0
+  const win = leads.length ? Math.round((cum[5] / leads.length) * 100) : 0
   const lost = leads.filter((l) => l.stage === 'Lost').length
   const idle = leads.filter((l) => l.stage === 'Inactive').length
   return (
     <Card className="!p-4">
       <div className="flex items-end justify-between">
         <div><p className="text-2xl font-extrabold leading-none">{leads.length}<span className="ml-1.5 text-sm font-semibold text-ink-400">leads</span></p><p className="mt-1 text-xs text-ink-500">{cum[0]} in active pipeline</p></div>
-        <div className="text-right"><p className="text-2xl font-extrabold leading-none text-emerald-600">{win}%</p><p className="mt-1 text-xs text-ink-500">subscribed</p></div>
+        <div className="text-right"><p className="text-2xl font-extrabold leading-none text-emerald-600">{win}%</p><p className="mt-1 text-xs text-ink-500">overall conversion</p></div>
       </div>
       <div className="mt-4">
         {MAIN.map((s, i) => (
@@ -102,9 +100,9 @@ export function StageTracker({ stage }) {
       <div className="flex items-center justify-between"><p className="text-sm font-bold">Pipeline stage</p>{off && <StageBadge s={stage} />}</div>
       <div className={cx('relative mt-4 flex justify-between', off && 'opacity-40')}>
         <div className="absolute left-3 right-3 top-3 h-0.5 bg-ink-200" />
-        <div className="absolute left-3 top-3 h-0.5 bg-brand-500 transition-all" style={{ width: `calc((100% - 24px) * ${Math.max(idx, 0) / 6})` }} />
+        <div className="absolute left-3 top-3 h-0.5 bg-brand-500 transition-all" style={{ width: `calc((100% - 24px) * ${Math.max(idx, 0) / 5})` }} />
         {MAIN.map((s, i) => (
-          <div key={s} className="relative z-10 flex w-11 flex-col items-center gap-1.5">
+          <div key={s} className="relative z-10 flex w-12 flex-col items-center gap-1.5">
             <span className={cx('grid size-6 place-items-center rounded-full text-[10px] font-extrabold ring-4 ring-white', i < idx ? 'bg-brand-600 text-white' : i === idx ? 'bg-brand-600 text-white shadow-[0_0_0_4px_rgba(0,133,124,0.2)]' : 'bg-ink-200 text-ink-400')}>{i < idx ? <Check size={12} strokeWidth={3} /> : i + 1}</span>
             <span className={cx('text-center text-[9.5px] font-semibold leading-tight', i === idx ? 'text-brand-700' : 'text-ink-400')}>{SHORT[i]}</span>
           </div>
@@ -117,25 +115,26 @@ export function StageTracker({ stage }) {
 /* ================= HOME ================= */
 export function AgentHome() {
   const nav = useNav()
-  const { leads, me, t, vendors } = useApp()
+  const { leads, commissions, me, t } = useApp()
   const today = leads.filter((l) => dueKind(l.next?.date) === 'today' || dueKind(l.next?.date) === 'overdue')
-  const active = leads.filter((l) => !['Lost', 'Inactive', 'Subscribed'].includes(l.stage))
-  const conv = leads.filter((l) => l.stage === 'Subscribed').length
-  const atRisk = leads.filter((l) => l.vendorId && ['grace', 'expired'].includes(vendors.find((v) => v.id === l.vendorId)?.sub.status)).length
+  const active = leads.filter((l) => !['Lost', 'Inactive', 'Approved/Converted'].includes(l.stage))
+  const conv = leads.filter((l) => l.stage === 'Approved/Converted').length
+  const pend = commissions.filter((c) => ['pending', 'awaiting', 'approved'].includes(c.status)).reduce((s, c) => s + c.amount, 0)
   return (
     <Screen headerless pad={false}>
       <div className="bg-gradient-to-b from-brand-700 to-brand-600 px-4 pb-14 pt-3 text-white">
-        <div className="mb-3 flex items-center gap-2"><Logo size={28} light /><span className="text-sm font-extrabold tracking-tight">VendorVerse</span></div>
         <div className="flex items-center justify-between"><div><p className="text-sm text-white/75">{t('hello')},</p><h1 className="text-xl font-extrabold">{(me.name || 'Neha Verma').split(' ')[0]} 👋</h1></div><div className="[&_button]:text-white [&_button:hover]:bg-white/15 [&_span]:ring-brand-700"><NotifBell role="agent" /></div></div>
       </div>
       <div className="-mt-10 space-y-4 px-4 pb-6">
-        <div className="grid grid-cols-2 gap-3"><Stat label="Active leads" value={active.length} icon={Users} tone="sky" onClick={() => nav.go('a_leads')} /><Stat label="Follow-ups due" value={today.length} icon={CalendarClock} tone="amber" onClick={() => nav.go('a_followups')} /><Stat label="Subscribed" value={conv} icon={BadgeCheck} tone="emerald" onClick={() => nav.go('a_perf')} /><Stat label="Renewals at risk" value={atRisk} icon={AlertTriangle} tone="rose" onClick={() => nav.go('a_perf')} /></div>
-        <Banner tone="blue" title="What you can see">Only your assigned leads and their onboarding status. No customer bookings, private chats or verification decisions.</Banner>
+        <div className="grid grid-cols-2 gap-3"><Stat label="Active leads" value={active.length} icon={Users} tone="sky" onClick={() => nav.go('a_leads')} /><Stat label="Follow-ups due" value={today.length} icon={CalendarClock} tone="amber" onClick={() => nav.go('a_followups')} /><Stat label="Converted" value={conv} icon={BadgeCheck} tone="emerald" delta="+1" /><Stat label="Commission due" value={fmt(pend)} icon={Wallet} tone="violet" onClick={() => nav.go('a_earnings')} /></div>
         <Button full size="lg" icon={Plus} onClick={() => nav.go('a_lead_new')}>Add new lead</Button>
-        <div className="grid grid-cols-2 gap-2"><Button full variant="secondary" onClick={() => nav.go('a_tasks')}>My tasks</Button><Button full variant="secondary" onClick={() => nav.go('a_perms')}>My permissions</Button></div>
         <Section title="Pipeline" action="Board" onAction={() => nav.go('a_leads')}>
           <PipelineFunnel leads={leads} onPick={(s) => nav.go('a_leads', { stage: s })} />
         </Section>
+        <Card className="vv-agent-chart-card">
+          <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold">Lead activity</p><p className="text-xs text-ink-500">New and converted leads · last 6 weeks</p></div><Badge tone="teal">Live pipeline</Badge></div>
+          <div className="mt-4"><BarChart data={[{ label: 'W1', value: 8 }, { label: 'W2', value: 12 }, { label: 'W3', value: 10 }, { label: 'W4', value: 16 }, { label: 'W5', value: 14 }, { label: 'W6', value: Math.max(18, active.length) }]} height={126} /></div>
+        </Card>
         <Section title="Today’s follow-ups" action="All" onAction={() => nav.go('a_followups')}>
           <div className="space-y-2.5">{today.slice(0, 3).map((l) => <LeadCard key={l.id} l={l} onClick={() => nav.go('a_lead', { id: l.id })} />)}{today.length === 0 && <Card className="text-center text-sm text-ink-500">Nothing due — great job! 🎉</Card>}</div>
         </Section>
@@ -156,14 +155,14 @@ export function Leads({ params = {} }) {
   const list = base.filter((l) => stage === 'All' || l.stage === stage)
   const move = (l) => {
     const next = STAGES[STAGES.indexOf(l.stage) + 1]
-    if (LOCKED.includes(next)) return toast('Approval is set by Super Admin and subscription by billing — not by agents', 'warn')
+    if (next === 'Approved/Converted') return toast('Only Super Admin approval converts a vendor lead', 'warn')
     patchLead(l.id, { stage: next }); toast(`${l.name} → ${next}`)
   }
   return (
     <Screen title="Leads" back={false} right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('a_lead_new')}>Add</Button>}>
       <SearchBar value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or contact" />
       <div className="flex gap-2">
-        <p className="flex-1 self-center text-xs font-semibold text-ink-500">Prospective vendors assigned to you</p>
+        <Segmented className="flex-1" value={type} onChange={setType} options={[{ id: 'all', label: 'All' }, { id: 'vendor', label: 'Vendors' }, { id: 'customer', label: 'Customers' }]} />
         <div className="flex rounded-xl bg-ink-100 p-1">{[['list', List], ['board', Columns3]].map(([id, I]) => <button key={id} aria-label={`${id} view`} onClick={() => setView(id)} className={cx('grid w-10 place-items-center rounded-lg', view === id ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-400')}><I size={17} /></button>)}</div>
       </div>
       {view === 'list' ? (
@@ -185,10 +184,10 @@ export function Leads({ params = {} }) {
                     <div key={l.id} className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-ink-100">
                       <button onClick={() => nav.go('a_lead', { id: l.id })} className="block w-full text-left">
                         <div className="flex items-center gap-2"><span className={cx('size-2 shrink-0 rounded-full', PRIORITY[l.priority])} /><p className="truncate text-[13px] font-bold">{l.name}</p></div>
-                        <p className="mt-0.5 truncate text-[11px] text-ink-500">{cat(l.cat).name} · {l.city}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-ink-500">{l.type === 'vendor' ? 'Vendor' : 'Customer'} · {l.city}</p>
                         {l.next?.date && <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-amber-600"><CalendarClock size={11} />{l.next.date}</p>}
                       </button>
-                      {!['Subscribed', 'Lost', 'Inactive'].includes(s) && <button onClick={() => move(l)} className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-brand-50 py-1.5 text-[11px] font-bold text-brand-700 active:scale-95">Move to {LOCKED.includes(STAGES[STAGES.indexOf(s) + 1]) ? STAGES[STAGES.indexOf(s) + 1] + ' 🔒' : STAGES[STAGES.indexOf(s) + 1]}<ArrowRight size={12} /></button>}
+                      {!['Approved/Converted', 'Lost', 'Inactive'].includes(s) && <button onClick={() => move(l)} className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-brand-50 py-1.5 text-[11px] font-bold text-brand-700 active:scale-95">Move to {STAGES[STAGES.indexOf(s) + 1] === 'Approved/Converted' ? 'Converted 🔒' : STAGES[STAGES.indexOf(s) + 1]}<ArrowRight size={12} /></button>}
                     </div>
                   ))}
                   {col.length === 0 && <p className="rounded-xl border border-dashed border-ink-300 py-6 text-center text-[11px] text-ink-400">No leads</p>}
@@ -205,12 +204,12 @@ export function Leads({ params = {} }) {
 export function LeadNew() {
   const nav = useNav()
   const { leads, setLeads, toast } = useApp()
-  const [f, setF] = useState({ type: 'vendor', name: '', contact: '', phone: '', cat: 'home', city: 'Jaipur', source: 'Field visit', priority: 'Medium', notes: '', date: '2026-10-21' })
+  const [f, setF] = useState({ type: 'vendor', name: '', contact: '', phone: '', cat: 'elec', city: 'Jaipur', source: 'Field visit', priority: 'Medium', notes: '', date: '2026-10-21' })
   const [errs, setErrs] = useState({})
   const set = (k) => (e) => { setF({ ...f, [k]: e?.target ? e.target.value : e }); setErrs({ ...errs, [k]: '' }) }
   const save = () => {
     const e = {}
-    if (f.name.trim().length < 3) e.name = 'Enter the business name'
+    if (f.name.trim().length < 3) e.name = 'Enter the business / customer name'
     if (f.contact.trim().length < 3) e.contact = 'Enter a contact person'
     const digits = f.phone.replace(/\D/g, '')
     if (!/^[6-9]\d{9}$/.test(digits)) e.phone = 'Enter a valid 10-digit mobile number'
@@ -224,11 +223,11 @@ export function LeadNew() {
   }
   return (
     <Screen title="New lead" footer={<Button full size="lg" onClick={save}>Save lead</Button>}>
-      <Banner tone="blue">Leads are prospective vendors you will help onboard. Add them only with a legitimate business reason.</Banner>
-      <Input label="Business name" required value={f.name} onChange={set('name')} error={errs.name} />
+      <Segmented value={f.type} onChange={set('type')} options={[{ id: 'vendor', label: 'Vendor lead' }, { id: 'customer', label: 'Customer lead' }]} />
+      <Input label={f.type === 'vendor' ? 'Business name' : 'Customer / company name'} required value={f.name} onChange={set('name')} error={errs.name} />
       <Input label="Contact person" required value={f.contact} onChange={set('contact')} error={errs.contact} />
       <Input label="Phone" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 12345" value={f.phone} onChange={(e) => set('phone')(e.target.value.replace(/\D/g, ''))} error={errs.phone} className="!pl-10" />
-      <div className="flex gap-3"><Select label="Category" value={f.cat} onChange={set('cat')} options={liveCats().map((c) => ({ value: c.id, label: c.name }))} /><Select label="City" value={f.city} onChange={set('city')} options={CITIES} /></div>
+      <div className="flex gap-3"><Select label="Category" value={f.cat} onChange={set('cat')} options={CATS.map((c) => ({ value: c.id, label: c.name }))} /><Select label="City" value={f.city} onChange={set('city')} options={['Jaipur', 'Delhi', 'Ajmer', 'Sikar', 'Jodhpur', 'Kota']} /></div>
       <div className="flex gap-3"><Select label="Source" value={f.source} onChange={set('source')} options={['Field visit', 'Referral', 'Cold call', 'Walk-in', 'Social media', 'Event']} /><Select label="Priority" value={f.priority} onChange={set('priority')} options={['High', 'Medium', 'Low']} /></div>
       <Input label="First follow-up" type="date" value={f.date} onChange={set('date')} />
       <Input label="Notes" textarea rows={3} value={f.notes} onChange={set('notes')} placeholder="Anything useful for the next conversation" />
@@ -243,29 +242,29 @@ export function LeadDetail({ params }) {
   const [stg, setStg] = useState(false)
   const [lost, setLost] = useState(null)
   const v = l.vendorId ? vendors.find((x) => x.id === l.vendorId) : null
-  const stage = v ? (v.ver === 'approved' ? (['active', 'grace', 'cancelled'].includes(v.sub.status) ? 'Subscribed' : 'Approved') : l.stage) : l.stage
+  const stage = v ? (v.status === 'approved' ? 'Approved/Converted' : l.stage) : l.stage
   const setStage = (s) => {
-    if (LOCKED.includes(s)) return toast('Set automatically after Super Admin approval and subscription', 'warn')
+    if (s === 'Approved/Converted') return toast('Only the platform sets this once the vendor is approved', 'warn')
     patchLead(l.id, { stage: s }); setStg(false); toast(`Moved to ${s}`)
   }
   return (
     <Screen
       title={l.name}
-      subtitle="Prospective vendor"
+      subtitle={`${l.type === 'vendor' ? 'Vendor' : 'Customer'} lead`}
       overlay={
         <Sheet open={stg} onClose={() => setStg(false)} title="Move to stage">
-          <div className="space-y-2">{STAGES.map((s) => <button key={s} onClick={() => setStage(s)} className={cx('flex w-full items-center justify-between rounded-xl px-4 py-3 text-left ring-1 ring-inset', s === stage ? 'bg-brand-50 ring-brand-300' : 'ring-ink-200')}><StageBadge s={s} />{s === stage ? <Check size={18} className="text-brand-600" /> : LOCKED.includes(s) ? <Lock size={15} className="text-ink-400" /> : null}</button>)}</div>
-          <p className="text-xs text-ink-500"><Lock size={11} className="mr-1 inline" />Agents cannot approve vendors. “Approved” follows a reviewer’s decision and “Subscribed” follows a paid plan — both are set automatically.</p>
+          <div className="space-y-2">{STAGES.map((s) => <button key={s} onClick={() => setStage(s)} className={cx('flex w-full items-center justify-between rounded-xl px-4 py-3 text-left ring-1 ring-inset', s === stage ? 'bg-brand-50 ring-brand-300' : 'ring-ink-200')}><StageBadge s={s} />{s === stage ? <Check size={18} className="text-brand-600" /> : s === 'Approved/Converted' ? <Lock size={15} className="text-ink-400" /> : null}</button>)}</div>
+          <p className="text-xs text-ink-500"><Lock size={11} className="mr-1 inline" />Agents cannot approve vendors. “Approved/Converted” is set automatically after Super Admin approval.</p>
         </Sheet>
       }
-      footer={<div className="flex gap-2"><Button variant="secondary" icon={Phone} onClick={() => toast(`Calling ${l.phone}…`)}>Call</Button><Button className="flex-1" icon={Plus} onClick={() => nav.go('a_log', { id: l.id })}>Log activity</Button>{!['Submitted for verification', 'Approved', 'Subscribed'].includes(stage) && <Button variant="soft" onClick={() => nav.go('a_onboard', { id: l.id })}>Onboard</Button>}</div>}
+      footer={<div className="flex gap-2"><Button variant="secondary" icon={Phone} onClick={() => toast(`Calling ${l.phone}…`)}>Call</Button><Button className="flex-1" icon={Plus} onClick={() => nav.go('a_log', { id: l.id })}>Log activity</Button>{l.type === 'vendor' && !['Registered/Submitted', 'Approved/Converted'].includes(stage) && <Button variant="soft" onClick={() => nav.go('a_onboard', { id: l.id })}>Onboard</Button>}</div>}
     >
       <Card>
-        <div className="flex items-center gap-3"><Thumb tone={cat(l.cat).tone} icon={Store} size={54} /><div className="min-w-0 flex-1"><p className="truncate text-base font-extrabold">{l.name}</p><p className="text-sm text-ink-500">{l.contact} · {l.phone}</p></div></div>
+        <div className="flex items-center gap-3"><Thumb tone={cat(l.cat).tone} icon={l.type === 'vendor' ? Store : User} size={54} /><div className="min-w-0 flex-1"><p className="truncate text-base font-extrabold">{l.name}</p><p className="text-sm text-ink-500">{l.contact} · {l.phone}</p></div></div>
         <div className="mt-3 flex items-center justify-between border-t border-ink-100 pt-3"><button onClick={() => setStg(true)} className="flex items-center gap-2"><StageBadge s={stage} /><span className="text-xs font-bold text-brand-700">Change</span></button><span className="flex items-center gap-1.5 text-xs font-semibold text-ink-600"><span className={cx('size-2.5 rounded-full', PRIORITY[l.priority])} />{l.priority} priority</span></div>
       </Card>
       <StageTracker stage={stage} />
-      {v && <Card className="space-y-2"><p className="text-sm font-bold">Onboarding status</p><KV rows={[['Verification', <StatusBadge s={v.ver} />], ['Subscription', <StatusBadge s={v.sub.status === 'cancelled' ? 'sub_cancelled' : v.sub.status} />]]} />{v.sub.status === 'grace' && <p className="rounded-lg bg-amber-50 p-2.5 text-xs font-medium text-amber-800">Payment failed — help them renew before {v.sub.grace}. You can’t override billing.</p>}<p className="text-[11px] text-ink-400">You see onboarding progress only — not their bookings, quotes or chats.</p></Card>}
+      {v && <Banner tone={v.status === 'approved' ? 'green' : 'blue'} title={`Application: ${v.status === 'approved' ? 'Approved' : v.status === 'submitted' ? 'Awaiting admin review' : v.status}`}>Approval is handled by Super Admin — you can track progress here.</Banner>}
       <Card><KV rows={[['Category', cat(l.cat).name], ['City', l.city], ['Source', l.source], ['Consent', l.consent ? '✓ Given' : 'Not recorded']]} />{l.notes && <p className="mt-3 rounded-xl bg-ink-50 p-3 text-[13px] text-ink-600">{l.notes}</p>}</Card>
       {l.next?.date && <Card className="!bg-amber-50 !ring-amber-200"><div className="flex items-center gap-3"><CalendarClock size={22} className="text-amber-600" /><div><p className="text-sm font-bold">Next: {l.next.action}</p><p className="text-xs text-ink-600">{l.next.date}</p></div></div></Card>}
       {l.docs.length > 0 && <Section title="Documents collected"><div className="space-y-2">{l.docs.map((d) => <DocTile key={d} name={d} status="pending" note="Collected with consent" />)}</div></Section>}
@@ -329,6 +328,7 @@ export function Followups() {
 }
 
 /* ================= ASSISTED ONBOARDING ================= */
+const ADOCS = ['GST Registration Certificate', 'PAN Card', 'Shop & Establishment Licence', 'Cancelled Cheque / Bank Proof']
 export function Onboard({ params }) {
   const nav = useNav()
   const { leads, patchLead, setVendors, notify, toast, stamp } = useApp()
@@ -336,7 +336,6 @@ export function Onboard({ params }) {
   const [step, setStep] = useState(l.consent ? 1 : 0)
   const [consent, setConsent] = useState(l.consent)
   const [f, setF] = useState({ name: l.name, owner: l.contact, gstin: '', email: '' })
-  const ADOCS = cat(l.cat).docs
   const [docs, setDocs] = useState(Object.fromEntries(l.docs.map((d) => [d, true])))
   const [errs, setErrs] = useState({})
   const next = () => {
@@ -349,13 +348,13 @@ export function Onboard({ params }) {
     if (step === 2 && ADOCS.some((d) => !docs[d])) e.docs = 'Collect all required documents to submit'
     setErrs(e)
     if (Object.keys(e).length) return
-    if (step === 0) patchLead(l.id, { consent: true, stage: ['New', 'Contacted', 'Interested'].includes(l.stage) ? 'Registration started' : l.stage })
+    if (step === 0) patchLead(l.id, { consent: true, stage: l.stage === 'New' || l.stage === 'Contacted' || l.stage === 'Interested' ? 'Registration Started' : l.stage })
     if (step < 2) return setStep(step + 1)
     const id = 'v-ag' + Date.now()
-    setVendors((vs) => [{ id, name: f.name, owner: f.owner, cat: l.cat, city: l.city, areas: [l.city], branches: 1, acct: 'pending', ver: 'submitted', tone: cat(l.cat).tone, since: 2024, gstin: f.gstin.toUpperCase(), phone: l.phone, email: f.email, resp: null, jobs: 0, rating: 0, reviews: 0, langs: ['Hindi'], agent: 'Neha Verma', docs: ADOCS.map((d) => ({ name: d, status: 'pending' })), sub: { plan: 'Free', status: 'none', renews: '—', paidUntil: null, autoRenew: false, leads: 0 }, history: [{ s: 'submitted', at: stamp(), by: 'Neha Verma (agent, with owner consent)' }] }, ...vs])
-    patchLead(l.id, { stage: 'Submitted for verification', docs: Object.keys(docs).filter((d) => docs[d]), vendorId: id })
-    notify('admin', 'Vendor submitted by agent', `${f.name} — assisted onboarding by Neha Verma.`, 'onboarding', ['ad_vendors', {}])
-    toast('Submitted for verification — a reviewer decides')
+    setVendors((vs) => [{ id, name: f.name, owner: f.owner, cat: l.cat, city: l.city, areas: [l.city], branches: 1, rating: 0, reviews: 0, status: 'submitted', tone: cat(l.cat).tone, since: 2024, gstin: f.gstin.toUpperCase(), phone: l.phone, email: f.email, plan: 'Starter', agent: 'Neha Verma', docs: ADOCS.map((d) => ({ name: d, status: 'pending' })), history: [{ s: 'submitted', at: stamp(), by: 'Neha Verma (agent, with consent)' }] }, ...vs])
+    patchLead(l.id, { stage: 'Registered/Submitted', docs: Object.keys(docs).filter((d) => docs[d]), vendorId: id })
+    notify('admin', 'Vendor submitted by agent', `${f.name} — assisted onboarding by Neha Verma.`, 'onboarding')
+    toast('Submitted for Super Admin approval')
     nav.back()
   }
   return (
@@ -379,7 +378,7 @@ export function Onboard({ params }) {
       )}
       {step === 2 && (
         <div className="space-y-3">
-          <Banner tone="amber" title="Assist, don’t decide">You can’t approve verification, publish listings as the vendor or touch billing. A reviewer decides, and the vendor subscribes themselves.</Banner>
+          <Banner tone="amber" title="You cannot approve this vendor">Submission goes to Super Admin. You will earn commission only after approval.</Banner>
           {ADOCS.map((d) => <DocTile key={d} name={d} status={docs[d] ? 'pending' : 'missing'} note={docs[d] ? 'Captured with consent' : 'Required'} onAction={() => setDocs({ ...docs, [d]: !docs[d] })} actionLabel={docs[d] ? 'Remove' : 'Capture'} />)}
           {errs.docs && <p className="text-xs font-medium text-red-600">{errs.docs}</p>}
         </div>
@@ -388,20 +387,17 @@ export function Onboard({ params }) {
   )
 }
 
-/* ================= PERFORMANCE (assigned sales metrics only) ================= */
-export function AgentPerformance() {
-  const nav = useNav()
-  const { leads, vendors } = useApp()
-  const reg = leads.filter((l) => ['Submitted for verification', 'Approved', 'Subscribed'].includes(l.stage)).length
-  const appr = leads.filter((l) => ['Approved', 'Subscribed'].includes(l.stage)).length
-  const subd = leads.filter((l) => l.stage === 'Subscribed').length
-  const risk = leads.filter((l) => l.vendorId && ['grace', 'expired'].includes(vendors.find((v) => v.id === l.vendorId)?.sub.status))
+/* ================= EARNINGS ================= */
+export function AgentEarnings() {
+  const { commissions, settings } = useApp()
+  const sum = (st) => commissions.filter((c) => st.includes(c.status)).reduce((s, c) => s + c.amount, 0)
+  const tone = { pending: 'amber', awaiting: 'amber', approved: 'blue', paid: 'green', rejected: 'red' }
+  const label = { pending: 'Pending approval', awaiting: 'Awaiting vendor approval', approved: 'Approved', paid: 'Paid', rejected: 'Rejected' }
   return (
-    <Screen title="Performance" back={false}>
-      <div className="grid grid-cols-3 gap-2">{[['Registered', reg, 'sky'], ['Approved', appr, 'teal'], ['Subscribed', subd, 'emerald']].map(([a, b, t]) => <Card key={a} className="!p-3 text-center"><p className="text-2xl font-extrabold">{b}</p><p className="text-[11px] text-ink-500">{a}</p></Card>)}</div>
-      <Card className="space-y-3"><p className="text-sm font-bold">Conversion</p><HBar label="Leads → registered" value={reg} max={leads.length || 1} right={`${Math.round((reg / (leads.length || 1)) * 100)}%`} /><HBar label="Registered → approved" value={appr} max={reg || 1} right={`${Math.round((appr / (reg || 1)) * 100)}%`} color="bg-sky-500" /><HBar label="Approved → subscribed" value={subd} max={appr || 1} right={`${Math.round((subd / (appr || 1)) * 100)}%`} color="bg-emerald-500" /></Card>
-      {risk.length > 0 && <Section title="Renewals at risk"><div className="space-y-2.5">{risk.map((l) => <LeadCard key={l.id} l={l} onClick={() => nav.go('a_lead', { id: l.id })} />)}</div></Section>}
-      <Banner tone="blue" title="Scope of your access">You see conversion for your own leads only. Subscription status is shown to help vendors renew — you can’t change billing, approve verification or read customer transactions.</Banner>
+    <Screen title="Commissions" back={false}>
+      <Card className="bg-gradient-to-br from-brand-600 to-brand-800 !text-white"><p className="text-xs text-white/75">Total earned</p><p className="text-3xl font-extrabold">{fmt(sum(['paid']))}</p><div className="mt-3 flex gap-6 border-t border-white/20 pt-3 text-xs"><div><p className="text-white/70">Approved</p><p className="text-sm font-bold">{fmt(sum(['approved']))}</p></div><div><p className="text-white/70">Pending</p><p className="text-sm font-bold">{fmt(sum(['pending', 'awaiting']))}</p></div></div></Card>
+      <Banner tone="blue" title="How commissions work">{fmt(settings.agentCommission.amount)} per activated vendor. Attribution is recorded at lead creation, approved by Super Admin, then paid out. You cannot approve vendors you onboarded.</Banner>
+      <Group>{commissions.map((c, i) => <ListRow key={c.id} last={i === commissions.length - 1} icon={Wallet} tone={tone[c.status]} title={`${c.lead}`} subtitle={`${c.kind} · ${c.date}`} right={<div className="text-right"><p className="text-sm font-extrabold">{fmt(c.amount)}</p><Badge tone={tone[c.status]}>{label[c.status]}</Badge></div>} />)}</Group>
     </Screen>
   )
 }
@@ -409,46 +405,23 @@ export function AgentPerformance() {
 export function AgentProfile() {
   const nav = useNav()
   const { me, setMe, lang, setLang, toast, leads } = useApp()
-  const conv = leads.filter((l) => l.stage === 'Subscribed').length
+  const conv = leads.filter((l) => l.stage === 'Approved/Converted').length
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const deleteAccount = () => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '', accountState: 'deleted' }); setDeleteOpen(false); toast('Sales-agent account deletion recorded'); nav.reset('welcome') }
   return (
-    <Screen title="Profile" back={false} pad={false} right={<LangButton />}>
+    <Screen title="Profile" back={false} pad={false} overlay={<Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete sales-agent account?" actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={deleteAccount}>Delete account</Button></>}><p>This signs you out and records the deletion request in this browser demo. Assigned leads remain with the marketplace.</p></Dialog>}>
       <div className="space-y-4 p-4">
         <Card className="!p-4"><div className="flex items-center gap-3.5"><Avatar name={me.name || 'Neha Verma'} size={60} /><div><p className="text-lg font-extrabold">{me.name || 'Neha Verma'}</p><p className="text-sm text-ink-500">Sales Agent · Jaipur North</p><Badge tone="teal" className="mt-1.5">ID SA-0142</Badge></div></div></Card>
-        <div className="grid grid-cols-3 gap-2">{[['Leads', leads.length], ['Subscribed', conv], ['Rate', `${Math.round((conv / leads.length) * 100)}%`]].map(([a, b]) => <Card key={a} className="!p-3 text-center"><p className="text-lg font-extrabold">{b}</p><p className="text-[11px] text-ink-500">{a}</p></Card>)}</div>
-        <Card><p className="mb-2 text-sm font-bold">Monthly target</p><HBar label="Vendors registered" value={4} max={6} right="4 / 6" /><div className="mt-3"><HBar label="Vendors subscribed" value={2} max={4} right="2 / 4" color="bg-emerald-500" /></div></Card>
+        <div className="grid grid-cols-3 gap-2">{[['Leads', leads.length], ['Converted', conv], ['Rate', `${Math.round((conv / leads.length) * 100)}%`]].map(([a, b]) => <Card key={a} className="!p-3 text-center"><p className="text-lg font-extrabold">{b}</p><p className="text-[11px] text-ink-500">{a}</p></Card>)}</div>
+        <Card><p className="mb-2 text-sm font-bold">Monthly target</p><HBar label="Vendors onboarded" value={2} max={5} right="2 / 5" /><div className="mt-3"><HBar label="Customers registered" value={1} max={4} right="1 / 4" color="bg-sky-500" /></div></Card>
         <Group>
           <ListRow icon={Globe} tone="sky" title="Language" subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} />
           <ListRow icon={Bell} tone="orange" title="Notifications" onClick={() => nav.go('notifications')} />
-          <ListRow icon={ShieldCheck} tone="emerald" title="Permissions" subtitle="Assigned leads only · no approval or billing rights" onClick={() => toast('Agents cannot approve verification, publish listings or change platform settings')} last />
+          <ListRow icon={ShieldCheck} tone="emerald" title="Permissions" subtitle="View assigned leads · no approval rights" onClick={() => toast('Agents cannot approve vendors or change platform settings')} last />
         </Group>
-        <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: null, loggedIn: false, guest: false, vendorId: null, hasVendor: false, name: '' }); nav.reset('welcome') }}>Log out</Button>
+        <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' }); nav.reset('c_home') }}>Log out</Button>
+        <Card className="border border-red-100 bg-red-50/50"><div className="flex items-center gap-3"><Trash2 size={18} className="text-red-600" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-red-800">Delete account</p><p className="text-xs text-red-700/80">Remove your sales-agent access from this demo.</p></div><Button size="sm" variant="dangerSoft" onClick={() => setDeleteOpen(true)}>Delete</Button></div></Card>
       </div>
-    </Screen>
-  )
-}
-
-/* ================= COMMISSIONS (D-006) — sample amounts; the commission model is open (O-03) ================= */
-export function AgentEarnings() {
-  const { agentComm } = useApp()
-  const sum = (st) => agentComm.filter((c) => st.includes(c.status)).reduce((s, c) => s + c.amount, 0)
-  const tone = { pending: 'amber', awaiting: 'amber', approved: 'sky', paid: 'emerald', rejected: 'rose' }
-  const label = { pending: 'Pending approval', awaiting: 'Awaiting vendor approval', approved: 'Approved', paid: 'Paid', rejected: 'Rejected' }
-  const badge = { pending: 'amber', awaiting: 'amber', approved: 'blue', paid: 'green', rejected: 'red' }
-  return (
-    <Screen title="Commissions" back={false}>
-      <Card className="bg-gradient-to-br from-brand-600 to-brand-800 !text-white">
-        <p className="text-xs text-white/75">Total earned</p>
-        <p className="text-3xl font-extrabold">{fmt(sum(['paid']))}</p>
-        <div className="mt-3 flex gap-6 border-t border-white/20 pt-3 text-xs">
-          <div><p className="text-white/70">Approved</p><p className="text-sm font-bold">{fmt(sum(['approved']))}</p></div>
-          <div><p className="text-white/70">Pending</p><p className="text-sm font-bold">{fmt(sum(['pending', 'awaiting']))}</p></div>
-        </div>
-      </Card>
-      <Banner tone="blue" title="How commissions work">Attribution is recorded when the lead is created, approved by Super Admin, then paid out. Amounts shown are samples — the commission model is still open (O-03). You cannot approve vendors you onboarded.</Banner>
-      <Group>{agentComm.map((c, i) => (
-        <ListRow key={c.id} last={i === agentComm.length - 1} icon={Wallet} tone={tone[c.status]} title={c.lead} subtitle={`${c.kind} · ${c.date}`}
-          right={<div className="text-right"><p className="text-sm font-extrabold">{fmt(c.amount)}</p><Badge tone={badge[c.status]}>{label[c.status]}</Badge></div>} />
-      ))}</Group>
     </Screen>
   )
 }

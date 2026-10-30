@@ -7,10 +7,9 @@ export const useNav = () => useContext(NavCtx)
 export function NavProvider({ children, fallbackHome }) {
   const [stack, setStack] = useState([{ id: 'splash', p: {} }])
   const [dir, setDir] = useState('reset')
-  const [epoch, setEpoch] = useState(0)
 
   const go = useCallback((id, p = {}) => { setDir('push'); setStack((s) => [...s, { id, p }]) }, [])
-  const reset = useCallback((id, p = {}) => { setDir('reset'); setEpoch((e) => e + 1); setStack([{ id, p }]) }, [])
+  const reset = useCallback((id, p = {}) => { setDir('reset'); setStack([{ id, p }]) }, [])
   const replace = useCallback((id, p = {}) => { setDir('push'); setStack((s) => [...s.slice(0, -1), { id, p }]) }, [])
   const back = useCallback(() => {
     setDir('pop')
@@ -26,8 +25,8 @@ export function NavProvider({ children, fallbackHome }) {
 
   const top = stack[stack.length - 1]
   const value = useMemo(
-    () => ({ id: top.id, params: top.p, depth: stack.length, dir, epoch, stack, go, back, reset, replace, popTo }),
-    [top, stack, dir, epoch, go, back, reset, replace, popTo],
+    () => ({ id: top.id, params: top.p, depth: stack.length, dir, stack, go, back, reset, replace, popTo }),
+    [top, stack, dir, go, back, reset, replace, popTo],
   )
   return <NavCtx.Provider value={value}>{children}</NavCtx.Provider>
 }

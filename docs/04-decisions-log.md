@@ -18,8 +18,7 @@ Every scope decision lives here, with who made it and why. Features reference th
 | D-010 | 2026-10-29 | Shil1517 | **Phase 2 features stay visible in both mockups with a "Phase 2" badge.** | Stakeholders see the roadmap; hidden flags made the mockups drift. |
 | D-011 | 2026-10-29 | Shil1517 | **Recurring booking series are in Phase 1.** | PRS §26.5 and the priority review list it as a distinct journey. Neither mockup has it yet. |
 | D-012 | 2026-10-29 | Shil1517 | **Deliverable is a Markdown set in `docs/`.** The PRS .docx is not edited; deviations are listed in section 3. | A diffable format that can be checked by script. |
-| D-013 | 2026-10-29 | Shil1517 | **Web and mobile are one product.** Every Phase 1 feature is on both, with the same rules, terms and status names. **Exception: the admin portal, see D-015.** | Stated by the owner; PRS §17 requires parity. Supersedes the mobile scope doc's "Android and iOS only, web separate". Partly superseded by D-015. |
-| D-015 | 2026-10-29 | Shil1517 | **The admin portal is web only.** Every admin screen (`ad_*`) and the Super Admin role exist on web and are removed from mobile. Mobile has no admin sign-in, tab set or admin MFA. Admin features keep their Phase 1 status; their mobile status is N/A. Web adopts every admin screen that mobile had (cases, subscriptions, geo, taxonomy, configuration register, company queue, review moderation, plans, country packs, commission), so nothing that mobile offered to admins is lost. | Owner instruction at the web/mobile sync: "make sure they have not considered the admin portal, it is only web". Supersedes D-013 for admin features and closes O-11. Mobile notifications addressed to the admin role are still written to the shared demo store but are never shown on mobile. |
+| D-013 | 2026-10-29 | Shil1517 | **Web and mobile are one product.** Every Phase 1 feature is on both, with the same rules, terms and status names. | Stated by the owner; PRS §17 requires parity. Supersedes the mobile scope doc's "Android and iOS only, web separate". |
 | D-014 | 2026-10-29 | Claude (derived from D-001), awaiting Shil1517 | **PRS items marked "Future" map to Phase 3** (cart checkout, enterprise procurement, AI, field tools, advanced ads). | D-001 defines Phase 3 as future roadmap. This is an inference, listed under O-12 for confirmation. |
 
 ## 2. Open decisions
@@ -38,7 +37,7 @@ Nothing in these rows is built, changed or removed until the decision is closed.
 | O-08 | Are contract suspend/resume and expiry in Phase 1 or Phase 2? | F-CON-05 | D-004 named the other lifecycle parts but not these. |
 | O-09 | Phase for PRS-required items that neither mockup has and no document placed: profile completeness, field visibility classes, saved searches and alerts, web SEO landing pages, chat attachments / scanning / read receipts, automated content screening. | F-VND-11, F-VND-12, F-DSC-08, F-DSC-09, F-MSG-03, F-TRU-07 | Each is a PRS "must" for the release wave in which it is enabled. |
 | O-10 | Do manufacturers launch under the Wholesale industry in Phase 1 while "Manufacturing and OEM" opens in Phase 2? | F-TAX-05, F-TAX-06 | Open item from the mobile scope doc (decision 7). |
-| O-11 | Is the admin role visible in the mockup role picker on both apps? | sync matrix section 3 | **Closed by D-015:** the admin role exists on web only; mobile has none. |
+| O-11 | Is the admin role visible in the mockup role picker on both apps? | sync matrix section 3 | Web shows it; mobile hides it (`HIDE_ADMIN`). Needed so both demo the same journeys. |
 | O-12 | Confirm D-014 (PRS "Future" = Phase 3) and whether the PRS should be reissued as v3.1. | F-GDS-08, F-GDS-09, F-DSC-10 and others | The PRS is dated 24 Oct 2026 and is out of step with decisions D-003, D-005, D-006, D-011, D-013. |
 
 ## 3. Where these decisions differ from the PRS v3.0
@@ -53,7 +52,7 @@ The PRS is not edited (D-012). Until it is reissued, the decision wins.
 | Contracts are enabled per category in Wave 1 with the full lifecycle (§26.5.1). | Core in Phase 1; renewal, amendment, termination in Phase 2. D-004 | §26.5.1 |
 | Instant, scheduled, RFQ and contract bookings; scheduled includes recurring series. | Agrees; recurring is explicitly Phase 1. D-011 | §26.5 |
 | Plan names and prices are open configuration. | Agrees; mockups show names with sample values only. D-007 | §11.1, CFG-01 |
-| "Web, Android and iOS are intended to launch together." | Agrees, except that the admin portal ships on web only. Supersedes the mobile scope doc's "mobile only". D-013, D-015 | §2.1, §13 |
+| "Web, Android and iOS are intended to launch together." | Agrees. Supersedes the mobile scope doc's "mobile only". D-013 | §2.1 |
 | Initial launch in selected cities, English and Hindi. | Agrees; India launch cities fixed. D-008 | §2.1, CFG-13 |
 
 ## 4. Conflicts from the earlier web-vs-mobile gap analysis, and their resolution
@@ -65,12 +64,11 @@ The PRS is not edited (D-012). Until it is reissued, the decision wins.
 | #43 Agent commissions contradiction | D-006 (commission in Phase 1); model open O-03. |
 | #35 Plan names and prices | D-007. |
 | #8 Business: separate account or vendor variant | D-005. |
-| #11 Which admin consoles belong on both sides | None: D-015 makes the whole admin portal web only. D-009 still drops web-only admin screens that are not in the PRS; the mobile-only admin screens (cases, subscriptions, geo, taxonomy, config register, company queue, reviews) moved to the web admin. |
+| #11 Which admin consoles belong on both sides | D-009 for web-only screens; mobile-only admin screens (cases, subscriptions, geo, taxonomy, config register, company queue, reviews) are Phase 1 features on both (sync matrix). |
 | #3 Mobile meta screens vs web scope-review screen | F-MCK-01: both mockups provide the same review screens. |
 
 ## Change Log
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
-| 2026-10-29 17:21 | Shil1517 | Added: D-015 (admin portal is web only); Modified: D-013 (admin exception), O-11 closed, PRS-difference row for §2.1, gap-analysis item #11 | Owner instruction during the web/mobile mockup sync. |
 | 2026-10-29 16:27 | Shil1517 | Added: D-001 to D-014, O-01 to O-12, PRS differences, gap-analysis resolutions | Owner answered the phase questions on 2026-10-29; open items recorded instead of being assumed. |

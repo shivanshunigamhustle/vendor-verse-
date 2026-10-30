@@ -22,11 +22,10 @@ When two things disagree, the higher one wins.
 1. **One phase per feature**, set only in the spec. Do not write a phase anywhere else by hand.
 2. **IDs are permanent.** Features `F-AAA-nn`, decisions `D-nn`, open decisions `O-nn`, retired screens `RET-nn`. Never reuse or renumber. To remove a feature, strike it through or move its phase, and log it.
 3. **Never assume a phase.** If the owner has not decided, the feature's phase is `OPEN`, with an `O-nn` row in the decisions log. Do not build, change or remove anything for it.
-4. **Web and mobile move together** (D-013), except admin features, which exist on web only. A change to a Phase 1 feature changes the matrix rows for both platforms in the same change, even if only one app's code is touched first; the other's status or action must say what is outstanding.
+4. **Web and mobile move together** (D-013). A change to a Phase 1 feature changes the matrix rows for both platforms in the same change, even if only one app's code is touched first; the other's status or action must say what is outstanding.
 5. **Every doc edit gets a Change Log row** (timestamp, author, change, reason) in that doc. Removals state why.
 6. **No invented values.** Prices, limits, deadlines and rates stay open (CFG-xx) until the business decides.
-7. **The admin portal is web only (D-015).** Never add an `ad_*` screen or an admin role to the mobile app; the checker fails if one appears there.
-8. **Run the checker before every commit** that touches `docs/` or either registry (section 6).
+7. **Run the checker before every commit** that touches `docs/` or either registry (section 6).
 
 ## 3. Change procedures
 
@@ -100,7 +99,7 @@ These still hold useful detail but are not the source of truth. Each starts with
 | `web/docs/GAP_REPORT.md`, `web/docs/requirements-coverage.md` | Web audit of 24 Oct 2026 against the PRS. Phase and scope superseded by the spec. |
 | `mobile/docs/deliverables/01-feature-coverage-gap-analysis.md`, `02-screen-wise-status.md`, `08-mvp-and-phase2-scope.md` | Superseded by the spec, sync matrix and phase scope. |
 | `mobile/docs/deliverables/03` to `07`, `09`, `10`, `mobile/docs/user-flows-and-roadmap.md` | Detail docs (taxonomy, flows, states, ERD, API, timeline, acceptance). Not yet reviewed against D-002 to D-013. Review is outstanding. |
-| `mobile/docs/screen-inventory.csv` | Mobile screen list with MVP / P2 tags. Regenerated on 2026-10-29 from the registry (132 screens, no admin); the matrix replaces it. |
+| `mobile/docs/screen-inventory.csv` | Mobile screen list with MVP / P2 tags. 156 rows against 162 registry screens; the matrix replaces it. |
 | `docs/VendorVerse_Mockup_Priority_Review.docx` | Stakeholder priorities. Its journeys and workflow states feed F-MCK-01 and the state tables. |
 
 ## 6. The checker
@@ -114,7 +113,6 @@ It fails if:
 
 - a feature ID is duplicated, has an invalid phase, or exists in only one of spec or matrix;
 - the matrix names a screen that is not in the web or mobile registry;
-- the mobile registry contains an `ad_*` (admin) screen, or a retired `RET-xx` screen is back in the web registry;
 - a registry screen is not mapped to a feature (or retired);
 - a status is not one of Done, Partial, Missing, Hold, Unverified, N/A.
 
@@ -127,7 +125,6 @@ At the bottom of every doc:
 ```
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
-| 2026-10-29 17:21 | Shil1517 | Modified: rule 7 (admin portal is web only), checker description, screen-inventory note | D-015 and the checker now enforce that mobile has no admin screens. |
 | 2026-10-29 16:40 | Shil1517 | Modified: F-PAY-02 Mode B moved to Phase 1 | Owner decision D-002 |
 ```
 

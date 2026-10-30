@@ -1,9 +1,10 @@
-import { Languages, Bell, Heart, MapPin, ShieldCheck, ShieldAlert, CalendarDays, Clock, Zap, FileText, CalendarCheck, BadgeAlert } from 'lucide-react'
+import { Bell, Heart, MapPin, ShieldCheck, ShieldAlert, Package, CalendarDays, Clock } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
-import { Thumb, Rating, Badge, StatusBadge, IconBtn, Card, cx, Pill, Missing, SponsoredTag, Countdown } from '../ui.jsx'
-import { cat, serves, MODE_LABEL } from '../data.jsx'
-import { KIND_LABEL, country } from '../globaldata.jsx'
+import { Thumb, Rating, Badge, StatusBadge, IconBtn, Card, Avatar, cx, fmt, Pill } from '../ui.jsx'
+import { cat } from '../data.jsx'
+
+export const vendorKind = (v) => v?.supplierType === 'business' || ['v-me', 'v-global-2'].includes(v?.id) ? 'Supplier' : cat(v?.cat).type === 'service' ? 'Service provider' : 'Vendor'
 
 export function useGate() {
   const { me, toast } = useApp()
@@ -16,60 +17,32 @@ export function useGate() {
   }
 }
 
-/* Open (or create) the one conversation with a vendor, linked to a booking / RFQ / enquiry (spec §10.1). */
+/* open (or create) the one conversation with a vendor, optionally about a listing */
 export function useStartChat() {
   const { threads, setThreads, vendors, listings, me, toast } = useApp()
   const nav = useNav()
-  return (vendorId, listingId, link) => {
+  return (vendorId, listingId) => {
     if (!me.loggedIn) { toast('Log in to message the vendor', 'warn'); nav.go('login'); return }
     const v = vendors.find((x) => x.id === vendorId)
     const l = listingId && listings.find((x) => x.id === listingId)
-    const ex = threads.customer.find((t) => t.vendorId === vendorId && t.owner === me.name && (!link || t.link?.id === link.id))
-    if (ex) { nav.go('chat', { id: ex.id }); return }
+    const ex = threads.customer.find((t) => t.vendorId === vendorId)
+    if (ex) {
+      if (l && ex.listingId !== l.id) setThreads((t) => ({ ...t, customer: t.customer.map((x) => (x.id === ex.id ? { ...x, listingId: l.id, ctx: 'Enquiry · ' + l.title.slice(0, 26) } : x)) }))
+      nav.go('chat', { id: ex.id })
+      return
+    }
     const id = 't' + Date.now()
-    const lk = link || { type: 'enquiry', id: l?.id || 'general', label: l ? 'Enquiry · ' + l.title.slice(0, 28) : 'Enquiry' }
-    setThreads((t) => ({ ...t, customer: [{ id, owner: me.name, name: v.name, vendorId, link: lk, listingId: l?.id, unread: 0, contact: false, msgs: [] }, ...t.customer] }))
+    setThreads((t) => ({ ...t, customer: [{ id, name: v.name, vendorId, listingId: l?.id, ctx: l ? 'Enquiry · ' + l.title.slice(0, 26) : 'Enquiry', unread: 0, msgs: [] }, ...t.customer] }))
     nav.go('chat', { id })
   }
 }
 
-/* A vendor reaches a Business account by message only: one shared thread, mirrored into the business inbox */
-export function useBizChat() {
-  const { threads, setThreads, me, vendor, toast } = useApp()
-  const nav = useNav()
-  return (biz) => {
-    if (me.role !== 'vendor') { toast('Only vendors can message Business accounts', 'warn'); return }
-    const ex = threads.vendor.find((t) => t.bizId === biz.id)
-    if (ex) { nav.go('chat', { id: ex.id }); return }
-    const id = 'bz' + Date.now()
-    const link = { type: 'network', id: biz.id, label: 'Business network enquiry' }
-    const base = { id, b2b: true, bizId: biz.id, link, unread: 0, contact: false, msgs: [] }
-    setThreads((t) => ({
-      ...t,
-      vendor: [{ ...base, name: biz.brand || biz.legal }, ...t.vendor],
-      business: [{ ...base, name: vendor(me.vendorId)?.name || me.name, vendorId: me.vendorId }, ...t.business],
-    }))
-    nav.go('chat', { id })
-  }
-}
-
-/* Verification is shown accurately and is never implied by a paid plan (spec §7.4). */
-export function VerifiedBadge({ id, className, compact }) {
-  const { vendor, isVerified } = useApp()
-  const v = vendor(id)
-  if (isVerified(id)) return <Badge tone="green" className={className}><ShieldCheck size={11} />{compact ? `Verified · T${v.tier}` : `Verified by VendorVerse · Tier ${v.tier}`}</Badge>
-  if (v?.ver === 'expired') return <Badge tone="amber" className={className}><ShieldAlert size={11} />Credential expired</Badge>
-  if (v && !cat(v.cat).verifyReq) return <Badge tone="gray" className={className}>Verification not required</Badge>
-  return <Badge tone="gray" className={className}><ShieldAlert size={11} />Not verified</Badge>
-}
-
-/* Language switch for profile / more headers — toggles English ⇄ Hindi */
-export function LangButton() {
-  const { lang, setLang, toast } = useApp()
-  return (
-    <button type="button" aria-label="Change language" onClick={() => { setLang(lang === 'en' ? 'hi' : 'en'); toast(lang === 'en' ? 'भाषा: हिन्दी' : 'Language: English') }} className="flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-bold text-ink-700 ring-1 ring-ink-200 hover:bg-ink-50 active:scale-95">
-      <Languages size={18} className="text-brand-600" />{lang === 'en' ? 'हि' : 'EN'}
-    </button>
+export function VerifiedBadge({ id, className }) {
+  const { isVerified } = useApp()
+  return isVerified(id) ? (
+    <Badge tone="green" className={className}><ShieldCheck size={11} />Verified</Badge>
+  ) : (
+    <Badge tone="gray" className={className}><ShieldAlert size={11} />Unverified</Badge>
   )
 }
 
@@ -85,49 +58,48 @@ export function NotifBell({ role }) {
   )
 }
 
-export const ModeChip = ({ mode }) => (
-  <span className="inline-flex items-center gap-1 rounded-md bg-ink-100 px-1.5 py-0.5 text-[10px] font-bold text-ink-600">
-    {mode === 'rfq' ? <FileText size={10} /> : mode === 'both' ? <Zap size={10} /> : <CalendarCheck size={10} />}{MODE_LABEL[mode]}
-  </span>
-)
+export const listingDisc = (l) => (l.mrp ? Math.round((1 - l.price / l.mrp) * 100) : 0)
+const listingCover = (l) => l.cover || ({ elec: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80', build: 'https://images.unsplash.com/photo-1503387762-592­de9c5b7c4?auto=format&fit=crop&w=900&q=80', office: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80', print: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=900&q=80', home: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=900&q=80', clean: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80', event: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=80' }[l.cat] || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80')
 
-export function RatingOrNew({ value, count }) {
-  return value > 0 ? <Rating value={value} count={count} /> : <Missing>Not yet rated</Missing>
-}
-
-export function Coverage({ l, loc, compact }) {
-  const ok = serves(l, loc)
-  if (l.scope === 'global') return <span className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700"><MapPin size={12} />Ships worldwide</span>
-  if (l.scope === 'country' && ok) return <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700"><MapPin size={12} />Serves {country((l.countries || ['IN'])[0]).name === country(loc.country).name ? 'your country' : 'your country'}</span>
-  return ok
-    ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700"><MapPin size={12} />{compact ? 'Serves your area' : `Serves ${loc.city} ${loc.pin}`}</span>
-    : <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700"><BadgeAlert size={12} />{compact ? 'Outside your area' : `Does not serve ${loc.pin} — serves ${l.areas.join(', ')}`}</span>
-}
-
-export function ListingCard({ l, onClick, showVendor = true, outside }) {
-  const { vendor, saved, toggleSaved, toast, loc, isVerified } = useApp()
+export function ListingCard({ l, onClick, showVendor = true }) {
+  const { vendor, saved, toggleSaved, toast } = useApp()
   const nav = useNav()
   const v = vendor(l.vendorId)
   const c = cat(l.cat)
-  const isSaved = saved.includes(l.vendorId)
+  const isSaved = saved.includes(l.id)
+  const out = l.type === 'product' && l.stock === 0
   return (
-    <Card onClick={onClick || (() => nav.go(l.type === 'product' ? 'c_product' : 'c_listing', { id: l.id }))} className={cx('!p-3', outside && 'ring-amber-300')}>
-      <div className="flex gap-3">
-        <Thumb tone={l.tone} icon={c.icon} size={84} round="rounded-xl" />
+    <Card onClick={onClick || (() => nav.go('c_listing', { id: l.id }))} className="!p-0 min-w-0 overflow-hidden">
+      <div className="h-32 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(8,45,55,.42), rgba(8,45,55,.04)), url(${listingCover(l)})` }} />
+      <div className="listing-card-body flex min-w-0 gap-3 p-4">
+        <div className="mt-0 grid size-16 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Thumb tone={l.tone} icon={c.icon} size={54} round="rounded-xl" /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1">
-            <div className="min-w-0 flex-1">
-              {l.sponsored && <SponsoredTag className="mb-1" />}
-              <p className="line-clamp-2 text-sm font-bold leading-snug text-ink-900">{l.title}</p>
-            </div>
-            <span role="button" aria-label="Save vendor" onClick={(e) => { e.stopPropagation(); toggleSaved(l.vendorId); toast(isSaved ? 'Removed from favorites' : 'Saved — the vendor is not notified') }} className="-mr-1 -mt-0.5 p-1">
+            <div className="min-w-0 flex-1"><div className="mb-1"><Badge tone={l.type === 'service' ? 'sky' : 'teal'}>{l.type === 'service' ? 'Service' : 'Product'}</Badge></div><p className="line-clamp-2 text-sm font-bold leading-snug text-ink-900">{l.title}</p></div>
+            <span
+              role="button"
+              aria-label="Save"
+              onClick={(e) => { e.stopPropagation(); toggleSaved(l.id); toast(isSaved ? 'Removed from saved' : 'Saved for later') }}
+              className="-mr-1 -mt-0.5 p-1"
+            >
               <Heart size={18} className={isSaved ? 'fill-rose-500 text-rose-500' : 'text-ink-300'} />
             </span>
           </div>
-          {showVendor && v && <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-500"><span className="truncate">{v.name}</span>{isVerified(l.vendorId) && <ShieldCheck size={13} aria-label="Verified" className="shrink-0 text-brand-600" />}</p>}
-          <div className="mt-1"><RatingOrNew value={l.rating} /></div>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2"><Coverage l={l} loc={loc} compact />{l.instant && <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">⚡ Instant</span>}</div>
-          {(v?.kind && v.kind !== 'service') && <p className="mt-1.5 text-[11px] font-semibold text-ink-500">{country(v.country).flag} {KIND_LABEL[v.kind]}{l.trade?.moq ? ` · MOQ ${l.trade.moq.toLocaleString('en-IN')} ${l.trade.unit}` : ''}</p>}
+          {showVendor && v && (
+            <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-500">
+              {v.name}{v.status === 'approved' && <ShieldCheck size={12} className="shrink-0 text-emerald-600" />}
+            </p>
+          )}
+          <div className="mt-1.5 flex items-center gap-2">
+            <span className="text-base font-extrabold text-ink-900">{fmt(l.price)}</span>
+            {l.mrp && <span className="text-xs text-ink-400 line-through">{fmt(l.mrp)}</span>}
+            {l.mrp && <span className="text-xs font-bold text-emerald-600">{listingDisc(l)}% off</span>}
+            <span className="text-xs text-ink-400">/{l.unit} · indicative</span>
+          </div>
+          <div className="mt-1.5 flex items-center gap-2">
+            {l.rating > 0 && <Rating value={l.rating} count={l.reviews} />}
+            {l.type === 'service' ? <Pill icon={Clock}>{l.duration} min</Pill> : <Pill icon={Package}>Ships in {l.lead}d</Pill>}
+          </div>
         </div>
       </div>
     </Card>
@@ -137,17 +109,45 @@ export function ListingCard({ l, onClick, showVendor = true, outside }) {
 export function VendorRow({ v, onClick }) {
   const nav = useNav()
   const c = cat(v.cat)
+  const cover = v.cover || ({ elec: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80', build: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80', office: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80', clean: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80', home: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=900&q=80', event: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=80' }[v.cat] || 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80')
   return (
-    <Card onClick={onClick || (() => nav.go('c_vendor', { id: v.id }))} className="!p-3">
-      <div className="flex items-center gap-3">
-        <Thumb tone={v.tone} icon={c.icon} size={56} />
+    <Card onClick={onClick || (() => nav.go('c_vendor', { id: v.id }))} className="!p-0 min-w-0 overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div className="h-28 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(8,45,55,.45), rgba(8,45,55,.05)), url(${cover})` }} />
+      <div className="vendor-card-body flex min-w-0 items-center gap-3 p-4">
+        <div className="mt-0 grid size-14 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Avatar name={v.name} size={42} /></div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold">{v.name}</p>
-          <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-500"><MapPin size={12} />{v.city} · {c.name}</p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <VerifiedBadge id={v.id} compact />
-            {v.rating > 0 ? <Rating value={v.rating} count={v.reviews} /> : <Missing>Not yet rated</Missing>}
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-bold">{v.name}</p><Badge tone={vendorKind(v) === 'Supplier' ? 'teal' : vendorKind(v) === 'Service provider' ? 'sky' : 'gray'}>{vendorKind(v)}</Badge>
           </div>
+          <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-500"><MapPin size={12} />{v.city} · {c.name}</p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <VerifiedBadge id={v.id} />
+            {v.rating > 0 && <Rating value={v.rating} count={v.reviews} />}
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+export function OrderCard({ o, onClick, role = 'customer' }) {
+  const { listings, vendor } = useApp()
+  const l = listings.find((x) => x.id === o.listingId)
+  if (!l) return null
+  const c = cat(l.cat)
+  return (
+    <Card onClick={onClick} className="!p-3.5">
+      <div className="flex items-start gap-3">
+        <Thumb tone={l.tone} icon={c.icon} size={52} round="rounded-xl" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-bold text-ink-500">{o.id}</span>
+            <StatusBadge s={o.status} />
+          </div>
+          <p className="mt-0.5 line-clamp-1 text-sm font-bold">{l.title}</p>
+          <p className="mt-0.5 truncate text-xs text-ink-500">
+            {role === 'vendor' ? o.customer : vendor(o.vendorId)?.name} · Qty {o.qty} · {o.date}
+          </p>
         </div>
       </div>
     </Card>
@@ -166,29 +166,35 @@ export function BookingCard({ b, onClick, role = 'customer' }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-bold text-ink-500">{b.id}</span>
-            <StatusBadge s={b.state} />
+            <StatusBadge s={b.status} />
           </div>
           <p className="mt-0.5 line-clamp-1 text-sm font-bold">{l.title}</p>
-          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-500"><CalendarDays size={12} />{b.date} · {b.slot} · {role === 'vendor' ? b.customer : vendor(b.vendorId)?.name}</p>
-          {b.state === 'requested' && b.leftMin != null && <div className="mt-1.5 flex items-center gap-2"><Countdown mins={b.leftMin} label="to respond" /></div>}
-          {b.state === 'awaiting' && <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-amber-700"><Clock size={12} />{b.leftDays} days left to confirm</p>}
-          {b.mod?.state === 'pending' && <p className="mt-1.5 text-xs font-semibold text-violet-700">Change requested — {b.mod.date}, {b.mod.slot}</p>}
-          {b.caseId && <p className="mt-1.5 text-xs font-semibold text-violet-700">Support case {b.caseId} linked</p>}
+          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-ink-500">
+            <CalendarDays size={12} />{b.date} · {b.slot} · {role === 'vendor' ? b.customer : vendor(b.vendorId)?.name}
+          </p>
         </div>
       </div>
     </Card>
   )
 }
 
+/* Fixed reference day keeps seeded booking labels deterministic. */
+export const TODAY = new Date(2026, 9, 19)
+const M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const D = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+export function nextDays(n = 7, from = 1) {
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(2026, 9, 19 + from + i)
+    return { idx: i, dow: D[d.getDay()], day: d.getDate(), label: `${String(d.getDate()).padStart(2, '0')} ${M[d.getMonth()]} 2026` }
+  })
+}
+
+export function orderBreakdown(o, l, settings, calcPrice) {
+  if (o.breakdown) return o.breakdown
+  return calcPrice(l.price * o.qty, settings, 'product')
+}
+
 export function Tag({ children, tone = 'bg-ink-100 text-ink-600' }) {
   return <span className={cx('rounded-md px-2 py-0.5 text-[11px] font-semibold', tone)}>{children}</span>
 }
 
-/* booking history → timeline labels */
-export const BK_LABEL = { requested: 'Request sent', confirmed: 'Confirmed by vendor', declined: 'Declined by vendor', expired: 'Request expired', in_progress: 'Service started', awaiting: 'Marked complete', closed: 'Closed', cancelled: 'Cancelled', mod: 'Modification requested', mod_ok: 'Modification accepted', mod_no: 'Modification declined', case: 'Support case linked' }
-export const bkTimeline = (b) => b.history.map((h, i) => ({ label: BK_LABEL[h.s] || h.s, at: [h.at, h.by].filter(Boolean).join(' · '), note: h.note, done: true, current: false }))
-
-export function useMyBookings(role) {
-  const { bookings, me } = useApp()
-  return role === 'vendor' ? bookings.filter((b) => b.vendorId === me.vendorId) : bookings.filter((b) => b.customer === me.name)
-}

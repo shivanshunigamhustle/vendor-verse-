@@ -426,29 +426,3 @@ export function AgentProfile() {
     </Screen>
   )
 }
-
-/* ================= COMMISSIONS (D-006) — sample amounts; the commission model is open (O-03) ================= */
-export function AgentEarnings() {
-  const { agentComm } = useApp()
-  const sum = (st) => agentComm.filter((c) => st.includes(c.status)).reduce((s, c) => s + c.amount, 0)
-  const tone = { pending: 'amber', awaiting: 'amber', approved: 'sky', paid: 'emerald', rejected: 'rose' }
-  const label = { pending: 'Pending approval', awaiting: 'Awaiting vendor approval', approved: 'Approved', paid: 'Paid', rejected: 'Rejected' }
-  const badge = { pending: 'amber', awaiting: 'amber', approved: 'blue', paid: 'green', rejected: 'red' }
-  return (
-    <Screen title="Commissions" back={false}>
-      <Card className="bg-gradient-to-br from-brand-600 to-brand-800 !text-white">
-        <p className="text-xs text-white/75">Total earned</p>
-        <p className="text-3xl font-extrabold">{fmt(sum(['paid']))}</p>
-        <div className="mt-3 flex gap-6 border-t border-white/20 pt-3 text-xs">
-          <div><p className="text-white/70">Approved</p><p className="text-sm font-bold">{fmt(sum(['approved']))}</p></div>
-          <div><p className="text-white/70">Pending</p><p className="text-sm font-bold">{fmt(sum(['pending', 'awaiting']))}</p></div>
-        </div>
-      </Card>
-      <Banner tone="blue" title="How commissions work">Attribution is recorded when the lead is created, approved by Super Admin, then paid out. Amounts shown are samples — the commission model is still open (O-03). You cannot approve vendors you onboarded.</Banner>
-      <Group>{agentComm.map((c, i) => (
-        <ListRow key={c.id} last={i === agentComm.length - 1} icon={Wallet} tone={tone[c.status]} title={c.lead} subtitle={`${c.kind} · ${c.date}`}
-          right={<div className="text-right"><p className="text-sm font-extrabold">{fmt(c.amount)}</p><Badge tone={badge[c.status]}>{label[c.status]}</Badge></div>} />
-      ))}</Group>
-    </Screen>
-  )
-}

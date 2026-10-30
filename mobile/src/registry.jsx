@@ -7,11 +7,15 @@ import * as CM from './screens/customer_misc.jsx'
 import * as VA from './screens/vendor_a.jsx'
 import * as VB from './screens/vendor_b.jsx'
 import * as A from './screens/agent.jsx'
+import * as AA from './screens/admin_a.jsx'
+import * as AB from './screens/admin_b.jsx'
 import * as G from './screens/global.jsx'
 import * as CT from './screens/contracts.jsx'
 import * as PY from './screens/payments.jsx'
 import * as PF from './screens/profiles.jsx'
+import * as AC from './screens/admin_c.jsx'
 import * as MV from './screens/mvp.jsx'
+import * as CBD from './screens/catbuilder.jsx'
 import * as OP from './screens/ops.jsx'
 import * as BZ from './screens/business.jsx'
 import * as CZ from './screens/customer_biz.jsx'
@@ -122,9 +126,34 @@ export const SCREENS = Object.fromEntries([
   R('a_followups', A.Followups, 'agent', 'Follow-ups', ['S3'], [], { tab: true }),
   R('a_onboard', A.Onboard, 'agent', 'Assisted onboarding (consent)', ['S3', 'S5', 'S16'], ['SC-008'], { demo: { id: 'ld1' } }),
   R('a_perf', A.AgentPerformance, 'agent', 'Conversion performance', ['S3', 'S11'], [], { tab: true }),
-  R('a_earnings', A.AgentEarnings, 'agent', 'Commissions (sample amounts, O-03)', ['S3', 'S11'], [], { tab: true }),
   R('a_profile', A.AgentProfile, 'agent', 'Profile', ['S3', 'S4'], [], { tab: true }),
 
+  // ---- super admin ----
+  R('ad_dash', AA.AdminDashboard, 'admin', 'Dashboard', ['S13'], ['SC-026'], { tab: true, bar: 'ink' }),
+  R('ad_approvals', AA.Approvals, 'admin', 'Operational queues', ['S13'], [], { tab: true }),
+  R('ad_vendors', AA.AdminVendors, 'admin', 'Verification queue', ['S5', 'S13'], ['SC-008', 'SC-009']),
+  R('ad_vendor', AA.AdminVendor, 'admin', 'Review vendor evidence', ['S4', 'S5', 'S13'], ['SC-008', 'SC-032'], { demo: { id: 'v8' } }),
+  R('ad_listings', AA.AdminListings, 'admin', 'Listing review queue', ['S5', 'S13'], ['SC-010']),
+  R('ad_listing', AA.AdminListing, 'admin', 'Review listing & duplicates', ['S5', 'S13'], ['SC-007', 'SC-010'], { demo: { id: 'l5' } }),
+  R('ad_cases', AA.AdminCases, 'admin', 'Trust & support cases', ['S12', 'S13'], ['SC-029'], { demo: { tab: 'trust' } }),
+  R('ad_case', AA.AdminCase, 'admin', 'Resolve case', ['S12', 'S13', 'S4'], ['SC-029', 'SC-033', 'SC-038'], { demo: { id: 'CS-212' } }),
+  R('ad_reviews', AA.AdminReviews, 'admin', 'Review moderation & appeals', ['S12'], ['SC-038', 'SC-030']),
+  R('ad_subs', AB.AdminSubs, 'admin', 'Subscription monitoring', ['S11', 'S13'], ['SC-026', 'SC-027']),
+  R('ad_sub', AB.AdminSub, 'admin', 'Billing investigation', ['S11', 'S15'], ['SC-037'], { demo: { id: 'v17' } }),
+  R('ad_sponsored', AB.AdminSponsored, 'admin', 'Sponsored campaigns', ['S11'], ['SC-034']),
+  R('ad_users', AB.UsersScreen, 'admin', 'Users', ['S3'], ['SC-040'], { tab: false }),
+  R('ad_user', AB.UserDetail, 'admin', 'User & account state', ['S3', 'S4'], ['SC-040'], { demo: { id: 'u10' } }),
+  R('ad_roles', AB.Roles, 'admin', 'Roles & permissions (RBAC)', ['S4'], ['SC-031', 'SC-032', 'SC-033', 'SC-039']),
+  R('ad_categories', AB.AdminCategories, 'admin', 'Categories & workflows', ['S6']),
+  R('ad_category', AB.AdminCategory, 'admin', 'Category configuration', ['S6'], [], { demo: { id: 'home' } }),
+  R('ad_plans', AB.AdminPlans, 'admin', 'Plans & entitlements', ['S11']),
+  R('ad_settings', AB.AdminSettings, 'admin', 'Platform settings', ['S10', 'S13', 'S17']),
+  R('ad_analytics', AB.AdminAnalytics, 'admin', 'Analytics', ['S18'], [], { tab: true }),
+  R('ad_audit', AB.AuditLog, 'admin', 'Audit log', ['S13', 'S16']),
+  R('ad_agents', AB.AdminAgents, 'admin', 'Sales agents', ['S3']),
+  R('ad_agent', AB.AdminAgent, 'admin', 'Agent detail', ['S3'], [], { demo: { id: 'ag1' } }),
+  R('ad_cfg', AB.AdminCfg, 'admin', 'Open configuration register', ['S2'], []),
+  R('ad_geo', AC.AdminGeo, 'admin', 'Geo rollout manager', ['V3', 'V8']),
   R('c_product', MV.ProductDetail, 'customer', 'Product — MOQ, tiers, delivery', ['S7', 'S9'], ['SC-001'], { demo: { id: 'l40' } }),
   R('c_rfq_goods', MV.RfqGoods, 'customer', 'Goods RFQ — quantity, specs, delivery', ['S9'], ['SC-020'], { demo: { listingId: 'l40', qty: 100 } }),
   R('c_rfq_compare', CR.RfqDetail, 'customer', 'Compare quotations (goods)', ['S9'], ['SC-022', 'SC-023'], { demo: { id: 'RFQ-320' } }),
@@ -150,6 +179,7 @@ export const SCREENS = Object.fromEntries([
   R('c_reviews', OP.MyReviews, 'customer', 'My reviews (given & pending)', ['S12']),
   R('a_tasks', OP.AgentTasks, 'agent', 'Assigned onboarding tasks', ['S3']),
   R('a_perms', OP.AgentPerms, 'agent', 'What agents can and cannot do', ['S3', 'S16']),
+  R('ad_country', OP.AdminCountry, 'admin', 'Country packs', ['V3', 'V10']),
   R('b_eligibility', BZ.BizEligibility, 'business', 'Business account — owner eligibility (3+ yrs, registered)', ['V4', 'S3']),
   R('b_home', BZ.BizHome, 'business', 'Business home', ['V4', 'V7'], [], { tab: true, bar: 'brand' }),
   R('b_messages', G0, 'business', 'Vendor enquiries (messages)', ['S10']),
@@ -161,6 +191,11 @@ export const SCREENS = Object.fromEntries([
   R('b_more', BZ.BizMore, 'business', 'More (separate account)', ['V4'], [], { tab: true }),
   R('v_biz_network', BZ.BizNetwork, 'vendor', 'Business network (vendor portal)', ['V4', 'S10']),
   R('v_biz_profile', BZ.BizPublic, 'vendor', 'Business profile — message only', ['V4', 'S10'], [], { demo: { id: 'biz1' } }),
+  R('ad_company', BZ.AdminCompany, 'admin', 'Company verification queue', ['V4', 'S5']),
+  R('ad_cat_new', CBD.CatNew, 'admin', 'Create category (configuration)', ['S6', 'V2']),
+  R('ad_taxonomy', AC.AdminTaxonomy, 'admin', 'Taxonomy builder', ['V2', 'S6'], [], { demo: { tab: 'requests' } }),
+  R('ad_commission', PY.AdminCommission, 'admin', 'Revenue & commission', ['V9', 'V8'], [], { demo: {} }),
+  R('ad_more', AB.AdminMore, 'admin', 'More', ['S4'], [], { tab: true }),
 ])
 
 export const GROUPS = [
@@ -169,9 +204,10 @@ export const GROUPS = [
   { id: 'vendor', label: 'Vendor' },
   { id: 'agent', label: 'Agent' },
   { id: 'business', label: 'Business' },
+  { id: 'admin', label: 'Admin' },
 ]
 
 /* Which release each screen belongs to — the roadmap stays honest (MVP / Phase 2 / Phase 3) */
-const P2_SCREENS = ['team', 'c_pay', 'c_pay_fx', 'c_payments', 'c_refund', 'c_refund_view', 'c_wallet', 'v_payouts', 'v_refunds']
+const P2_SCREENS = ['team', 'c_pay', 'c_pay_fx', 'c_payments', 'c_refund', 'c_refund_view', 'c_wallet', 'v_payouts', 'v_refunds', 'ad_commission']
 if (typeof window !== 'undefined') window.__SCREENS = SCREENS
 export const phaseOf = (id) => (P2_SCREENS.includes(id) ? 'P2' : 'MVP')

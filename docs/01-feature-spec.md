@@ -21,7 +21,6 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 - IDs are permanent. A removed or deferred feature keeps its row (struck through or with its new phase) and gets a Change Log line. IDs are never reused.
 - `PRS ref` points to the Comprehensive PRS v3.0 (24 Oct 2026). Where the owner's decisions differ from the PRS, the decision wins and the difference is listed in [04-decisions-log.md](04-decisions-log.md) section 3.
 - Descriptions state the rule, not the screen. Screen names and IDs live only in the sync matrix.
-- **Platform:** every feature is on web and mobile (D-013) **except the admin portal (areas ADM, and the admin rows of other areas such as F-AGT-07, F-SUB-07, F-TAX-02), which is web only (D-015).** Admin rows keep their phase; their mobile status in the matrix is N/A.
 
 ---
 
@@ -218,8 +217,8 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 | F-AGT-03 | Assigned onboarding tasks | P1 | | |
 | F-AGT-04 | Agent permission boundaries | P1 | Shows what agents can and cannot do. No customer transactions, private chats, verification decisions. | §3, §4.2 |
 | F-AGT-05 | Conversion performance | P1 | Assigned leads, registration and subscription conversion. | §26.8 |
-| F-AGT-06 | Agent commissions and earnings | P1 | Decision D-006. Calculation, payer and payout are not defined: decision O-03. The PRS does not mention agent pay. Both apps show the agent's commission list with sample amounts only. | PRS silent |
-| F-AGT-07 | Admin sales oversight | P1 | Agents list and detail, all leads (absorbs the web "shop leads" screen), commission review (sample amounts, O-03). Web only (D-015). | §4.2 |
+| F-AGT-06 | Agent commissions and earnings | P1 | Decision D-006. Calculation, payer and payout are not defined: decision O-03. The PRS does not mention agent pay. | PRS silent |
+| F-AGT-07 | Admin sales oversight | P1 | Agents list and detail, all leads (absorbs the web "shop leads" screen). | §4.2 |
 | F-AGT-08 | Field and offline tools for agents | P3 | | §24 |
 
 ## 16. Admin and governance (ADM)
@@ -294,5 +293,4 @@ Every PRS chapter maps to at least one feature, or to a documented non-goal.
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
-| 2026-10-29 17:21 | Shil1517 | Modified: platform rule (admin portal is web only, D-015); F-AGT-06 and F-AGT-07 descriptions | Owner instruction during the web/mobile mockup sync; both apps now show agent commissions. |
 | 2026-10-29 16:27 | Shil1517 | Added: master feature register (all rows) | Web and mobile mockups had drifted and the PRS v3 was out of date; one phase-tagged register is needed so both can be synced. Phases per decisions D-001 to D-014. |
