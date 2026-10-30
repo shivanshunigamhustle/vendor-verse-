@@ -1,14 +1,14 @@
-# Render Blueprint: one Docker web service per app. Each Dockerfile lives in its own folder.
+# Render Blueprint: one static site per app, each built from its own folder.
 services:
   - type: web
+    runtime: static
     name: vendorverse-web
-    runtime: docker
-    dockerfilePath: ./web/Dockerfile
-    dockerContext: ./web
-    plan: free
+    rootDir: web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
   - type: web
+    runtime: static
     name: vendorverse-mobile
-    runtime: docker
-    dockerfilePath: ./mobile/Dockerfile
-    dockerContext: ./mobile
-    plan: free
+    rootDir: mobile
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
