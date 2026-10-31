@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'vendorverse.website.state.v2'
+const STORAGE_KEY = 'vendorverse.website.state.v3'
 
 const clone = (value) => JSON.parse(JSON.stringify(value))
 
@@ -14,7 +14,7 @@ export function loadState(seed) {
     const savedRfqs = Array.isArray(parsed.rfqs) ? parsed.rfqs : []
     const savedRfqIds = new Set(savedRfqs.map((item) => item.id))
     const rfqs = [...savedRfqs, ...(seed.rfqs || []).filter((item) => !savedRfqIds.has(item.id))]
-    return { ...createSeedState(seed), ...parsed, rfqs, settings: { ...seed.settings, ...parsed.settings }, prefs: { ...seed.prefs, ...parsed.prefs } }
+    return { ...createSeedState(seed), ...parsed, rfqs, settings: { ...seed.settings, ...parsed.settings }, threads: { ...seed.threads, ...parsed.threads }, notifs: { ...seed.notifs, ...parsed.notifs }, prefs: { ...seed.prefs, ...parsed.prefs } }
   } catch {
     return createSeedState(seed)
   }

@@ -9,7 +9,7 @@ export const cx = (...a) => a.filter(Boolean).join(' ')
 export const fmt = (n, currency) => {
   let active = currency
   if (!active && typeof window !== 'undefined') {
-    try { active = JSON.parse(window.localStorage.getItem('vendorverse.website.state.v2') || '{}')?.locale?.currency } catch { /* use INR */ }
+    try { active = JSON.parse(window.localStorage.getItem('vendorverse.website.state.v3') || '{}')?.locale?.currency } catch { /* use INR */ }
   }
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: active || 'INR', maximumFractionDigits: 0 }).format(Math.round(Number(n) || 0))
 }
@@ -60,10 +60,10 @@ export const STATUS = {
   placed: ['Placed', 'blue'], confirmed: ['Confirmed', 'teal'], packed: ['Packed', 'purple'], shipped: ['Shipped', 'purple'],
   delivered: ['Delivered', 'green'], cancelled: ['Cancelled', 'gray'], rejected: ['Rejected', 'red'], payment_confirmed: ['Payment / terms confirmed', 'teal'], payment_failed: ['Payment failed', 'red'], delivery_exception: ['Delivery exception', 'amber'], disputed: ['Disputed', 'red'], return_requested: ['Return requested', 'amber'], returned: ['Returned', 'gray'], refunded: ['Refunded', 'gray'],
   // bookings
-  requested: ['Requested', 'blue'], accepted: ['Accepted', 'teal'], declined: ['Declined', 'red'], in_progress: ['In progress', 'purple'],
+  requested: ['Requested', 'blue'], accepted: ['Confirmed', 'teal'], declined: ['Declined', 'red'], in_progress: ['In progress', 'purple'],
   completed: ['Completed', 'green'], payment_failed: ['Payment failed', 'red'], disputed: ['Disputed', 'red'], reschedule: ['Reschedule requested', 'amber'],
   // rfq
-  open: ['Open', 'blue'], submitted: ['Submitted to vendors', 'blue'], quoted: ['Quotes received', 'teal'], comparing: ['Comparing', 'purple'], negotiating: ['Negotiating', 'amber'], withdrawn: ['Withdrawn', 'gray'], expired: ['Expired', 'gray'], no_quotes: ['No quotes', 'amber'], closed: ['Closed', 'gray'], revised: ['Revised', 'purple'],
+  open: ['Open', 'blue'], submitted: ['Submitted', 'blue'], quoted: ['Quotes received', 'teal'], comparing: ['Comparing', 'purple'], negotiating: ['Negotiating', 'amber'], withdrawn: ['Withdrawn', 'gray'], expired: ['Expired', 'gray'], no_quotes: ['No quotes', 'amber'], closed: ['Closed', 'gray'], revised: ['Revised', 'purple'],
   // payments
   paid: ['Paid', 'green'], unpaid: ['Unpaid', 'amber'], failed: ['Failed', 'red'], cod: ['Pay on delivery', 'gray'], settled: ['Settled', 'green'], processing: ['Processing', 'blue'],
   // disputes
@@ -71,6 +71,7 @@ export const STATUS = {
   // users / misc
   active: ['Active', 'green'], inactive: ['Inactive', 'gray'], live: ['Live', 'green'], scheduled: ['Scheduled', 'blue'], done: ['Done', 'green'],
   overdue: ['Overdue', 'red'], new: ['New', 'blue'],
+  decided: ['Decided', 'purple'], appealed: ['Appeal pending', 'amber'], upheld: ['Appeal upheld', 'green'], appeal_rejected: ['Appeal rejected', 'gray'], sub_cancelled: ['Auto-renew off', 'blue'], grace: ['Grace period', 'amber'], processing_co: ['Processing', 'purple'],
 }
 
 export function Badge({ tone = 'gray', children, className }) {

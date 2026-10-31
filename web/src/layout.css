@@ -1,0 +1,21 @@
+/* Form and detail screens: keep content in a readable, centred column on desktop (web only). */
+.vv-form-route .vv-screen-scroll > div,
+.vv-form-route [class~="min-h-0"][class~="flex-1"][class~="overflow-y-auto"] > div {
+  width: min(100%, 860px) !important;
+  margin-inline: auto !important;
+  box-sizing: border-box;
+}
+.vv-form-route .vv-screen-layout > header,
+.vv-form-route .vv-screen-layout > .shrink-0.border-t {
+  padding-inline: max(12px, calc((100% - 860px) / 2));
+}
+.vv-form-route .vv-screen-layout > .shrink-0.border-t > * { max-width: 828px; margin-inline: auto; }
+.vv-form-route .vv-screen-layout > .shrink-0.border-t > .flex > button:not(:only-child) { flex: 1; }
+.vv-form-route .vv-screen-scroll { background: #f6f8f9; }
+@media (max-width: 700px) {
+  .vv-form-route .vv-screen-scroll > div { width: 100% !important; }
+}
+
+/* side-by-side fields share the row evenly instead of shrinking to their content */
+.vv-form-route .flex > label.block { flex: 1 1 0; min-width: 0; }
+.vv-form-route .flex.gap-3 > .flex-1 { min-width: 0; }

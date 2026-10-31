@@ -5,8 +5,10 @@ import {
   Clock, Wallet, Store, BadgeCheck, TrendingDown, Zap, ImagePlus,
 } from 'lucide-react'
 import { Info, CheckCheck } from 'lucide-react'
+import { P2Badge } from './blocks.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
+import { GEO, findCity } from '../geo.js'
 import { cat, CATS, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Rating, Banner, EmptyState, SearchBar,
@@ -42,51 +44,72 @@ const BK_FLOW = [['requested', 'Request sent'], ['accepted', 'Accepted by vendor
 /* ================= RFQ ================= */
 export function RfqNew({ params = {} }) {
   const nav = useNav()
-  const { me, vendor, rfqs, setRfqs, notify, toast } = useApp()
+  const { me, vendor, vendors, rfqs, setRfqs, notify, toast, locale } = useApp()
   const targetVendor = params.vendorId ? vendor(params.vendorId) : null
-  const [f, setF] = useState({ title: params.title ? `Bulk quote: ${params.title}` : '', cats: params.cat ? [params.cat] : [], qty: '', budget: '', deadline: dateAfterISO(7), country: 'India', state: 'Rajasthan', city: 'Jaipur', pincode: '', desc: '', invite: !params.vendorId, categoryBudgets: params.cat ? { [params.cat]: '' } : {} })
+  const [f, setF] = useState({ cat: params.cat || 'home', title: params.title ? `Bulk quote: ${params.title}` : '', qty: '', budget: '', timeline: '', deadline: dateAfterISO(7), city: locale.city || 'Jaipur', answers: {} })
+  const [gx, setGx] = useState({ dest: locale.countryName || 'India', inco: '', target: '', samples: false })
   const [files, setFiles] = useState([])
   const [errs, setErrs] = useState({})
+  const c = cat(f.cat)
+  const qs = (c.rfq || []).filter((k) => !['Budget range', 'Quantity', 'Delivery location'].includes(k))
   const set = (k) => (e) => { setF({ ...f, [k]: e?.target ? e.target.value : e }); setErrs({ ...errs, [k]: '' }) }
+  const cities = [...new Set(GEO.find((g) => g.code === 'IN').states.flatMap((st) => st.cities.map((x) => x.n)))]
+  const eligible = targetVendor ? [targetVendor] : vendors.filter((v) => v.status === 'approved' && v.cat === f.cat && (v.areas || []).some((a) => a === f.city || a === 'Remote' || a === 'India'))
   const submit = () => {
     const e = {}
     if (f.title.trim().length < 5) e.title = 'Add a short title (min 5 characters)'
-    if (!f.qty.trim()) e.qty = 'Enter the quantity required'
-    if (!f.cats.length) e.cats = 'Select at least one category'
-    if (f.cats.some((id) => !String(f.categoryBudgets[id] || '').trim())) e.categoryBudgets = 'Add a budget amount for every selected category'
-    if (!f.country.trim() || !f.state.trim() || !f.city.trim() || !f.pincode.trim()) e.location = 'Complete country, state/province, city and postal code'
-    if (f.desc.trim().length < 15) e.desc = 'Describe your requirement (min 15 characters)'
-    if (!f.deadline || f.deadline < new Date().toISOString().slice(0, 10)) e.deadline = 'Choose a current or future deadline'
+    if (!f.qty.trim()) e.qty = 'Enter quantity / scope'
+    if (!f.timeline.trim()) e.timeline = 'Add a date or timeline'
+    if (!f.budget.trim()) e.budget = 'Add a budget range'
+    if (!f.deadline || f.deadline < new Date().toISOString().slice(0, 10)) e.deadline = 'Choose a current or future date'
+    qs.forEach((k) => { if (!(f.answers[k] || '').trim()) e['a_' + k] = 'Required for this category' })
     setErrs(e)
-    if (Object.keys(e).length) return
+    if (Object.keys(e).length) return toast('Please complete the required fields', 'warn')
     const id = 'RFQ-' + (315 + rfqs.length)
-    const location = `${f.city}, ${f.state}, ${f.country} ${f.pincode}`
-    const primaryCat = f.cats[0]
+    const place = findCity(f.city)
     const [y, m, d] = f.deadline.split('-')
     const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
+    const specs = [...qs.map((k) => `${k}: ${f.answers[k]}`), `Timeline: ${f.timeline}`, ...(gx.target ? [`Target unit price: ${gx.target}`] : []), ...(gx.inco ? [`Incoterm: ${gx.inco}`] : []), ...(gx.dest !== 'India' ? [`Destination: ${gx.dest}`] : []), ...(gx.samples ? ['Samples needed first'] : [])]
     const buyerName = me.role === 'vendor' ? (vendor(me.vendorId)?.name || me.name || 'Business buyer') : ME_NAME
-    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, targetVendorId: params.vendorId || undefined, targetVendorName: targetVendor?.name, customer: buyerName, title: f.title, cat: primaryCat, cats: f.cats, categoryBudgets: f.categoryBudgets, qty: f.qty, budget: f.budget ? `₹${f.budget}` : 'Not specified', deadline: `${d} ${mon} ${y}`, location, country: f.country, state: f.state, city: f.city, pincode: f.pincode, desc: f.desc, files, status: 'submitted', created: '19 Oct 2026', history: [{ s: 'submitted', at: 'Just now', note: 'Sent to matching vendors' }], quotes: [], chat: [] }, ...r])
+    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, targetVendorId: params.vendorId || undefined, targetVendorName: targetVendor?.name, customer: buyerName, title: f.title, cat: f.cat, cats: [f.cat], categoryBudgets: {}, qty: f.qty, budget: f.budget, deadline: `${d} ${mon} ${y}`, location: `${f.city}${place ? `, ${place.state}, ${place.countryName}` : ''}`, country: place?.countryName || 'India', state: place?.state || '', city: f.city, pincode: locale.pincode || '', desc: specs.join('\n'), files, status: 'submitted', created: '19 Oct 2026', recipients: eligible.length, history: [{ s: 'submitted', at: 'Just now', note: `Sent to ${eligible.length} eligible vendor${eligible.length === 1 ? '' : 's'}` }], quotes: [], chat: [] }, ...r])
     notify('vendor', me.role === 'vendor' ? 'Vendor buyer RFQ published' : 'RFQ matches your category', `${id} · ${f.title}`, 'rfq')
-    toast(params.vendorId ? `RFQ sent to ${targetVendor?.name || 'selected supplier'}` : 'RFQ sent to matching vendors')
+    toast(`RFQ sent to ${eligible.length} eligible vendor${eligible.length === 1 ? '' : 's'}`)
     nav.replace('c_rfq', { id })
   }
   return (
-    <Screen title="Request quotation" subtitle={targetVendor ? `Direct to ${targetVendor.name}` : 'Get quotes from verified vendors'} footer={<Button full size="lg" onClick={submit}>Send RFQ</Button>}>
-      <Input label="What do you need?" required placeholder="e.g. 200 LED panel lights for office" value={f.title} onChange={set('title')} error={errs.title} />
-      <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Categories required <span className="text-red-500">*</span></p><Chips multi value={f.cats} onChange={(cats) => { const categoryBudgets = Object.fromEntries(cats.map((id) => [id, f.categoryBudgets[id] || ''])); setF({ ...f, cats, categoryBudgets }); setErrs({ ...errs, cats: '', categoryBudgets: '' }) }} options={CATS.map((c) => ({ value: c.id, label: c.name }))} />{errs.cats && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.cats}</p>}</div>
-      {f.cats.length > 0 && <Card><p className="text-sm font-bold text-ink-900">Budget by category</p><p className="mt-1 text-xs text-ink-500">Allocate the total RFQ budget across selected categories.</p><div className="mt-3 space-y-2.5">{f.cats.map((id) => <Input key={id} label={cat(id).name} prefix="₹" placeholder="Amount" inputMode="numeric" value={f.categoryBudgets[id] || ''} onChange={(e) => setF({ ...f, categoryBudgets: { ...f.categoryBudgets, [id]: e.target.value } })} />)}</div></Card>}
-      <div className="flex gap-3"><Input label="Quantity" required placeholder="200 units" value={f.qty} onChange={set('qty')} error={errs.qty} /><Input label="Budget (₹)" placeholder="1,20,000" inputMode="numeric" value={f.budget} onChange={set('budget')} /></div>
-      <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Global delivery location</p><div className="grid gap-3 sm:grid-cols-2"><Input label="Country" required value={f.country} onChange={set('country')} /><Input label="State / Province" required value={f.state} onChange={set('state')} /><Input label="City" required value={f.city} onChange={set('city')} /><Input label="Postal / Pincode" required value={f.pincode} onChange={set('pincode')} inputMode="numeric" /></div>{errs.location && <p className="mt-1.5 text-xs font-medium text-red-600">{errs.location}</p>}</div>
-      <Input label="Need quotes by" required type="date" min={dateAfterISO(0)} value={f.deadline} onChange={set('deadline')} error={errs.deadline} />
-      <Input label="Requirement details" required textarea rows={4} placeholder="Specifications, brand preferences, delivery or installation needs…" value={f.desc} onChange={set('desc')} error={errs.desc} />
+    <Screen title="Request quotation" subtitle={targetVendor ? `Direct to ${targetVendor.name}` : 'Structured request for eligible vendors'} footer={<Button full size="lg" onClick={submit}>Send RFQ</Button>}>
+      <Select label="Category" value={f.cat} onChange={(e) => setF({ ...f, cat: e.target.value, answers: {} })} options={CATS.map((x) => ({ value: x.id, label: x.name }))} />
+      <Input label="What do you need?" required placeholder="e.g. Complete rewiring for a 3,200 sq ft office" value={f.title} onChange={set('title')} error={errs.title} />
+      <Input label="Quantity / scope" required placeholder="e.g. 3,200 sq ft · 200 units" value={f.qty} onChange={set('qty')} error={errs.qty} />
+      {qs.length > 0 && <div>
+        <p className="mb-2 text-[13px] font-semibold text-ink-700">{c.name}: specific questions</p>
+        <div className="space-y-3">{qs.map((k) => <Input key={k} label={k} required value={f.answers[k] || ''} onChange={(e) => { setF({ ...f, answers: { ...f.answers, [k]: e.target.value } }); setErrs({ ...errs, ['a_' + k]: '' }) }} error={errs['a_' + k]} />)}</div>
+        <p className="mt-1.5 text-xs text-ink-500">These fields come from the category's RFQ schema and can differ per category.</p>
+      </div>}
+      <div className="flex gap-3"><Input label="Budget range" required placeholder="₹1,50,000 – ₹2,20,000" value={f.budget} onChange={set('budget')} error={errs.budget} /><Input label="Date / timeline" required placeholder="Start by 4 Nov" value={f.timeline} onChange={set('timeline')} error={errs.timeline} /></div>
+      <div className="flex gap-3"><Input label="Quotes needed by" required type="date" min={dateAfterISO(0)} value={f.deadline} onChange={set('deadline')} error={errs.deadline} /><Select label="Service / delivery location" value={f.city} onChange={set('city')} options={cities} /></div>
+      <div className="space-y-3 rounded-2xl bg-white p-4 ring-1 ring-ink-100">
+        <p className="flex items-center gap-2 text-sm font-extrabold">Sourcing details <span className="text-xs font-medium text-ink-400">(optional)</span> <P2Badge /></p>
+        <div className="flex gap-3"><Select label="Deliver to" value={gx.dest} onChange={(e) => setGx({ ...gx, dest: e.target.value })} options={GEO.map((g) => g.name)} /><Select label="Incoterm" value={gx.inco} onChange={(e) => setGx({ ...gx, inco: e.target.value })} options={['', 'EXW', 'FOB', 'CIF', 'DDP']} /></div>
+        <Input label="Target unit price" inputMode="decimal" value={gx.target} onChange={(e) => setGx({ ...gx, target: e.target.value.replace(/[^\d.]/g, '') })} />
+        <Toggle label="I need samples first" on={gx.samples} onChange={(v) => setGx({ ...gx, samples: v })} />
+        {(gx.dest !== 'India' || gx.inco || gx.samples) && <p className="rounded-lg bg-sky-50 p-2.5 text-xs text-sky-900"><b>Phase 2:</b> cross-border quoting, customs documents and samples workflow. In Phase 1 this is recorded on the RFQ and agreed with the vendor in chat.</p>}
+      </div>
       <div>
-        <p className="mb-2 text-[13px] font-semibold text-ink-700">Attachments</p>
+        <p className="mb-2 text-[13px] font-semibold text-ink-700">Reference files</p>
         <div className="space-y-2">
-          {files.map((n) => <div key={n} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-inset ring-ink-200"><FileText size={18} className="text-brand-600" /><span className="flex-1 truncate text-sm font-medium">{n}</span><button onClick={() => setFiles(files.filter((x) => x !== n))} aria-label="Remove"><X size={17} className="text-ink-400" /></button></div>)}
-          <button onClick={() => setFiles([...files, ['Spec-sheet.pdf', 'Drawing.png', 'BOQ.xlsx'][files.length % 3]])} className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ink-300 py-3.5 text-sm font-semibold text-ink-500"><Paperclip size={16} />Add file</button>
+          {files.map((n) => <div key={n} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-inset ring-ink-200"><FileText size={18} className="text-brand-600" /><span className="flex-1 truncate text-sm font-medium">{n}</span><span className="text-[11px] font-semibold text-emerald-700">Scanned</span><button onClick={() => setFiles(files.filter((x) => x !== n))} aria-label="Remove"><X size={17} className="text-ink-400" /></button></div>)}
+          <button onClick={() => setFiles([...files, ['Floor-plan.pdf', 'Spec-sheet.xlsx', 'Site-photo.jpg'][files.length % 3]])} className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ink-300 py-3.5 text-sm font-semibold text-ink-500"><Paperclip size={16} />Add file</button>
+          <p className="text-[11px] text-ink-500">PDF, images, Office files up to 10 MB. Type and size checked, visible only to you and vendors who receive this RFQ.</p>
         </div>
       </div>
-      {targetVendor ? <Banner tone="violet" title="Direct supplier request">This RFQ will appear in the selected supplier’s quote workspace. Other vendors will not receive it.</Banner> : <Card><Toggle label="Send to all matching verified vendors" desc="Vendors in this category and location can respond" on={f.invite} onChange={(v) => setF({ ...f, invite: v })} /></Card>}
+      <Card>
+        <p className="text-sm font-bold">Who receives it</p>
+        <p className="mt-1 text-xs text-ink-500">{targetVendor ? 'Only the supplier you chose receives this RFQ.' : `Only eligible vendors (right category, serving ${f.city}, verified) receive or can discover this RFQ.`}</p>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">{eligible.length ? eligible.map((v) => <Pill key={v.id}>{v.name}</Pill>) : <span className="text-xs text-ink-500">No eligible vendors serve {f.city} yet</span>}</div>
+        {eligible.length === 0 && <p className="mt-2 text-xs font-semibold text-amber-700">You can still publish. Vendors who join later and match will see it until the deadline.</p>}
+        <p className="mt-2 text-[11px] text-ink-400">Contact details come from your account and stay hidden.</p>
+      </Card>
     </Screen>
   )
 }
@@ -96,7 +119,7 @@ export function BookingNew({ params = {} }) {
   const nav = useNav()
   const { me, listings, vendor, bookings, setBookings, notify, toast, stamp } = useApp()
   const l = listings.find((x) => x.id === params.listingId && x.type === 'service')
-  const [f, setF] = useState({ mode: 'scheduled', date: nextDate(), slot: '10:00 AM', repeat: 'Weekly · 4 visits', address: '', notes: '' })
+  const [f, setF] = useState({ mode: params.mode || 'scheduled', date: nextDate(), slot: '10:00 AM', repeat: 'Weekly · 4 visits', address: '', notes: '' })
   const [errs, setErrs] = useState({})
   if (!l) return <Screen title="Request service"><EmptyState icon={CalendarCheck} title="Service unavailable" body="Choose an active service listing to request a booking." action={<Button onClick={() => nav.back()}>Back to listing</Button>} /></Screen>
   const v = vendor(l.vendorId)
@@ -173,7 +196,7 @@ export function BookingDetail({ params = {} }) {
       {!customer && b.status === 'change_requested' && <><Button onClick={acceptChange}>Accept new time</Button><Button variant="secondary" onClick={() => update('accepted', 'Vendor could not accept the requested change', { proposedDate: undefined, proposedSlot: undefined })}>Keep original time</Button></>}
       {!customer && b.status === 'accepted' && <Button onClick={() => update('in_progress', 'Vendor marked service in progress')}>Start service</Button>}
       {!customer && b.status === 'in_progress' && <Button onClick={() => update('completed', 'Vendor marked service complete')}>Mark complete</Button>}
-      {customer && b.status === 'completed' && <><Button onClick={() => update('closed', 'Customer confirmed completion')}>Confirm completion</Button><Button variant="secondary" onClick={() => { update('disputed', 'Customer opened a dispute'); nav.go('c_issue_new', { bookingId: b.id }) }}>Report a problem</Button><Button variant="soft" onClick={() => nav.go('c_review', { vendorId: b.vendorId, bookingId: b.id })}>Leave a review</Button></>}
+      {customer && b.status === 'completed' && <><Button onClick={() => update('closed', 'Customer confirmed completion')}>Confirm completion</Button><Button variant="secondary" onClick={() => { update('disputed', 'Customer opened a dispute'); nav.go('c_report', { bookingId: b.id }) }}>Report a problem</Button><Button variant="soft" onClick={() => nav.go('c_review', { vendorId: b.vendorId, bookingId: b.id })}>Leave a review</Button></>}
       <Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Messages</Button>
     </div>
   </Screen>
@@ -398,7 +421,7 @@ const NDEST = {
   customer: { order: ['messages'], booking: ['messages'], rfq: ['c_activity'], payment: ['messages'], review: ['messages'] },
   vendor: { order: ['messages'], booking: ['messages'], rfq: ['v_work'], onboarding: ['v_listings'], payment: ['v_more'], review: ['v_reviews'] },
   agent: { onboarding: ['a_leads'], followup: ['a_followups'], payment: ['a_earnings'] },
-  admin: { onboarding: ['ad_vendors'], dispute: ['ad_disputes'], listing: ['ad_listings'], payment: ['ad_reports'] },
+  admin: { onboarding: ['ad_vendors'], dispute: ['ad_cases'], listing: ['ad_listings'], payment: ['ad_reports'] },
 }
 export function Notifications() {
   const nav = useNav()
@@ -440,10 +463,10 @@ export function Issues() {
   const { disputes } = useApp()
   const mine = disputes.filter((d) => d.raisedBy === ME_NAME)
   return (
-    <Screen title="Support & issues" right={<IconBtn label="New" onClick={() => nav.go('c_issue_new')}><Plus size={21} /></IconBtn>}>
-      {mine.length === 0 && <EmptyState icon={HelpCircle} title="No issues raised" body="If something goes wrong with an order or booking, report it here." action={<Button size="sm" onClick={() => nav.go('c_issue_new')}>Report an issue</Button>} />}
+    <Screen title="Cases" right={<IconBtn label="New" onClick={() => nav.go('c_report')}><Plus size={21} /></IconBtn>}>
+      {mine.length === 0 && <EmptyState icon={HelpCircle} title="No cases raised" body="If something goes wrong with an order or booking, report it here." action={<Button size="sm" onClick={() => nav.go('c_report')}>Report an issue</Button>} />}
       {mine.map((d) => (
-        <Card key={d.id} onClick={() => nav.go('c_issue', { id: d.id })} className="!p-3.5">
+        <Card key={d.id} onClick={() => nav.go('c_case', { id: d.id })} className="!p-3.5">
           <div className="flex items-center justify-between"><span className="text-xs font-bold text-ink-500">{d.id} · {d.ref}</span><StatusBadge s={d.status} /></div>
           <p className="mt-1 text-sm font-bold">{d.title}</p><p className="mt-0.5 text-xs text-ink-500">Against {d.against} · {d.created}</p>
         </Card>
@@ -482,13 +505,21 @@ export function Profile() {
           <ListRow icon={Heart} tone="rose" title="Saved & compare" subtitle={`${saved.length} saved items`} onClick={() => nav.go('c_saved')} />
           <ListRow icon={FileText} tone="violet" title="My quote requests" subtitle="RFQs and quotations" onClick={() => nav.go('c_activity')} />
           <ListRow icon={Star} tone="amber" title="Rate a vendor" subtitle="After you have talked to them" onClick={() => nav.go('c_review')} />
-          <ListRow icon={ShieldAlert} tone="violet" title="Support & issues" subtitle="Report and track issues" onClick={() => nav.go('c_issues')} last />
+          <ListRow icon={ShieldAlert} tone="violet" title="Cases" subtitle="Report and track problems" onClick={() => nav.go('c_cases')} />
+          <ListRow icon={FileText} tone="violet" title="Dashboard" onClick={() => nav.go('c_dash')} />
+          <ListRow icon={FileText} tone="violet" title="Purchase orders" onClick={() => nav.go('c_orders')} />
+          <ListRow icon={FileText} tone="violet" title="Contracts" onClick={() => nav.go('c_contract')} />
+          <ListRow icon={FileText} tone="violet" title="Companies (Phase 2)" subtitle="Buy directly from verified companies" onClick={() => nav.go('c_companies')} />
+          <ListRow icon={Star} tone="amber" title="My reviews" onClick={() => nav.go('c_reviews')} last />
         </Group>
         {me.hasVendorAccount ? <Card onClick={() => { setMe({ ...me, role: 'vendor', name: me.vendorName || me.name, buyerMode: false }); nav.reset('v_dash') }} className="!p-4"><div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">Open vendor workspace</p><p className="mt-0.5 text-xs text-ink-500">Manage {me.vendorName || 'your business'} and supplier work</p></div><ChevronRight size={17} className="text-ink-300" /></div></Card> : <Card onClick={() => nav.go('v_register')} className="!border-brand-200 !bg-brand-50/60 !p-4"><div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-brand-900">Become a vendor</p><p className="mt-0.5 text-xs text-brand-800/75">Create a business account and start selling products or services</p></div><ChevronRight size={17} className="text-brand-500" /></div></Card>}
         <Group>
           <ListRow icon={Globe} tone="sky" title={t('language')} subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => { setLang(lang === 'en' ? 'hi' : 'en'); toast(lang === 'en' ? 'भाषा हिन्दी में बदली गई' : 'Language set to English') }} />
-          <ListRow icon={Bell} tone="orange" title="Notifications" subtitle="Alerts & channels" onClick={() => nav.go('c_settings')} />
-          <ListRow icon={Lock} tone="slate" title="Privacy, security & sessions" subtitle="Data export, delete account" onClick={() => nav.go('c_settings')} last />
+          <ListRow icon={Bell} tone="orange" title="Notifications" subtitle="Alerts & channels" onClick={() => nav.go('c_notif_prefs')} />
+          <ListRow icon={Lock} tone="slate" title="Privacy, security & sessions" subtitle="Data export, delete account" onClick={() => nav.go('c_sessions')} />
+          <ListRow icon={Lock} tone="slate" title="Your data & account deletion" onClick={() => nav.go('c_export')} />
+          <ListRow icon={Lock} tone="slate" title="Account status" onClick={() => nav.go('acct_state')} />
+          <ListRow icon={Lock} tone="red" title="Delete account" onClick={() => nav.go('c_delete')} last />
         </Group>
         <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest' }); nav.reset('c_home') }}>{t('logout')}</Button>
         <p className="text-center text-xs text-ink-400">VendorVerse v1.0 · ADRSTECHNO PRIVATE LIMITED</p>
@@ -499,8 +530,8 @@ export function Profile() {
 
 export function ProfileEdit() {
   const nav = useNav()
-  const { me, setMe, toast } = useApp()
-  const [f, setF] = useState({ name: me.name || ME_NAME, email: 'aarav.mehta@gmail.com', city: 'Jaipur', address: '24, Vaishali Nagar, Jaipur 302021' })
+  const { me, setMe, toast, locale, setLocale } = useApp()
+  const [f, setF] = useState({ name: me.name || ME_NAME, email: 'aarav.mehta@gmail.com', city: locale.city || 'Jaipur', address: '24, Vaishali Nagar, Jaipur 302021' })
   const [errs, setErrs] = useState({})
   const save = () => {
     const e = {}
@@ -508,7 +539,7 @@ export function ProfileEdit() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) e.email = 'Enter a valid email'
     setErrs(e)
     if (Object.keys(e).length) return
-    setMe({ ...me, name: f.name }); toast('Profile updated'); nav.back()
+    setMe({ ...me, name: f.name }); const place = findCity(f.city); if (place && f.city !== locale.city) setLocale({ ...locale, ...place, pincode: '' }); toast('Profile updated'); nav.back()
   }
   return (
     <Screen title="Edit profile" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
@@ -599,7 +630,7 @@ export function Messages() {
   const nav = useNav()
   const start = useStartChat()
   const { me, threads, vendors } = useApp()
-  const role = me.role === 'vendor' ? 'vendor' : 'customer'
+  const role = me.role === 'vendor' ? 'vendor' : me.role === 'business' ? 'business' : 'customer'
   const [q, setQ] = useState('')
   const [f, setF] = useState('all')
   const [pick, setPick] = useState(false)
@@ -651,7 +682,7 @@ export function Messages() {
 export function Chat({ params }) {
   const nav = useNav()
   const { me, threads, setThreads, listings, vendors, toast } = useApp()
-  const role = me.role === 'vendor' ? 'vendor' : 'customer'
+  const role = me.role === 'vendor' ? 'vendor' : me.role === 'business' ? 'business' : 'customer'
   const th = threads[role].find((t) => (params.id ? t.id === params.id : t.vendorId === params.vendorId)) || threads[role][0]
   const [text, setText] = useState('')
   const [menu, setMenu] = useState(false)
@@ -662,16 +693,17 @@ export function Chat({ params }) {
   useEffect(() => { if (th) setThreads((t) => ({ ...t, [role]: t[role].map((x) => (x.id === th.id ? { ...x, unread: 0 } : x)) })) }, [])
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }) }, [th?.msgs.length, typing])
   if (!th) return <Screen title="Chat"><EmptyState icon={MessageCircle} title="No conversation" /></Screen>
-  const add = (f, t, file) => setThreads((s) => ({ ...s, [role]: s[role].map((x) => (x.id === th.id ? { ...x, msgs: [...x.msgs, { f, t, file, at: 'Now' }] } : x)) }))
-  const reply = () => { setTyping(true); setTimeout(() => { setTyping(false); add('them', role === 'customer' ? 'Thanks for reaching out! Let me check and get back to you shortly.' : 'Noted, thank you. I will confirm shortly.') }, 1500) }
+  // a company conversation exists on both sides (vendor and company): mirror every message to the other side
+  const add = (f, t, file) => setThreads((s) => { const next = { ...s, [role]: s[role].map((x) => (x.id === th.id ? { ...x, msgs: [...x.msgs, { f, t, file, at: 'Now' }] } : x)) }; const pr = th.pair; if (pr && next[pr.role]) next[pr.role] = next[pr.role].map((x) => (x.id === pr.id ? { ...x, unread: f === 'me' ? (x.unread || 0) + 1 : x.unread, msgs: [...x.msgs, { f: f === 'me' ? 'them' : 'me', t, file, at: 'Now' }] } : x)); return next })
+  const reply = () => { setTyping(true); setTimeout(() => { setTyping(false); add('them', role === 'business' ? 'Thanks for the enquiry. We will share terms shortly.' : role === 'customer' || th.bizId ? 'Thanks for reaching out! Let me check and get back to you shortly.' : 'Noted, thank you. I will confirm shortly.') }, 1500) }
   const send = (m = text) => { if (!m.trim()) return; add('me', m.trim()); setText(''); reply() }
   const attach = () => { add('me', '', role === 'customer' ? 'Site-photo.jpg' : 'Price-list.pdf'); reply() }
-  const quick = role === 'vendor' ? ['Yes, available ✅', 'Sharing a quotation shortly', 'Can we talk on a call?', 'Please share your location'] : ['Is this available?', 'What is the price for bulk?', 'Can you visit for a site survey?', 'Please share your best quote']
+  const quick = role === 'business' ? ['Please share your GST details', 'We can offer 30-day credit', 'Sending our price list', 'Can we talk on a call?'] : th.bizId ? ['Do you supply in bulk?', 'What is the MOQ?', 'Share your price list', 'Do you offer credit terms?'] : role === 'vendor' ? ['Yes, available ✅', 'Sharing a quotation shortly', 'Can we talk on a call?', 'Please share your location'] : ['Is this available?', 'What is the price for bulk?', 'Can you visit for a site survey?', 'Please share your best quote']
   return (
     <Screen
       title={th.name}
       back
-      subtitle={typing ? 'typing…' : role === 'customer' ? 'Online · usually replies within 1 hr' : 'Customer · ' + th.ctx}
+      subtitle={typing ? 'typing…' : role === 'customer' ? 'Online · usually replies within 1 hr' : role === 'business' ? 'Vendor · ' + th.ctx : th.bizId ? th.ctx : 'Customer · ' + th.ctx}
       right={<><IconBtn label="Call" onClick={() => toast(`Calling ${th.name}…`)}><Phone size={19} /></IconBtn><IconBtn label="More" onClick={() => setMenu(true)}><Info size={19} /></IconBtn></>}
       pad={false}
       bg="bg-ink-100"
@@ -681,7 +713,7 @@ export function Chat({ params }) {
             {role === 'customer' && v && <ListRow icon={Store} title="View vendor profile" onClick={() => { setMenu(false); nav.go('c_vendor', { id: v.id }) }} />}
             {role === 'customer' && <ListRow icon={FileText} tone="violet" title="Request a quotation" onClick={() => { setMenu(false); nav.go('c_rfq_new', { cat: v?.cat }) }} />}
             {role === 'customer' && v && <ListRow icon={Star} tone="amber" title="Rate this vendor" onClick={() => { setMenu(false); nav.go('c_review', { vendorId: v.id }) }} />}
-            <ListRow icon={ShieldAlert} tone="rose" title="Report this conversation" onClick={() => { setMenu(false); nav.go('c_issue_new', { ref: v?.id || 'general' }) }} last />
+            <ListRow icon={ShieldAlert} tone="rose" title="Report this conversation" onClick={() => { setMenu(false); nav.go('c_report', { ref: v?.id || 'general' }) }} last />
           </div>
         </Sheet>
       }
@@ -775,15 +807,15 @@ export function IssueNew({ params = {} }) {
     const booking = bookings.find((x) => x.id === f.ref)
     const v = vendors.find((x) => x.id === (booking?.vendorId || f.ref))
     const id = 'DSP-' + (209 + disputes.length - 3)
-    setDisputes((d) => [{ id, ref: booking?.id || (v ? v.name : 'General'), bookingId: booking?.id, kind: f.kind, title: f.title, raisedBy: ME_NAME, against: v ? v.name : 'VendorVerse', status: 'open', amount: 0, created: '19 Oct 2026', desc: f.desc, evidence: photos, actions: [{ by: 'System', action: 'Issue submitted' + (v ? ' and vendor notified' : ''), at: 'Just now' }] }, ...d])
-    notify('admin', 'New issue reported', `${id} · ${f.title}`, 'dispute')
-    toast('Issue submitted — we will respond within 24 hrs')
-    nav.replace('c_issue', { id })
+    setDisputes((d) => [{ id, ref: booking?.id || (v ? v.name : 'General'), bookingId: booking?.id, kind: f.kind, title: f.title, raisedBy: ME_NAME, against: v ? v.name : 'VendorVerse', status: 'open', amount: 0, created: '19 Oct 2026', desc: f.desc, evidence: photos, actions: [{ by: 'System', action: 'Case submitted' + (v ? ' and vendor notified' : ''), at: 'Just now' }] }, ...d])
+    notify('admin', 'New case reported', `${id} · ${f.title}`, 'dispute')
+    toast('Case submitted. We will respond as per the case SLA (CFG-06).')
+    nav.replace('c_case', { id })
   }
   return (
-    <Screen title="Report an issue" footer={<Button full size="lg" onClick={submit}>Submit</Button>}>
+    <Screen title="Report a problem" footer={<Button full size="lg" onClick={submit}>Submit</Button>}>
       <Select label="Related to" value={f.ref} onChange={(e) => setF({ ...f, ref: e.target.value })} options={opts} />
-      <Select label="Issue type" value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })} options={['Vendor behaviour', 'Misleading listing', 'Spam or abuse', 'Fake or unverified vendor', 'App or account']} />
+      <Select label="Case type" value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value })} options={['Vendor behaviour', 'Misleading listing', 'Spam or abuse', 'Fake or unverified vendor', 'App or account']} />
       <Input label="Summary" required value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} error={errs.title} placeholder="e.g. Vendor shared a different price off-app" />
       <Input label="What happened?" required textarea rows={4} value={f.desc} onChange={(e) => setF({ ...f, desc: e.target.value })} error={errs.desc} />
       <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Evidence (optional)</p><div className="flex gap-2">{Array.from({ length: photos }).map((_, i) => <div key={i} className="grid size-16 place-items-center rounded-xl bg-gradient-to-br from-ink-200 to-ink-300 text-ink-500"><ImagePlus size={20} /></div>)}<button onClick={() => photos < 4 && setPhotos(photos + 1)} className="grid size-16 place-items-center rounded-xl border-2 border-dashed border-ink-300 text-ink-400"><Plus size={20} /></button></div></div>

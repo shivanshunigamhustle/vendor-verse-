@@ -138,7 +138,7 @@ Where the same capability starts in Phase 1 and grows in Phase 2, it is split in
 | F-XCT-06 | Customer dashboard | Cross-cutting |
 | F-MCK-01 | Scope, vision and journeys review screens | Mockup tooling |
 
-### Phase 2: 20 features
+### Phase 2: 21 features
 
 | ID | Feature | Area |
 |---|---|---|
@@ -150,6 +150,7 @@ Where the same capability starts in Phase 1 and grows in Phase 2, it is split in
 | F-GDS-07 | Cross-border trade: customs, export markets, trade-document vault | Goods, purchase orders and supplier trade |
 | F-CON-03 | Renewal, amendment (new version), termination | Contracts |
 | F-CON-04 | E-signature provider integration | Contracts |
+| F-BIZ-03 | Company directory, storefront and direct ordering | Business accounts and vendor-as-buyer |
 | F-BIZ-06 | Business team roles, approvals, spending limits | Business accounts and vendor-as-buyer |
 | F-PAY-03 | Checkout and escrow with milestone release | Payments and commission |
 | F-PAY-04 | Wallet and top-up | Payments and commission |
@@ -176,7 +177,7 @@ Where the same capability starts in Phase 1 and grows in Phase 2, it is split in
 | F-AGT-08 | Field and offline tools for agents | Sales agents |
 | F-XCT-07 | UK/US/EU/APAC launches, predictive pricing, multi-vendor project plans, trade finance | Cross-cutting |
 
-### Phase not decided (OPEN): 14 features
+### Phase not decided (OPEN): 13 features
 
 | ID | Feature | Area |
 |---|---|---|
@@ -188,7 +189,6 @@ Where the same capability starts in Phase 1 and grows in Phase 2, it is split in
 | F-DSC-09 | Web SEO landing pages per country/state/city/category | Discovery |
 | F-GDS-05 | PO "payment failed" state | Goods, purchase orders and supplier trade |
 | F-CON-05 | Suspend / resume and expiry states | Contracts |
-| F-BIZ-03 | Company directory, storefront and direct ordering | Business accounts and vendor-as-buyer |
 | F-MSG-03 | Chat attachments, scanning, read receipts | Messaging and notifications |
 | F-SUB-04 | Coupons | Subscriptions and sponsored visibility |
 | F-TRU-07 | Automated text/image screening | Trust, reviews and support |

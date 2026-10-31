@@ -159,7 +159,7 @@ export function Leads({ params = {} }) {
     patchLead(l.id, { stage: next }); toast(`${l.name} → ${next}`)
   }
   return (
-    <Screen title="Leads" back={false} right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('a_lead_new')}>Add</Button>}>
+    <Screen title="Prospective vendors" back={false} right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('a_lead_new')}>Add</Button>}>
       <SearchBar value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or contact" />
       <div className="flex gap-2">
         <Segmented className="flex-1" value={type} onChange={setType} options={[{ id: 'all', label: 'All' }, { id: 'vendor', label: 'Vendors' }, { id: 'customer', label: 'Customers' }]} />
@@ -396,7 +396,7 @@ export function AgentEarnings() {
   return (
     <Screen title="Commissions" back={false}>
       <Card className="bg-gradient-to-br from-brand-600 to-brand-800 !text-white"><p className="text-xs text-white/75">Total earned</p><p className="text-3xl font-extrabold">{fmt(sum(['paid']))}</p><div className="mt-3 flex gap-6 border-t border-white/20 pt-3 text-xs"><div><p className="text-white/70">Approved</p><p className="text-sm font-bold">{fmt(sum(['approved']))}</p></div><div><p className="text-white/70">Pending</p><p className="text-sm font-bold">{fmt(sum(['pending', 'awaiting']))}</p></div></div></Card>
-      <Banner tone="blue" title="How commissions work">{fmt(settings.agentCommission.amount)} per activated vendor. Attribution is recorded at lead creation, approved by Super Admin, then paid out. You cannot approve vendors you onboarded.</Banner>
+      <Banner tone="blue" title="How commissions work">Attribution is recorded at lead creation, approved by Super Admin, then paid out. You cannot approve vendors you onboarded. The commission rate, payer and payout method are not decided yet (O-03); amounts below are sample records.</Banner>
       <Group>{commissions.map((c, i) => <ListRow key={c.id} last={i === commissions.length - 1} icon={Wallet} tone={tone[c.status]} title={`${c.lead}`} subtitle={`${c.kind} · ${c.date}`} right={<div className="text-right"><p className="text-sm font-extrabold">{fmt(c.amount)}</p><Badge tone={tone[c.status]}>{label[c.status]}</Badge></div>} />)}</Group>
     </Screen>
   )
@@ -417,7 +417,10 @@ export function AgentProfile() {
         <Group>
           <ListRow icon={Globe} tone="sky" title="Language" subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} />
           <ListRow icon={Bell} tone="orange" title="Notifications" onClick={() => nav.go('notifications')} />
-          <ListRow icon={ShieldCheck} tone="emerald" title="Permissions" subtitle="View assigned leads · no approval rights" onClick={() => toast('Agents cannot approve vendors or change platform settings')} last />
+          <ListRow icon={ShieldCheck} tone="emerald" title="Permissions" subtitle="View assigned leads · no approval rights" onClick={() => nav.go('a_perms')} />
+          <ListRow icon={ShieldCheck} tone="teal" title="Onboarding tasks" subtitle="Assigned by Super Admin" onClick={() => nav.go('a_tasks')} />
+          <ListRow icon={ShieldCheck} tone="amber" title="Commissions" subtitle="Model not decided yet (O-03)" onClick={() => nav.go('a_earnings')} />
+          <ListRow icon={ShieldCheck} tone="violet" title="Conversion performance" subtitle="Leads to registrations" onClick={() => nav.go('a_perf')} last />
         </Group>
         <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' }); nav.reset('c_home') }}>Log out</Button>
         <Card className="border border-red-100 bg-red-50/50"><div className="flex items-center gap-3"><Trash2 size={18} className="text-red-600" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-red-800">Delete account</p><p className="text-xs text-red-700/80">Remove your sales-agent access from this demo.</p></div><Button size="sm" variant="dangerSoft" onClick={() => setDeleteOpen(true)}>Delete</Button></div></Card>

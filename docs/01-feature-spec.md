@@ -152,7 +152,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 |---|---|---|---|---|
 | F-BIZ-01 | Business account (separate account type) | P1 | Owner-only; eligibility 3+ years and registered; six-step company form; admin verification (D-005). | §26.4.1 differs, see D-005 |
 | F-BIZ-02 | Business workspace: home, services for vendors, vendor enquiries | P1 | Vendors message the company; company-side inbox. | |
-| F-BIZ-03 | Company directory, storefront and direct ordering | OPEN | The mobile scope doc says vendors message only, but the mockup has storefront ordering. Decision O-07. | |
+| F-BIZ-03 | Company directory, storefront and direct ordering | P2 | Verified companies list products with MOQ and lead time; customers order directly and the company accepts, processes and ships. Payment is settled directly with the company; the platform tracks status only. Decision D-015 (closes O-07). | |
 | F-BIZ-04 | Company verification queue | P1 | Admin reviews company evidence. | §13.1 |
 | F-BIZ-05 | Vendor as buyer | P1 | A vendor switches to a buyer journey: find supplier, bulk RFQ, compare, accept, PO, track. | Priority review journey 5 |
 | F-BIZ-06 | Business team roles, approvals, spending limits | P2 | Includes vendor staff accounts. | §24 |
@@ -293,4 +293,6 @@ Every PRS chapter maps to at least one feature, or to a documented non-goal.
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-30 17:05 | Shil1517 | Modified: F-BIZ-03 moved from OPEN to Phase 2 | Owner decision D-015 (closes O-07). |
+| 2026-10-30 16:42 | Shil1517 | Modified: no feature rules changed; new web screens mapped to features in the sync matrix | Web sync pass of 2026-10-30. The 12 web screens retired under D-009 are now removed from the web code (see matrix section 2). |
 | 2026-10-29 16:27 | Shil1517 | Added: master feature register (all rows) | Web and mobile mockups had drifted and the PRS v3 was out of date; one phase-tagged register is needed so both can be synced. Phases per decisions D-001 to D-014. |

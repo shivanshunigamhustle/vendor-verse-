@@ -4,6 +4,7 @@ import {
   ScrollText, LogOut, BarChart3, Download, Plus, Trash2, Lock, Percent, MapPin, Gift, Bell, Gavel, Wallet, Search, Eye, Ban, RotateCcw, KeyRound, Briefcase,
   CircleDollarSign, CheckCircle2, ListChecks, ClipboardCheck, GitBranch, FileSearch, BadgeCheck, MessageSquareWarning, MessageSquare, Sparkles,
 } from 'lucide-react'
+import { P2Badge } from './blocks.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { CATS, cat, REPORT, ME } from '../data.jsx'
@@ -43,7 +44,7 @@ export function AdminDashboard() {
           <Group>
             <ListRow icon={ShieldCheck} tone="amber" title="Vendor verifications" subtitle={`${pendV} awaiting review`} right={<Badge tone="amber">{pendV}</Badge>} onClick={() => nav.go('ad_vendors')} />
             <ListRow icon={Package} tone="indigo" title="Listings to moderate" subtitle={`${pendL} pending`} right={<Badge tone="blue">{pendL}</Badge>} onClick={() => nav.go('ad_listings')} />
-            <ListRow icon={MessageSquareWarning} tone="rose" title="Open disputes" subtitle={`${openD} need action`} right={<Badge tone="red">{openD}</Badge>} onClick={() => nav.go('ad_disputes')} last />
+            <ListRow icon={MessageSquareWarning} tone="rose" title="Open cases" subtitle={`${openD} need action`} right={<Badge tone="red">{openD}</Badge>} onClick={() => nav.go('ad_cases')} last />
           </Group>
         </Section>
         <Section title="Sales agents" action="Manage" onAction={() => nav.go('ad_agents')}>
@@ -62,7 +63,7 @@ export function AdminReferenceDashboard() {
   const openDisputes = disputes.filter((d) => ['open', 'under_review', 'escalated'].includes(d.status))
   const recent = vendors.filter((v) => ['approved', 'submitted', 'info'].includes(v.status)).slice(-5).reverse()
   const health = [['Active vendors', approved.length, vendors.length ? Math.round((approved.length / vendors.length) * 100) : 0, 'bg-emerald-500'], ['Incomplete vendors', pending.length, vendors.length ? Math.round((pending.length / vendors.length) * 100) : 0, 'bg-amber-400'], ['Active agents', agents.filter((a) => a.status === 'active').length, agents.length ? Math.round((agents.filter((a) => a.status === 'active').length / agents.length) * 100) : 0, 'bg-rose-500']]
-  return <Screen headerless pad={false}><div className="vv-admin-reference-dashboard"><div className="vv-admin-reference-heading"><div><p>Live platform overview</p><h1>Admin Dashboard</h1></div><Badge tone="green">Live</Badge></div><div className="vv-admin-reference-kpis"><Stat label="Total vendors" value={vendors.length} icon={Store} tone="violet" delta={`↗ ${approved.length} active`} onClick={() => nav.go('ad_vendors')} /><Stat label="Registered agents" value={agents.length} icon={Users} tone="rose" delta={`↗ ${agents.filter((a) => a.status === 'active').length} active`} onClick={() => nav.go('ad_agents')} /><Stat label="Open disputes" value={openDisputes.length} icon={Gavel} tone="amber" delta="↗ Check disputes page" onClick={() => nav.go('ad_disputes')} /><Stat label="Platform status" value="Live" icon={MessageSquare} tone="emerald" delta="↗ All systems ready" onClick={() => toast('All platform systems are running')} /></div><div className="vv-admin-reference-grid"><Card className="vv-admin-reference-panel !p-0"><div className="vv-admin-reference-panel-head"><div><h2>Recent vendors</h2><p>Latest accounts and verification activity</p></div><Button size="sm" variant="secondary" onClick={() => nav.go('ad_vendors')}>View all</Button></div><div className="vv-admin-reference-table-head"><span>Vendor</span><span>Owner</span><span>Category</span><span>Status</span></div>{recent.map((v) => <button key={v.id} onClick={() => nav.go('ad_vendor', { id: v.id })} className="vv-admin-reference-row"><span className="font-bold">{v.name}</span><span>{v.owner}</span><span>{cat(v.cat).name}</span><StatusBadge s={v.status} /></button>)}{!recent.length && <EmptyState icon={Store} title="No vendors yet" />}</Card><div className="space-y-4"><Card className="vv-admin-reference-panel"><h2>Platform health</h2>{health.map(([label, value, pct, color]) => <div key={label} className="mt-4"><div className="flex justify-between text-xs font-semibold text-ink-600"><span>{label}</span><span>{value}</span></div><div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-100"><div className={cx('h-full rounded-full', color)} style={{ width: `${Math.max(pct, value ? 8 : 0)}%` }} /></div></div>)}</Card><Card className="vv-admin-reference-panel"><h2>Pending moderation</h2><button onClick={() => nav.go('ad_disputes')} className="vv-admin-moderation-row text-amber-800"><Gavel size={16} />{openDisputes.length} open disputes <ChevronRight size={15} /></button><button onClick={() => nav.go('ad_vendors')} className="vv-admin-moderation-row text-rose-800"><ShieldCheck size={16} />{pending.length} incomplete vendors <ChevronRight size={15} /></button><button onClick={() => nav.go('ad_listings')} className="vv-admin-moderation-row text-violet-800"><Package size={16} />{listings.filter((l) => l.status === 'pending').length} pending listings <ChevronRight size={15} /></button></Card></div></div><div className="vv-admin-reference-footer-stats"><button onClick={() => nav.go('ad_users')}><b>{users.length}</b><span>Registered users</span></button><button onClick={() => nav.go('ad_reports')}><b>{rfqs.length}</b><span>Active RFQs</span></button><button onClick={() => nav.go('ad_listings')}><b>{listings.filter((l) => l.status === 'approved').length}</b><span>Live listings</span></button></div></div></Screen>
+  return <Screen headerless pad={false}><div className="vv-admin-reference-dashboard"><div className="vv-admin-reference-heading"><div><p>Live platform overview</p><h1>Admin Dashboard</h1></div><Badge tone="green">Live</Badge></div><div className="vv-admin-reference-kpis"><Stat label="Total vendors" value={vendors.length} icon={Store} tone="violet" delta={`↗ ${approved.length} active`} onClick={() => nav.go('ad_vendors')} /><Stat label="Registered agents" value={agents.length} icon={Users} tone="rose" delta={`↗ ${agents.filter((a) => a.status === 'active').length} active`} onClick={() => nav.go('ad_agents')} /><Stat label="Open cases" value={openDisputes.length} icon={Gavel} tone="amber" delta="↗ Check cases" onClick={() => nav.go('ad_cases')} /><Stat label="Platform status" value="Live" icon={MessageSquare} tone="emerald" delta="↗ All systems ready" onClick={() => toast('All platform systems are running')} /></div><div className="vv-admin-reference-grid"><Card className="vv-admin-reference-panel !p-0"><div className="vv-admin-reference-panel-head"><div><h2>Recent vendors</h2><p>Latest accounts and verification activity</p></div><Button size="sm" variant="secondary" onClick={() => nav.go('ad_vendors')}>View all</Button></div><div className="vv-admin-reference-table-head"><span>Vendor</span><span>Owner</span><span>Category</span><span>Status</span></div>{recent.map((v) => <button key={v.id} onClick={() => nav.go('ad_vendor', { id: v.id })} className="vv-admin-reference-row"><span className="font-bold">{v.name}</span><span>{v.owner}</span><span>{cat(v.cat).name}</span><StatusBadge s={v.status} /></button>)}{!recent.length && <EmptyState icon={Store} title="No vendors yet" />}</Card><div className="space-y-4"><Card className="vv-admin-reference-panel"><h2>Platform health</h2>{health.map(([label, value, pct, color]) => <div key={label} className="mt-4"><div className="flex justify-between text-xs font-semibold text-ink-600"><span>{label}</span><span>{value}</span></div><div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-100"><div className={cx('h-full rounded-full', color)} style={{ width: `${Math.max(pct, value ? 8 : 0)}%` }} /></div></div>)}</Card><Card className="vv-admin-reference-panel"><h2>Pending moderation</h2><button onClick={() => nav.go('ad_cases')} className="vv-admin-moderation-row text-amber-800"><Gavel size={16} />{openDisputes.length} open cases <ChevronRight size={15} /></button><button onClick={() => nav.go('ad_vendors')} className="vv-admin-moderation-row text-rose-800"><ShieldCheck size={16} />{pending.length} incomplete vendors <ChevronRight size={15} /></button><button onClick={() => nav.go('ad_listings')} className="vv-admin-moderation-row text-violet-800"><Package size={16} />{listings.filter((l) => l.status === 'pending').length} pending listings <ChevronRight size={15} /></button></Card></div></div><div className="vv-admin-reference-footer-stats"><button onClick={() => nav.go('ad_users')}><b>{users.length}</b><span>Registered users</span></button><button onClick={() => nav.go('ad_reports')}><b>{rfqs.length}</b><span>Active RFQs</span></button><button onClick={() => nav.go('ad_listings')}><b>{listings.filter((l) => l.status === 'approved').length}</b><span>Live listings</span></button></div></div></Screen>
 }
 
 export function AdminFeature({ params = {} }) {
@@ -139,7 +140,7 @@ export function AdminSettings() {
   const save = () => { setSettings(draft); addAudit('Updated vendor subscription plans and coupons', 'Commercial settings', 'setting'); toast('Plans and coupons saved') }
   return <Screen title="Platform settings" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
     <Banner tone="blue">Manage subscription pricing and discount coupons. Changes apply to new vendor purchases in this browser demo.</Banner>
-    <Section title="Subscription plans"><div className="space-y-3">{draft.plans.map((p) => <Card key={p.id}><div className="grid gap-3 sm:grid-cols-3"><Input label="Plan name" value={p.name} onChange={(e) => updatePlan(p.id, 'name', e.target.value)} /><Input label="Monthly price" inputMode="numeric" value={String(p.price)} onChange={(e) => updatePlan(p.id, 'price', e.target.value)} /><Input label="Listings limit" value={String(p.listings)} onChange={(e) => updatePlan(p.id, 'listings', e.target.value)} /></div><div className="mt-3 flex justify-between"><Toggle label="Active" on={p.active} onChange={(v) => setDraft({ ...draft, plans: draft.plans.map((x) => x.id === p.id ? { ...x, active: v } : x) })} /><Button variant="dangerSoft" size="sm" onClick={() => setDraft({ ...draft, plans: draft.plans.filter((x) => x.id !== p.id) })}><Trash2 size={14} /> Delete</Button></div></Card>)}<Button variant="secondary" onClick={() => setDraft({ ...draft, plans: [...draft.plans, { id: `p-${Date.now()}`, name: 'New plan', price: 0, listings: 10, leads: 30, active: true }] })}><Plus size={16} /> Add plan</Button></div></Section>
+    <Section title="Subscription plans"><div className="space-y-3">{draft.plans.map((p) => <Card key={p.id}><div className="grid gap-3 sm:grid-cols-3"><Input label="Plan name" value={p.name} onChange={(e) => updatePlan(p.id, 'name', e.target.value)} /><Input label="Monthly price" inputMode="numeric" value={String(p.price ?? "")} placeholder="Open (CFG-02)" onChange={(e) => updatePlan(p.id, 'price', e.target.value)} /><Input label="Listings limit" value={String(p.listings)} onChange={(e) => updatePlan(p.id, 'listings', e.target.value)} /></div><div className="mt-3 flex justify-between"><Toggle label="Active" on={p.active} onChange={(v) => setDraft({ ...draft, plans: draft.plans.map((x) => x.id === p.id ? { ...x, active: v } : x) })} /><Button variant="dangerSoft" size="sm" onClick={() => setDraft({ ...draft, plans: draft.plans.filter((x) => x.id !== p.id) })}><Trash2 size={14} /> Delete</Button></div></Card>)}<Button variant="secondary" onClick={() => setDraft({ ...draft, plans: [...draft.plans, { id: `p-${Date.now()}`, name: 'New plan', price: null, listings: 10, leads: 30, active: true }] })}><Plus size={16} /> Add plan</Button></div></Section>
     <Section title="Subscription coupons"><div className="space-y-3">{draft.coupons.map((c) => <Card key={c.id}><div className="grid gap-3 sm:grid-cols-3"><Input label="Coupon code" value={c.code} onChange={(e) => updateCoupon(c.id, 'code', e.target.value.toUpperCase())} /><Select label="Discount type" value={c.type} onChange={(e) => updateCoupon(c.id, 'type', e.target.value)} options={[{ value: 'percent', label: 'Percentage' }, { value: 'flat', label: 'Flat amount' }]} /><Input label="Discount value" inputMode="numeric" value={String(c.value)} onChange={(e) => updateCoupon(c.id, 'value', e.target.value)} /></div><div className="mt-3 flex justify-between"><Toggle label="Active" on={c.active} onChange={(v) => updateCoupon(c.id, 'active', v)} /><Button variant="dangerSoft" size="sm" onClick={() => setDraft({ ...draft, coupons: draft.coupons.filter((x) => x.id !== c.id) })}><Trash2 size={14} /> Delete</Button></div></Card>)}<Button variant="secondary" onClick={() => setDraft({ ...draft, coupons: [...draft.coupons, { id: `cp-${Date.now()}`, code: 'NEWCODE', type: 'percent', value: 10, active: true }] })}><Plus size={16} /> Add coupon</Button></div></Section>
   </Screen>
 }
@@ -150,7 +151,7 @@ export function Approvals() {
   const cards = [
     ['Vendor verification', 'Approve, reject or request info', ShieldCheck, 'amber', vendors.filter((v) => ['submitted', 'info'].includes(v.status)).length, 'ad_vendors'],
     ['Listing moderation', 'Approve, reject or suspend listings', Package, 'indigo', listings.filter((l) => l.status === 'pending').length, 'ad_listings'],
-    ['Disputes & complaints', 'Review escalated issues', Gavel, 'rose', disputes.filter((d) => ['open', 'under_review', 'escalated'].includes(d.status)).length, 'ad_disputes'],
+    ['Cases', 'Review escalated cases', Gavel, 'rose', disputes.filter((d) => ['open', 'under_review', 'escalated'].includes(d.status)).length, 'ad_cases'],
     ['Agent commissions', 'Approve attribution & payouts', Wallet, 'emerald', commissions.filter((c) => c.status === 'pending').length, 'ad_agents'],
   ]
   return (
@@ -308,6 +309,7 @@ export function AdminListing({ params }) {
       <Card><p className="text-sm leading-relaxed text-ink-600">{l.desc}</p></Card>
       <Card><KV rows={[['Vendor', vendor(l.vendorId)?.name], ['Vendor status', vendor(l.vendorId)?.status === 'approved' ? 'Verified' : 'Unverified'], l.type === 'product' && ['Stock / MOQ', `${l.stock} / ${l.moq}`], l.type === 'product' && ['Lead time', `${l.lead} days`], l.type === 'service' && ['Duration', `${l.duration} min`], ...l.specs]} /></Card>
       <Section title="Moderation checklist"><Card className="space-y-2">{['Title & description are accurate', 'Images are clear and original', 'Category-specific fields completed', 'Pricing is reasonable'].map((t, i) => <Checkbox key={t} checked={l.status !== 'rejected' || i > 1} onChange={() => {}}>{t}</Checkbox>)}</Card></Section>
+      <Section title="Photos, portfolio and logo"><Card className="space-y-2">{['Listing photos are clear and original', 'Previous-work portfolio belongs to this vendor', 'Logo and banner are appropriate'].map((t) => <label key={t} className="flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" /> {t}</label>)}</Card></Section>
       {l.reason && <Banner tone="red" title="Last reason">{l.reason}</Banner>}
     </Screen>
   )
@@ -324,7 +326,7 @@ const PERMS = [
   ['Approve / reject vendors', [0, 0, 0, 1]],
   ['Moderate listings', [0, 0, 0, 1]],
   ['Manage categories & fields', [0, 0, 0, 1]],
-  ['Handle disputes & refunds', [0, 0, 0, 1]],
+  ['Handle cases', [0, 0, 0, 1]],
   ['Commercial & platform settings', [0, 0, 0, 1]],
   ['View reports & audit logs', [0, 0, 0, 1]],
 ]
@@ -438,7 +440,7 @@ export function AdminCategory({ params = {} }) {
 /* ================= SALES AGENTS ================= */
 export function AdminAgents() {
   const nav = useNav()
-  const { agents } = useApp()
+  const { agents, leads } = useApp()
   return (
     <Screen title="Sales agents" right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('ad_agent', { id: 'new' })}>Invite</Button>}>
       {agents.map((a) => (
@@ -447,6 +449,7 @@ export function AdminAgents() {
           <div className="mt-3 grid grid-cols-3 gap-2 border-t border-ink-100 pt-3 text-center"><div><p className="text-base font-extrabold">{a.leads}</p><p className="text-[11px] text-ink-500">Leads</p></div><div><p className="text-base font-extrabold">{a.converted}</p><p className="text-[11px] text-ink-500">Converted</p></div><div><p className="text-base font-extrabold">{fmt(a.commission)}</p><p className="text-[11px] text-ink-500">Commission</p></div></div>
         </Card>
       ))}
+      <Card><p className="mb-2 text-sm font-bold">All leads across agents</p><div className="space-y-1">{leads.slice(0, 6).map((l) => <p key={l.id} className="flex justify-between text-sm"><span>{l.name}</span><span className="text-ink-500">{l.stage}</span></p>)}</div></Card>
     </Screen>
   )
 }
@@ -473,7 +476,7 @@ export function AdminAgent({ params }) {
   return (
     <Screen title={a.name} subtitle={a.region} right={<StatusBadge s={a.status} className="mr-2" />} overlay={<Dialog open={dlg === 'delete'} onClose={() => setDlg(null)} title="Delete sales agent?" actions={<><Button variant="secondary" className="flex-1" onClick={() => setDlg(null)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={() => { setAgents((all) => all.filter((x) => x.id !== a.id)); addAudit('Deleted sales agent', a.name, 'user'); toast('Sales agent deleted'); setDlg(null); nav.go('ad_agents') }}>Delete agent</Button></>}><p>This removes <b>{a.name}</b> from the admin agent directory. Commission history remains in the audit trail.</p></Dialog>}>
       <div className="grid grid-cols-3 gap-2">{[['Leads', a.leads], ['Converted', a.converted], ['Rate', `${Math.round((a.converted / (a.leads || 1)) * 100)}%`]].map(([k, v]) => <Card key={k} className="!p-3 text-center"><p className="text-lg font-extrabold">{v}</p><p className="text-[11px] text-ink-500">{k}</p></Card>)}</div>
-      <Card><KV rows={[['Vendors onboarded', a.vendors], ['Customers registered', a.customers], ['Commission earned', fmt(a.commission)], ['Rule', `${fmt(settings.agentCommission.amount)} per activated vendor`]]} /></Card>
+      <Card><KV rows={[['Vendors onboarded', a.vendors], ['Customers registered', a.customers], ['Commission earned', fmt(a.commission)], ['Rule', settings.agentCommission.amount ? `${fmt(settings.agentCommission.amount)} per activated vendor` : 'Not decided (O-03)']]} /></Card>
       <Banner tone="amber" title="Anti-fraud rule">Agents cannot approve vendors they onboarded. Commission needs admin approval after attribution is verified.</Banner>
       <Section title="Commission approvals">
         {a.name !== 'Neha Verma' ? <Card className="text-center text-sm text-ink-500">No commission items are recorded for this agent.</Card> : (
@@ -499,16 +502,16 @@ export function AdminDisputes() {
   const [f, setF] = useState('open')
   const list = disputes.filter((d) => (f === 'open' ? ['open', 'under_review', 'escalated'].includes(d.status) : f === 'resolved' ? ['resolved', 'refunded', 'rejected'].includes(d.status) : true))
   return (
-    <Screen title="Disputes & support">
+    <Screen title="Cases">
       <Segmented value={f} onChange={setF} options={[{ id: 'open', label: 'Needs action' }, { id: 'resolved', label: 'Closed' }, { id: 'all', label: 'All' }]} />
-      <div className="space-y-2.5">{list.map((d) => <Card key={d.id} onClick={() => nav.go('ad_dispute', { id: d.id })} className="!p-3.5"><div className="flex items-center justify-between"><span className="text-xs font-bold text-ink-500">{d.id} · {d.ref}</span><StatusBadge s={d.status} /></div><p className="mt-1 text-sm font-bold">{d.title}</p><p className="mt-0.5 text-xs text-ink-500">{d.raisedBy} vs {d.against} · {d.created}</p></Card>)}{!list.length && <EmptyState icon={Gavel} title="No disputes" />}</div>
+      <div className="space-y-2.5">{list.map((d) => <Card key={d.id} onClick={() => nav.go('ad_case', { id: d.id })} className="!p-3.5"><div className="flex items-center justify-between"><span className="text-xs font-bold text-ink-500">{d.id} · {d.ref}</span><StatusBadge s={d.status} /></div><p className="mt-1 text-sm font-bold">{d.title}</p><p className="mt-0.5 text-xs text-ink-500">{d.raisedBy} vs {d.against} · {d.created}</p></Card>)}{!list.length && <EmptyState icon={Gavel} title="No cases" />}</div>
     </Screen>
   )
 }
 
 /* ================= REPORTS ================= */
 export function AdminReports() {
-  const { toast, vendors, agents, addAudit } = useApp()
+  const { toast, vendors, agents, addAudit, rfqs } = useApp()
   const [range, setRange] = useState('30')
   const [c, setC] = useState('all')
   const [loc, setLoc] = useState('All')
@@ -540,6 +543,9 @@ export function AdminReports() {
       <button onClick={() => setSheet(true)} className="flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-ink-200"><span className="flex items-center gap-2"><Layers size={17} className="text-brand-600" />Filters</span><span className="text-xs text-ink-500">{filters ? `${filters} applied` : 'Date, category, location, vendor, agent'}</span></button>
       <div className="grid grid-cols-2 gap-3"><Stat label="Registrations" value={n(340)} icon={UserPlus} tone="sky" /><Stat label="Active vendors" value={n(64)} icon={Store} tone="emerald" /><Stat label="Conversations" value={n(1188)} icon={MessageSquare} tone="amber" /><Stat label="Vendor replies < 2h" value={`${Math.min(96, 84 + Math.round(mult * 2))}%`} icon={CheckCircle2} tone="violet" /><Stat label="RFQs" value={n(41)} icon={FileText} tone="rose" /><Stat label="Agent conversions" value={n(19)} icon={BadgeCheck} tone="teal" /></div>
       <Card><p className="mb-3 text-sm font-bold">Customer–vendor conversations</p><BarChart data={REPORT.weeks.map((w, i) => ({ label: w, value: Math.max(1, Math.round(REPORT.gmv[i] * (mult > 1 ? 1 : Math.max(mult, 0.15)))) }))} height={110} /></Card>
+      <Card className="flex items-center justify-between"><div><p className="text-sm font-bold">Cohort and funnel analytics, event tracking</p><p className="text-xs text-ink-500">Retention cohorts, funnels and event console</p></div><P2Badge /></Card>
+      <Card className="space-y-3"><p className="text-sm font-bold">RFQ health</p><div className="grid grid-cols-3 gap-2 text-center">{[['Open', rfqs.filter((r) => r.status === 'open').length], ['With quotes', rfqs.filter((r) => r.status === 'quoted').length], ['No quotes', rfqs.filter((r) => !r.quotes.length).length]].map(([k, v]) => <div key={k} className="rounded-xl bg-ink-50 p-2"><p className="text-lg font-extrabold">{v}</p><p className="text-[11px] text-ink-500">{k}</p></div>)}</div></Card>
+      <Card className="space-y-2"><p className="text-sm font-bold">Service-coverage gaps</p>{CATS.slice(0, 6).filter((c) => !vendors.some((v) => v.status === 'approved' && v.cat === c.id && (v.city === 'Ajmer' || (v.areas || []).includes('Ajmer')))).map((c) => <p key={c.id} className="text-sm text-ink-600">No approved {c.name} vendor covers Ajmer</p>)}</Card>
       <Card className="space-y-3"><p className="text-sm font-bold">Sales by category</p>{REPORT.byCat.map(([k, v], i) => <HBar key={k} label={k} value={v} max={38} right={`${v}%`} color={['bg-brand-500', 'bg-sky-500', 'bg-violet-500', 'bg-amber-500', 'bg-rose-500', 'bg-emerald-500'][i]} />)}</Card>
     </Screen>
   )
@@ -581,7 +587,14 @@ export function AdminMore() {
           <ListRow icon={Layers} tone="indigo" title="Categories & fields" subtitle="Subcategories, required fields" onClick={() => nav.go('ad_categories')} />
           <ListRow icon={Briefcase} tone="teal" title="Sales agents" subtitle="Performance, commissions" onClick={() => nav.go('ad_agents')} />
           <ListRow icon={MessageSquare} tone="amber" title="Reports & activity" subtitle="Enquiries, RFQs, registrations" onClick={() => nav.go('ad_reports')} />
-          <ListRow icon={Gavel} tone="rose" title="Disputes & support" onClick={() => nav.go('ad_disputes')} last />
+          <ListRow icon={Gavel} tone="rose" title="Cases" onClick={() => nav.go('ad_cases')} />
+          <ListRow icon={Layers} tone="indigo" title="Taxonomy builder" onClick={() => nav.go('ad_taxonomy')} />
+          <ListRow icon={Layers} tone="indigo" title="Geo rollout manager" onClick={() => nav.go('ad_geo')} />
+          <ListRow icon={Briefcase} tone="teal" title="Company verification" onClick={() => nav.go('ad_company')} />
+          <ListRow icon={Percent} tone="emerald" title="Subscriptions & billing" onClick={() => nav.go('ad_subs')} />
+          <ListRow icon={MessageSquare} tone="amber" title="Review moderation" onClick={() => nav.go('ad_reviews')} />
+          <ListRow icon={ScrollText} tone="slate" title="Configuration register" onClick={() => nav.go('ad_cfg')} />
+          <ListRow icon={ScrollText} tone="slate" title="Maintenance & force update" onClick={() => nav.go('ad_maintenance')} last />
         </Group>
         <Group>
           <ListRow icon={Percent} tone="emerald" title="Platform settings" subtitle="Plans, commission, locations, features" onClick={() => nav.go('ad_settings')} />
@@ -605,7 +618,7 @@ export function AdminDispute({ params }) {
   const log = (action, status, extra) => {
     patchDispute(d.id, (x) => ({ status: status || x.status, actions: [...x.actions, { by: ME.admin, action, at: stamp() }] }))
     addAudit(action, d.id, 'user', extra)
-    notify('customer', 'Update on your issue', `${d.id}: ${action}`, 'order')
+    notify('customer', 'Update on your case', `${d.id}: ${action}`, 'order')
   }
   const submit = () => {
     if (dlg === 'resolve') {
@@ -630,6 +643,7 @@ export function AdminDispute({ params }) {
     >
       <Card><p className="text-base font-bold">{d.title}</p><p className="mt-2 text-sm text-ink-600">{d.desc}</p></Card>
       <Card><KV rows={[['Type', d.kind], ['Raised by', d.raisedBy], ['Against', d.against], ['Opened', d.created]]} /></Card>
+      <Card className="flex items-center justify-between"><div><p className="text-sm font-bold">Helpdesk macros and SLA timers</p><p className="text-xs text-ink-500">Canned replies and escalation timers</p></div><P2Badge /></Card>
       <Section title="Action log (recorded)"><Card><Timeline steps={d.actions.map((a) => ({ label: a.action, at: `${a.by} · ${a.at}`, done: true }))} /></Card></Section>
     </Screen>
   )
@@ -642,7 +656,7 @@ function LegacyAdminSettings() {
   const coupons = d.coupons || []
   const dirty = JSON.stringify(d) !== JSON.stringify(settings)
   const save = () => {
-    if (d.agentCommission.amount !== settings.agentCommission.amount) addAudit(`Changed agent commission ₹${settings.agentCommission.amount} → ₹${d.agentCommission.amount}`, 'Commercial settings', 'setting')
+    if (d.agentCommission.amount !== settings.agentCommission.amount) addAudit(`Changed agent commission ${settings.agentCommission.amount ?? 'unset'} → ${d.agentCommission.amount ?? 'unset'}`, 'Commercial settings', 'setting')
     d.plans.forEach((p, i) => { if (p.active !== settings.plans[i].active) addAudit(`${p.active ? 'Enabled' : 'Disabled'} vendor plan ${p.name}`, 'Commercial settings', 'setting') })
     d.locations.forEach((l, i) => { if (l.on !== settings.locations[i].on) addAudit(`${l.on ? 'Opened' : 'Closed'} location ${l.city}`, 'Commercial settings', 'setting') })
     Object.keys(d.features).forEach((k) => { if (d.features[k] !== settings.features[k]) addAudit(`${d.features[k] ? 'Enabled' : 'Disabled'} feature: ${k}`, 'Commercial settings', 'setting') })
@@ -652,10 +666,11 @@ function LegacyAdminSettings() {
   return (
     <Screen title="Platform settings" footer={<Button full size="lg" disabled={!dirty} onClick={save}>Save changes</Button>}>
       <Banner tone="blue">Customers do not pay through VendorVerse — they talk to vendors directly. Revenue comes from vendor plans. Every change is written to the audit log.</Banner>
-      <Section title="Vendor plans"><Group>{d.plans.map((p, i) => <div key={p.id} className={cx('flex items-center gap-3 px-4 py-3', i < d.plans.length - 1 && 'border-b border-ink-100')}><span className="grid size-9 place-items-center rounded-xl bg-amber-50 text-amber-700"><Briefcase size={18} /></span><div className="min-w-0 flex-1"><p className="text-sm font-bold">{p.name}</p><p className="text-xs text-ink-500">{p.price ? `${fmt(p.price)}/mo` : 'Free'} · {p.listings} listings · {p.leads} enquiries/mo</p></div><button role="switch" aria-checked={p.active} aria-label={`Toggle ${p.name}`} onClick={() => setD({ ...d, plans: d.plans.map((x) => (x.id === p.id ? { ...x, active: !x.active } : x)) })} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', p.active ? 'bg-brand-600' : 'bg-ink-300')}><span className={cx('absolute top-0.5 size-6 rounded-full bg-white shadow transition-all', p.active ? 'left-[22px]' : 'left-0.5')} /></button></div>)}</Group></Section>
-      <Section title="Sales-agent commission"><Card className="space-y-3"><Input label="Per activated vendor" prefix="₹" inputMode="numeric" value={String(d.agentCommission.amount)} onChange={(e) => setD({ ...d, agentCommission: { ...d.agentCommission, amount: +e.target.value.replace(/\D/g, '') } })} /><Toggle label="Admin approval required" desc="Attribution must be verified before payout" on={d.agentCommission.approvalRequired} onChange={(v) => setD({ ...d, agentCommission: { ...d.agentCommission, approvalRequired: v } })} /></Card></Section>
+      <Section title="Vendor plans"><Group>{d.plans.map((p, i) => <div key={p.id} className={cx('flex items-center gap-3 px-4 py-3', i < d.plans.length - 1 && 'border-b border-ink-100')}><span className="grid size-9 place-items-center rounded-xl bg-amber-50 text-amber-700"><Briefcase size={18} /></span><div className="min-w-0 flex-1"><p className="text-sm font-bold">{p.name}</p><p className="text-xs text-ink-500">Sample · {p.listings} listings · {p.leads} enquiries/mo · price open (CFG-02)</p></div><button role="switch" aria-checked={p.active} aria-label={`Toggle ${p.name}`} onClick={() => setD({ ...d, plans: d.plans.map((x) => (x.id === p.id ? { ...x, active: !x.active } : x)) })} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', p.active ? 'bg-brand-600' : 'bg-ink-300')}><span className={cx('absolute top-0.5 size-6 rounded-full bg-white shadow transition-all', p.active ? 'left-[22px]' : 'left-0.5')} /></button></div>)}</Group></Section>
+      <Section title="Sales-agent commission"><Card className="space-y-3"><Input label="Per activated vendor" prefix="₹" inputMode="numeric" value={String(d.agentCommission.amount ?? "")} placeholder="Open (O-03)" onChange={(e) => setD({ ...d, agentCommission: { ...d.agentCommission, amount: +e.target.value.replace(/\D/g, '') } })} /><Toggle label="Admin approval required" desc="Attribution must be verified before payout" on={d.agentCommission.approvalRequired} onChange={(v) => setD({ ...d, agentCommission: { ...d.agentCommission, approvalRequired: v } })} /></Card></Section>
       <Section title="Launch locations"><Card className="space-y-1">{d.locations.map((l) => <Toggle key={l.city} label={l.city} on={l.on} onChange={(v) => setD({ ...d, locations: d.locations.map((x) => (x.city === l.city ? { ...x, on: v } : x)) })} />)}</Card></Section>
       <Section title="Feature availability"><Card className="space-y-1">{[['messaging', 'Customer ↔ vendor messaging'], ['rfq', 'RFQs & quotations'], ['reviews', 'Reviews'], ['hindi', 'Hindi language'], ['subscriptions', 'Paid vendor subscriptions'], ['sponsored', 'Sponsored placements (Phase 2)']].map(([k, label]) => <Toggle key={k} label={label} on={d.features[k]} onChange={(v) => setD({ ...d, features: { ...d.features, [k]: v } })} />)}</Card></Section>
+      <Section title="Feature-flag console"><Card className="flex items-center justify-between"><p className="text-sm text-ink-600">Turn features on per country, city or cohort without a release.</p><P2Badge /></Card></Section>
       <Section title="Notification channels"><Card className="space-y-1">{[['inapp', 'In-app (baseline)'], ['email', 'Email'], ['sms', 'SMS'], ['push', 'Push'], ['whatsapp', 'WhatsApp']].map(([k, label]) => <Toggle key={k} label={label} desc={k !== 'inapp' ? 'Requires provider readiness' : 'Always on'} on={d.channels[k]} onChange={(v) => k !== 'inapp' && setD({ ...d, channels: { ...d.channels, [k]: v } })} />)}</Card></Section>
     </Screen>
   )

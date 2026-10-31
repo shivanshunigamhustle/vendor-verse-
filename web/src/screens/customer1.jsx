@@ -6,7 +6,8 @@ import {
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
-import { CATS, cat, calcPrice, BUSY_SLOTS, SLOTS, listing as findListing } from '../data.jsx'
+import { findCity } from '../geo.js'
+import { CATS, P2_INDUSTRIES, P3_INDUSTRIES, cat, calcPrice, BUSY_SLOTS, SLOTS, listing as findListing } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Input, Select, Toggle, Badge, Rating, Banner, EmptyState,
   PriceBreakdown, KV, fmt, cx, Pill, SearchBar, IconBtn, StatusBadge, Stars, ListRow, Group, Meta, SOFT, GRAD, Carousel, Avatar,
@@ -140,6 +141,12 @@ export function Categories() {
           <div className="mt-3 flex flex-wrap gap-1.5">{c.subs.map((s) => <Pill key={s}>{s}</Pill>)}</div>
         </Card>
       ))}
+      <Section title="Coming in Phase 2">
+        <div className="flex flex-wrap gap-1.5">{P2_INDUSTRIES.map((n) => <Pill key={n}>{n} · Phase 2</Pill>)}</div>
+      </Section>
+      <Section title="Roadmap (Phase 3)">
+        <div className="flex flex-wrap gap-1.5">{P3_INDUSTRIES.map((n) => <Pill key={n}>{n}</Pill>)}</div>
+      </Section>
     </Screen>
   )
 }
@@ -182,7 +189,7 @@ function CoverageFilter({ value, onChange, t, lang }) {
 }
 export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = false }) {
   const nav = useNav()
-  const { listings, vendors, compare, toggleCompare, me, setMe, locale, lang, t } = useApp()
+  const { listings, vendors, compare, toggleCompare, me, setMe, locale, setLocale, lang, t } = useApp()
   const [q, setQ] = useState(params.q || '')
   const [mode, setMode] = useState(params.mode || 'all')
   const [c, setC] = useState(params.cat || 'all')
@@ -245,7 +252,7 @@ export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = fa
       back={false}
       pad={false}
       overlay={
-        <Sheet open={open} onClose={() => setOpen(false)} title="Filters" footer={<div className="flex gap-2"><Button variant="secondary" className="flex-1" onClick={() => { setDraft(DEFAULT_F); setF(DEFAULT_F); setCoverage('local'); setC('all'); setSubcategory('all') }}>Reset</Button><Button className="flex-[2]" onClick={() => { setF(draft); setOpen(false) }}>Show results</Button></div>}>
+        <Sheet open={open} onClose={() => setOpen(false)} title="Filters" footer={<div className="flex gap-2"><Button variant="secondary" className="flex-1" onClick={() => { setDraft(DEFAULT_F); setF(DEFAULT_F); setCoverage('local'); setC('all'); setSubcategory('all') }}>Reset</Button><Button className="flex-[2]" onClick={() => { setF(draft); if (draft.city !== 'Any') { const p = findCity(draft.city); if (p) setLocale({ ...locale, ...p, pincode: '' }) } setOpen(false) }}>Show results</Button></div>}>
           <div>
             <CoverageFilter value={coverage} onChange={setCoverage} t={t} lang={lang} />
           </div>
@@ -347,7 +354,7 @@ export function ListingDetail({ params }) {
           </div>
           <Button variant="secondary" icon={Phone} onClick={() => toast(`Calling ${v.name}…`)} aria-label="Call vendor" />
           {isSvc && <Button disabled={!live} variant="secondary" className="flex-1" size="lg" icon={MessageCircle} onClick={enquire}>Message</Button>}
-          <Button disabled={!live} className="flex-1" size="lg" icon={isSvc ? CalendarCheck : CreditCard} onClick={() => isSvc ? (gate('Log in to request a service booking') && nav.go('c_booking_new', { listingId: l.id })) : (gate('Log in to place an order') && nav.go('c_order_new', { listingId: l.id }))}>{isSvc ? 'Request booking' : 'Buy / procure'}</Button>
+          <Button disabled={!live} className="flex-1" size="lg" icon={isSvc ? CalendarCheck : CreditCard} onClick={() => isSvc ? (gate('Log in to request a service booking') && nav.go('c_book_new', { listingId: l.id })) : (gate('Log in to place an order') && nav.go('c_order_new', { listingId: l.id }))}>{isSvc ? 'Request booking' : 'Buy / procure'}</Button>
         </div>
       }
     >
