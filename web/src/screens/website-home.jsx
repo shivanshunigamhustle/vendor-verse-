@@ -157,7 +157,7 @@ export function WebsiteHome() {
            </TrainMarquee>
          </section>
 
-        <footer className="flex flex-col gap-4 border-t border-ink-100 pt-6 text-xs text-ink-500 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 VendorVerse · Products, services and quotations</span><div className="flex gap-5"><button onClick={() => nav.go('c_issues')} className="hover:text-brand-700">Help & support</button><button onClick={() => nav.go(me.guest ? 'login' : 'c_profile')} className="hover:text-brand-700">{me.guest ? 'Sign in' : 'My account'}</button></div></footer>
+        <footer className="flex flex-col gap-4 border-t border-ink-100 pt-6 text-xs text-ink-500 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 VendorVerse · Products, services and quotations</span><div className="flex gap-5"><button onClick={() => nav.go('c_cases')} className="hover:text-brand-700">Help & support</button><button onClick={() => nav.go(me.guest ? 'login' : 'c_profile')} className="hover:text-brand-700">{me.guest ? 'Sign in' : 'My account'}</button></div></footer>
       </div>
     </div>
   )

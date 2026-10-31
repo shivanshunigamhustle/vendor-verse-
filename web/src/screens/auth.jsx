@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Phone, Mail, ShieldCheck, Store, User, ArrowRight, Lock, Sparkles, Truck, FileText, Globe } from 'lucide-react'
+import { Phone, Mail, ShieldCheck, Store, User, Building2, ArrowRight, Lock, Sparkles, Truck, FileText, Globe } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { HOME, ROLES } from '../roles.js'
@@ -92,8 +92,9 @@ export function Welcome() {
 const normalizePhone = (value = '') => String(value).replace(/\D/g, '').slice(-10)
 const isPhone = (value) => normalizePhone(value).length === 10
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-const ACCESS_OTP = { customer: '111111', vendor: '222222', business: '121212', agent: '020905', admin: '261205' }
-const ADMIN_MFA = '261205'
+/* One demo OTP for every role, including Super Admin: the code is asked once. */
+const DEMO_OTP = '123456'
+const ADMIN_MFA = '654321'
 
 export function Login({ params = {} }) {
   const nav = useNav()
@@ -170,18 +171,22 @@ export function Otp({ params }) {
     const t = setTimeout(() => setSecs((s) => s - 1), 1000)
     return () => clearTimeout(t)
   }, [secs])
-  const target = step === 0 ? (ACCESS_OTP[role] || ACCESS_OTP.customer) : ADMIN_MFA
+  const target = step === 0 ? DEMO_OTP : ADMIN_MFA
   const verify = (candidate = code) => {
     if (candidate.length < 6) return setErr('Enter all 6 digits')
     if (candidate !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
-    // The demo admin flow uses one OTP; do not request a second code.
+    // Super Admin signs in with the same single OTP as every other role (owner request, 2026-10-30).
     if (mode === 'register') {
-      if (role === 'vendor') {
-        setMe({ role: 'vendor', loggedIn: true, guest: false, vendorId: 'v-new', name: name || 'New Vendor', biz, isNew: true })
-        toast('Account created — complete verification')
-        nav.reset('v_register')
+      if (role === 'business') {
+        setMe({ role: 'business', loggedIn: true, guest: false, vendorId: 'v-me', name: name || 'Company owner', businessName: biz, bizId: 'biz-me', businessWorkspace: true, phone: contact })
+        toast('Account created. Confirm your eligibility to open a Business account.')
+        nav.reset('b_eligibility')
+      } else if (role === 'vendor') {
+        setMe({ role: 'vendor', loggedIn: true, guest: false, vendorId: 'v-new', name: name || 'New Vendor', biz, phone: contact, isNew: true })
+        toast('Account created. Tell us what kind of vendor you are.')
+        nav.reset('v_register_type', { biz })
       } else {
-        setMe({ role: 'customer', loggedIn: true, guest: false, vendorId: 'v-me', name: name || ME.customer })
+        setMe({ role: 'customer', loggedIn: true, guest: false, vendorId: 'v-me', name: name || ME.customer, phone: contact })
         toast('Welcome to VendorVerse!')
         nav.reset('c_home')
       }
@@ -241,7 +246,7 @@ export function Register() {
     if (f.name.trim().length < 3) e.name = 'Enter your full name'
     if (!isPhone(f.phone)) e.phone = 'Enter a valid 10-digit mobile number'
     if (f.email && !isEmail(f.email)) e.email = 'Enter a valid email address'
-    if (role === 'vendor' && f.biz.trim().length < 3) e.biz = 'Enter your business name'
+    if (role !== 'customer' && f.biz.trim().length < 3) e.biz = 'Enter your business name'
     if (!f.agree) e.agree = 'Please accept to continue'
     setErrs(e)
     if (Object.keys(e).length === 0) nav.go('otp', { contact: `+91 ${f.phone}`, role, mode: 'register', name: f.name, biz: f.biz })
@@ -253,8 +258,8 @@ export function Register() {
           <h2 className="text-2xl font-extrabold tracking-tight">Join VendorVerse</h2>
           <p className="mt-1 text-sm text-ink-500">Choose how you want to use the marketplace.</p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {[['customer', User, 'Customer', 'Buy products, book services, request quotes'], ['vendor', Store, 'Vendor', 'Sell products and services to customers']].map(([id, I, a, b]) => (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[['customer', User, 'Customer', 'Buy products, book services, request quotes'], ['vendor', Store, 'Vendor', 'Sell products and services to customers'], ['business', Building2, 'Business', 'Registered company, 3+ years. Supply and services for vendors']].map(([id, I, a, b]) => (
             <button key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3.5 text-left ring-1 ring-inset transition', role === id ? 'bg-brand-50 ring-2 ring-brand-600' : 'bg-white ring-ink-200')}>
               <span className={cx('grid size-10 place-items-center rounded-xl', role === id ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500')}><I size={20} /></span>
               <p className="mt-2.5 text-sm font-bold">{a}</p>
@@ -263,13 +268,14 @@ export function Register() {
           ))}
         </div>
         <Input label="Full name" required placeholder="As per ID" value={f.name} onChange={set('name')} error={errs.name} />
-        {role === 'vendor' && <Input label="Business name" required placeholder="Registered business name" value={f.biz} onChange={set('biz')} error={errs.biz} />}
+        {role !== 'customer' && <Input label={role === 'business' ? 'Company legal name' : 'Business name'} required placeholder="Registered business name" value={f.biz} onChange={set('biz')} error={errs.biz} />}
         <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(normalizePhone(e.target.value))} error={errs.phone} className="!pl-10" />
         <Input label="Email (optional)" icon={Mail} type="email" placeholder="you@company.com" value={f.email} onChange={set('email')} error={errs.email} />
         <div>
           <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-brand-700">Terms of Service</b> and <b className="text-brand-700">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>
           {errs.agree && <p className="mt-1 text-xs font-medium text-red-600">{errs.agree}</p>}
         </div>
+        {role === 'business' && <Banner tone="blue" title="Business accounts are for company owners">You will confirm that you own a registered company that has operated for 3+ years, then submit a six-step company form for admin verification.</Banner>}
         {role === 'vendor' && <Banner tone="amber" title="Verification required">Vendors are shown as <b>Verified</b> only after Super Admin approves your business documents.</Banner>}
         <Button full size="lg" onClick={submit}>Continue</Button>
         <p className="text-center text-sm text-ink-500">Already have an account? <button onClick={() => nav.replace('login')} className="font-bold text-brand-700">Log in</button></p>

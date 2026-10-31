@@ -20,7 +20,7 @@ Order, booking, checkout, payment, refund, inventory and payout screens were rem
 * **Super admin:** dashboard, vendor verification, listing moderation, users & roles, categories & required fields, agents & commission approval, disputes/reports, reports + export, platform settings, audit log.
 
 Left panel (desktop) = role switcher + screen directory. Right panel (wide desktop) = SRS text for the current screen.
-Deep links: `/#/messages`, `/#/c_listing`, `/#/ad_vendor`… Demo OTP `123456` · admin authenticator `654321`.
+Deep links: `/#/messages`, `/#/c_listing`, `/#/ad_vendor`… Demo OTP `123456` for every role, including Super Admin (asked once).
 
 ## Messages
 One section for both roles: conversation list (search, unread, quote requests), enquiry context card for the listing, attachments, quick replies, verified badge, simulated reply, and chat menu (view vendor, request quote, rate vendor, report).

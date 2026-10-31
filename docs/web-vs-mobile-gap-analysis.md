@@ -1,6 +1,6 @@
 # VendorVerse: Web vs Mobile Mockup Gap Analysis
 
-> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../docs/01-feature-spec.md](../docs/01-feature-spec.md), [../docs/03-mockup-sync-matrix.md](../docs/03-mockup-sync-matrix.md) and [../docs/04-decisions-log.md](../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date.
+> **Superseded (2026-10-29).** Scope, phases and mockup status now live in [../docs/01-feature-spec.md](../docs/01-feature-spec.md), [../docs/03-mockup-sync-matrix.md](../docs/03-mockup-sync-matrix.md) and [../docs/04-decisions-log.md](../docs/04-decisions-log.md). Kept for background; phase labels and counts below may be out of date. **Web sync pass of 2026-10-30:** the web gaps in sections 2 to 12 were worked through against the sync matrix; the web app now has 172 screens. Items still open on web are listed as Partial or Missing in the matrix.
 
 
 Analysis only. No code was changed. Compared: screen registries, roles and navigation, stores and seed data, READMEs, and the web GAP_REPORT. Counts come from grepping the source, not from clicking through both apps.
@@ -130,4 +130,5 @@ Web has 28 admin screens that mobile lacks. Mobile has 24 that web lacks.
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-30 16:42 | Shil1517 | Modified: noted the web sync pass in the banner | Web gaps in this snapshot were addressed on 2026-10-30; the matrix holds the current status. |
 | 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

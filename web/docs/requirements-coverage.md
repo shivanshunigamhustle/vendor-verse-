@@ -25,4 +25,5 @@ The source of product scope is `VendorVerse_Comprehensive_Product_Requirements_S
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-30 16:42 | Shil1517 | Modified: none to the findings; web code changed after this audit | Web sync pass of 2026-10-30 (screens added, renamed or removed, plans without prices, one demo OTP). Findings here are out of date; use docs/03-mockup-sync-matrix.md. |
 | 2026-10-29 16:27 | Shil1517 | Modified: added pointer banner | Marked superseded by the new docs/ set (owner decisions D-001 to D-014) |

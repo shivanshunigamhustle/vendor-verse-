@@ -1,8 +1,8 @@
 # Mockup Sync Matrix (web ↔ mobile)
 
-Maps every feature in [01-feature-spec.md](01-feature-spec.md) to the screens that implement it on web and on mobile, and says what each mockup must change to match. **This is the work list for the later mockup sync.** No mockup code was changed when this was written.
+Maps every feature in [01-feature-spec.md](01-feature-spec.md) to the screens that implement it on web and on mobile, and says what each mockup must change to match. **This is the work list for the mockup sync.** The web sync pass was done on 2026-10-30 (statuses below); the mobile columns were not changed in that pass.
 
-**Basis of the statuses.** Read from the two screen registries (`web/src/registry.jsx`: 88 screens, `mobile/src/registry.jsx`: 162 screens) and the earlier gap analysis. Nobody clicked through the apps, so treat a status as "what the registry and docs show", not as a test result. Screen IDs are the registry IDs.
+**Basis of the statuses.** Read from the two screen registries (`web/src/registry.jsx`: 178 screens, `mobile/src/registry.jsx`: 162 screens) and the earlier gap analysis. Web statuses after 2026-10-30 were set from the code and a render check of every registered web screen; nobody clicked through the apps end to end, so treat a status as "what the registry and code show", not as a test result. Screen IDs are the registry IDs.
 
 | Status | Meaning |
 |---|---|
@@ -23,149 +23,149 @@ Maps every feature in [01-feature-spec.md](01-feature-spec.md) to the screens th
 
 | ID | Web screens | Web | Mobile screens | Mobile | Sync action |
 |---|---|---|---|---|---|
-| F-ACC-01 | `splash` `welcome` `login` `otp` `register` | Partial | `splash` `welcome` `login` `otp` `register` | Done | Web: remove the role picker and the per-role OTPs; use one login, one demo OTP and an admin second step, as mobile does. |
-| F-ACC-02 | `c_profile` | Partial | `c_profile` | Done | Web: replace the role toggle / `hasVendorAccount` with the single-identity mode switch. |
-| F-ACC-03 | | Missing | `acct_state` | Done | Web: add account-state screen and restricted/suspended banners. |
-| F-ACC-04 | `c_settings` | Partial | `c_delete` | Done | Web: add the deletion-request flow with status. |
-| F-ACC-05 | | Missing | | Missing | Both: design and add export-my-data and deletion explainer. |
+| F-ACC-01 | `splash` `welcome` `login` `otp` `register` | Done | `splash` `welcome` `login` `otp` `register` | Done | Web 2026-10-30: one demo OTP 123456 for every role; admin signs in with the OTP once (owner request), which differs from mobile's admin second step; role picker kept (O-11). Web: remove the role picker and the per-role OTPs; use one login, one demo OTP and an admin second step, as mobile does. |
+| F-ACC-02 | `c_profile` | Partial | `c_profile` | Done | Web 2026-10-30: header role toggle and hasVendorAccount still in use; business is now a separate account (F-BIZ-01). Web: replace the role toggle / `hasVendorAccount` with the single-identity mode switch. |
+| F-ACC-03 | `acct_state` | Partial | `acct_state` | Done | Web 2026-10-30: status screen added; restricted/suspended banners are not yet shown across the app. Web: add account-state screen and restricted/suspended banners. |
+| F-ACC-04 | `c_settings` `c_delete` | Done | `c_delete` | Done | Web 2026-10-30: deletion request with OTP check, status timeline and cancel added. Web: add the deletion-request flow with status. |
+| F-ACC-05 | `c_export` | Done |  | Missing | Web 2026-10-30: export request and kept/removed explainer added; retention periods stay open (CFG-08). Both: design and add export-my-data and deletion explainer. |
 | F-ACC-06 | `c_profile_edit` | Partial | `c_profile_edit` | Done | Web: add business type, locale, multiple saved locations. |
-| F-ACC-07 | `c_settings` | Partial | `c_settings` | Done | Both: align channel and category preferences with F-MSG-05. |
-| F-ACC-08 | | Missing | | Missing | Both: design and add session/device list for vendor and admin. |
-| F-GEO-01 | `c_home` | Partial | `c_location` | Done | Web: replace the country dropdown with the country > state > city > pincode picker. |
-| F-GEO-02 | | Missing | `c_location_wait` | Done | Web: add "not live" state and waitlist. |
-| F-GEO-03 | | Missing | `ad_geo` | Done | Web: add geo rollout manager. |
-| F-GEO-04 | | Missing | `ad_country` | Hold | None until O-04 is decided. |
-| F-GEO-05 | | Missing | | Missing | None until O-05 is decided. |
-| F-GEO-06 | `v_profile` | Partial | `v_areas` | Done | Web: add explicit coverage declaration (cities, states, countries, radius, remote). |
-| F-GEO-07 | | Missing | | Missing | Both: show UAE / Singapore / more metros as Phase 2 rows in the rollout manager. |
-| F-GEO-08 | | Partial | | Partial | Both: P1 shows INR only; tag the display-currency toggle "Phase 2". |
-| F-TAX-01 | `c_categories` `c_category` | Partial | `c_categories` `c_category` | Done | Web: render from the same taxonomy data as mobile. |
-| F-TAX-02 | `ad_categories` `ad_category` | Partial | `ad_categories` `ad_cat_new` `ad_taxonomy` | Done | Web: add lifecycle states, merge, retire, aliases, country scope. |
-| F-TAX-03 | `ad_category` | Partial | `ad_category` | Done | Web: add per-category booking mode, response deadline, cancellation policy, RFQ schema, verification rules. |
-| F-TAX-04 | | Missing | `c_cat_suggest` | Done | Web: add suggest-a-category and the admin queue. |
-| F-TAX-05 | | Partial | | Done | Web: replace the 8 base + ~20 generated categories with the 10 Phase 1 industries and give them real Hindi names. |
-| F-TAX-06 | | Missing | | Partial | Both: list the 9 Phase 2 industries in the taxonomy with a Phase 2 badge. |
-| F-TAX-07 | | Missing | | Partial | Both: list the 11 Phase 3 industries as roadmap only. |
-| F-TAX-08 | | Missing | | Done | Web: generate onboarding, listing, filter and RFQ forms from the schema. |
-| F-VND-01 | `v_register` `v_business_onboard` | Partial | `v_register` `v_register_mfr` `v_register_svc` | Done | Web: add type chooser with separate service-provider and manufacturer/supplier paths. |
-| F-VND-02 | | Missing | | Unverified | Both: confirm country is the first onboarding question. |
+| F-ACC-07 | `c_settings` `c_notif_prefs` | Done | `c_settings` | Done | Web 2026-10-30: channel and category preferences screen added. Both: align channel and category preferences with F-MSG-05. |
+| F-ACC-08 | `c_sessions` | Partial |  | Missing | Web 2026-10-30: device list with sign-out added; not yet reachable from the admin menu. Both: design and add session/device list for vendor and admin. |
+| F-GEO-01 | `c_home` `c_location` | Done | `c_location` | Done | Web 2026-10-30: country, state, city and pincode picker with pincode detection, current-location, live/waitlist status and language, ported from the mobile flow; the header dropdown now opens it. Display currency is shown as Phase 2. Web: replace the country dropdown with the country > state > city > pincode picker. |
+| F-GEO-02 | `c_location_wait` `c_location` | Done | `c_location_wait` | Done | Web 2026-10-30: waitlist join/leave is stored and available in the picker and the not-live screen. Web: add "not live" state and waitlist. |
+| F-GEO-03 | `ad_geo` | Done | `ad_geo` | Done | Web 2026-10-30: launch market register with Phase 2 markets locked and audit entries added. Web: add geo rollout manager. |
+| F-GEO-04 |  | Missing | `ad_country` | Hold | None until O-04 is decided. |
+| F-GEO-05 |  | Missing |  | Missing | None until O-05 is decided. |
+| F-GEO-06 | `v_profile` `v_areas` | Done | `v_areas` | Done | Web 2026-10-30: coverage declaration (areas, radius, remote) added. Web: add explicit coverage declaration (cities, states, countries, radius, remote). |
+| F-GEO-07 | `c_location` `ad_geo` | Done |  | Missing | Web 2026-10-31: non-India countries show a Phase 2 badge in the picker; Dubai and Singapore are Phase 2 rows in the rollout manager. Both: show UAE / Singapore / more metros as Phase 2 rows in the rollout manager. |
+| F-GEO-08 |  | Partial |  | Partial | Both: P1 shows INR only; tag the display-currency toggle "Phase 2". |
+| F-TAX-01 | `c_categories` `c_category` | Done | `c_categories` `c_category` | Done | Web 2026-10-30: now renders the 10 Phase 1 industries. Web: render from the same taxonomy data as mobile. |
+| F-TAX-02 | `ad_categories` `ad_category` `ad_taxonomy` `ad_cat_new` | Partial | `ad_categories` `ad_cat_new` `ad_taxonomy` | Done | Web 2026-10-30: lifecycle, aliases and merge request added; country scope still missing. Web: add lifecycle states, merge, retire, aliases, country scope. |
+| F-TAX-03 | `ad_category` | Partial | `ad_category` | Done | Web 2026-10-31: each industry now carries its RFQ question schema (used by the RFQ form). Web: add per-category booking mode, response deadline, cancellation policy, RFQ schema, verification rules. |
+| F-TAX-04 | `c_cat_suggest` | Partial | `c_cat_suggest` | Done | Web 2026-10-30: vendor suggestion form added; admin review queue still missing. Web: add suggest-a-category and the admin queue. |
+| F-TAX-05 | `c_categories` | Done |  | Done | Web 2026-10-30: replaced 8 base + ~28 generated categories and 50 generated vendors with the 10 Phase 1 industries and real Hindi names; O-10 still open. Web: replace the 8 base + ~20 generated categories with the 10 Phase 1 industries and give them real Hindi names. |
+| F-TAX-06 | `c_categories` | Done |  | Partial | Web 2026-10-30: the 9 Phase 2 industries are listed with a Phase 2 marker. Both: list the 9 Phase 2 industries in the taxonomy with a Phase 2 badge. |
+| F-TAX-07 | `c_categories` | Done |  | Partial | Web 2026-10-30: the 11 Phase 3 industries are listed as roadmap only. Both: list the 11 Phase 3 industries as roadmap only. |
+| F-TAX-08 |  | Missing |  | Done | Web: generate onboarding, listing, filter and RFQ forms from the schema. |
+| F-VND-01 | `v_register` `v_business_onboard` `v_register_type` `v_register_mfr` `v_register_svc` | Partial | `v_register` `v_register_mfr` `v_register_svc` | Done | Web 2026-10-30: type chooser and two type forms added; they hand over to the existing verification form. Web: add type chooser with separate service-provider and manufacturer/supplier paths. |
+| F-VND-02 | `v_register_type` | Done |  | Unverified | Web 2026-10-30: country is the first question. Both: confirm country is the first onboarding question. |
 | F-VND-03 | `v_verify` | Partial | `v_verify` | Done | Both: rename "Tier 1-3" to levels L0 to L3 and show dated badges. |
-| F-VND-04 | | Missing | | Partial | Both: show L4 as Phase 2. |
-| F-VND-05 | | Missing | `v_listing_gate` | Done | Web: add the six-gate publication checklist. |
+| F-VND-04 | `v_public` | Done |  | Partial | Web 2026-10-31: L4 third-party KYB shown with a Phase 2 badge. Both: show L4 as Phase 2. |
+| F-VND-05 | `v_listing_gate` | Done | `v_listing_gate` | Done | Web 2026-10-30: six gates computed live. Web: add the six-gate publication checklist. |
 | F-VND-06 | `v_listings` `v_listing_edit` | Partial | `v_listings` `v_listing_edit` | Done | Web: add plan limit, pause/unpublish. |
-| F-VND-07 | `ad_listings` `ad_listing` | Partial | `ad_listings` `ad_listing` | Done | Web: add duplicate flags; fold in photo, previous-work and profile-image review (RET-08, RET-09, RET-10). |
-| F-VND-08 | | Missing | `v_avail` | Done | Web: add service-area and availability screens. |
-| F-VND-09 | `c_vendor` `v_profile` | Partial | `c_vendor` `v_public` `v_profile` | Done | Web: add public profile with trust and verification display. |
+| F-VND-07 | `ad_listings` `ad_listing` | Partial | `ad_listings` `ad_listing` | Done | Web 2026-10-30: photo, portfolio and logo review folded in (RET-08 to RET-10); duplicate flags still missing. Web: add duplicate flags; fold in photo, previous-work and profile-image review (RET-08, RET-09, RET-10). |
+| F-VND-08 | `v_avail` | Done | `v_avail` | Done | Web 2026-10-30: availability calendar and capacity added. Web: add service-area and availability screens. |
+| F-VND-09 | `c_vendor` `v_profile` `v_public` | Done | `c_vendor` `v_public` `v_profile` | Done | Web 2026-10-30: public profile with L0 to L3 badges added. Web: add public profile with trust and verification display. |
 | F-VND-10 | `v_dash` `v_more` `v_perf` | Partial | `v_dash` `v_more` `v_perf` | Done | Web: add lead usage, subscription state, credential expiry widgets and performance metrics. |
-| F-VND-11 | | Missing | | Missing | None until O-09 is decided. |
-| F-VND-12 | | Missing | | Missing | None until O-09 is decided. |
+| F-VND-11 |  | Missing |  | Missing | None until O-09 is decided. |
+| F-VND-12 |  | Missing |  | Missing | None until O-09 is decided. |
 | F-DSC-01 | `c_home` | Partial | `c_home` | Done | Both: same home structure (search, region selectors, category explorer, sponsored label). |
 | F-DSC-02 | `c_explore` | Partial | `c_explore` | Done | Web: add pagination, "why matched", pincode matching. |
-| F-DSC-03 | | Missing | `c_explore_err` | Done | Web: add error/offline/no-result states. |
-| F-DSC-04 | `v_explore` | Partial | `c_explore_suppliers` | Done | Web: expose supplier/manufacturer search to customers too. |
-| F-DSC-05 | `c_listing` | Partial | `c_listing` `c_listing_nodata` `c_listing_trade` | Done | Web: add missing-data labels and trade-details variant. |
-| F-DSC-06 | | Missing | `c_product` | Done | Web: add product page with MOQ and tiers. |
+| F-DSC-03 | `c_explore_err` | Partial | `c_explore_err` | Done | Web 2026-10-30: error and no-result states exist as a preview screen; not yet wired into live search. Web: add error/offline/no-result states. |
+| F-DSC-04 | `v_explore` `c_explore_suppliers` | Done | `c_explore_suppliers` | Done | Web 2026-10-30: supplier search is reachable by customers. Web: expose supplier/manufacturer search to customers too. |
+| F-DSC-05 | `c_listing` `c_listing_nodata` `c_listing_trade` | Partial | `c_listing` `c_listing_nodata` `c_listing_trade` | Done | Web 2026-10-30: missing-data and trade-detail variants added; not yet shown automatically from the listing page. Web: add missing-data labels and trade-details variant. |
+| F-DSC-06 | `c_product` | Done | `c_product` | Done | Web 2026-10-30: MOQ, indicative volume tiers and delivery regions added. Web: add product page with MOQ and tiers. |
 | F-DSC-07 | `c_saved` | Partial | `c_saved` | Done | Web: confirm 3-vendor compare and absent-field labels. |
-| F-DSC-08 | | Missing | | Missing | None until O-09 is decided. |
-| F-DSC-09 | | Missing | | N/A | None until O-09 is decided. |
-| F-DSC-10 | | N/A | | N/A | Roadmap only. |
-| F-BKG-01 | `c_booking_new` `c_booking` | Partial | `c_book_new` `c_booking` | Done | Both: one status vocabulary (see PRS §8.2); rename web screens to match mobile IDs at sync time. |
-| F-BKG-02 | | Missing | `c_book_instant` | Done | Web: add instant booking. |
-| F-BKG-03 | | Missing | | Missing | Both: design and add recurring series (linked occurrences; cancel one vs all). |
-| F-BKG-04 | `c_booking` | Partial | `c_book_modify` `v_booking_mod` | Done | Web: add change request with original terms preserved. |
+| F-DSC-08 |  | Missing |  | Missing | None until O-09 is decided. |
+| F-DSC-09 |  | Missing |  | N/A | None until O-09 is decided. |
+| F-DSC-10 |  | N/A |  | N/A | Roadmap only. |
+| F-BKG-01 | `c_book_new` `c_booking` | Partial | `c_book_new` `c_booking` | Done | Web 2026-10-30: status "Accepted" is now "Confirmed"; screens renamed to the mobile IDs; full status set still differs. Both: one status vocabulary (see PRS §8.2); rename web screens to match mobile IDs at sync time. |
+| F-BKG-02 | `c_book_instant` | Done | `c_book_instant` | Done | Web 2026-10-30: instant mode existed inside the booking form; now has its own entry. Web: add instant booking. |
+| F-BKG-03 | `c_book_series` | Partial |  | Missing | Web 2026-10-30: recurring mode existed in the booking form; cancel one vs all occurrences not yet built. Both: design and add recurring series (linked occurrences; cancel one vs all). |
+| F-BKG-04 | `c_booking` `c_book_modify` `v_booking_mod` | Done | `c_book_modify` `v_booking_mod` | Done | Web 2026-10-30: change request keeps original terms until the vendor accepts. Web: add change request with original terms preserved. |
 | F-BKG-05 | `c_booking` | Partial | `c_booking` | Done | Web: show policy before submit; record vendor cancellations. |
-| F-BKG-06 | `c_booking` | Partial | `c_booking_done` | Done | Web: add 7-day confirmation. |
-| F-BKG-07 | | Missing | `c_conflict` | Done | Web: add conflicting-confirmations chooser. |
-| F-BKG-08 | | Missing | | Done | Web: idempotent create; hide competing requests. |
-| F-BKG-09 | `v_work` | Partial | `v_work` `v_booking` `v_leads` | Done | Web: split booking requests from RFQs; add leads view. |
-| F-BKG-10 | `c_activity` | Partial | `c_activity` | Done | Both: tab named "Activity"; include orders and contracts. |
-| F-RFQ-01 | `c_rfq_new` | Partial | `c_rfq_new` | Done | Web: category-schema fields, scanned attachments. |
+| F-BKG-06 | `c_booking` `c_booking_done` | Partial | `c_booking_done` | Done | Web 2026-10-30: 7-day confirmation screen added; auto-close is simulated. Web: add 7-day confirmation. |
+| F-BKG-07 | `c_conflict` | Partial | `c_conflict` | Done | Web 2026-10-30: chooser added with sample data; not triggered by real conflicts. Web: add conflicting-confirmations chooser. |
+| F-BKG-08 | `v_booking` | Partial |  | Done | Web 2026-10-30: vendor inbox shows only requests addressed to the vendor; idempotent create not implemented. Web: idempotent create; hide competing requests. |
+| F-BKG-09 | `v_work` `v_booking` `v_leads` | Done | `v_work` `v_booking` `v_leads` | Done | Web 2026-10-30: booking inbox separated from RFQs; leads view added. Web: split booking requests from RFQs; add leads view. |
+| F-BKG-10 | `c_activity` | Partial | `c_activity` | Done | Web 2026-10-30: tab named "Activity"; orders and contracts are not yet listed there. Both: tab named "Activity"; include orders and contracts. |
+| F-RFQ-01 | `c_rfq_new` | Done | `c_rfq_new` | Done | Web 2026-10-31: form rebuilt like mobile: category, title, scope, per-category questions, budget, timeline, delivery city, optional sourcing details (Phase 2), reference files with scan note, who-receives-it card. Web: category-schema fields, scanned attachments. |
 | F-RFQ-02 | `v_rfq` | Partial | `v_rfq` | Done | Web: add withdraw and validity. |
-| F-RFQ-03 | `c_rfq` | Partial | `c_rfq` `c_rfq_compare` | Done | Web: add atomic accept and goods comparison. |
-| F-RFQ-04 | `c_rfq` | Partial | `c_rfq_open` | Done | Web: add work order. |
-| F-RFQ-05 | | Missing | `c_rfq_edit` | Done | Web: add edit with revision. |
-| F-RFQ-06 | | Missing | `c_rfq_none` | Done | Web: add deadline extension and no-quotes state. |
-| F-RFQ-07 | | Missing | | Missing | Both: tag as Phase 2 where RFQ forms mention currency or trade terms. |
+| F-RFQ-03 | `c_rfq` `c_rfq_compare` | Done | `c_rfq` `c_rfq_compare` | Done | Web 2026-10-30: goods comparison added; accept already guarded against a second winner. Web: add atomic accept and goods comparison. |
+| F-RFQ-04 | `c_rfq` `c_rfq_open` | Done | `c_rfq_open` | Done | Web 2026-10-30: frozen accepted-terms and work order screen added. Web: add work order. |
+| F-RFQ-05 | `c_rfq_edit` | Done | `c_rfq_edit` | Done | Web 2026-10-30: edit with revision history; quoting vendors are notified. Web: add edit with revision. |
+| F-RFQ-06 | `c_rfq_none` | Done | `c_rfq_none` | Done | Web 2026-10-30: no-quotes state and deadline extension added. Web: add deadline extension and no-quotes state. |
+| F-RFQ-07 | `c_rfq_new` | Done |  | Missing | Web 2026-10-31: sourcing details (destination, Incoterm, target price, samples) carry a Phase 2 badge. Both: tag as Phase 2 where RFQ forms mention currency or trade terms. |
 | F-GDS-01 | `v_listing_edit` | Partial | `c_listing_trade` | Done | Web: add vendor-type, tiers, certifications, delivery regions. |
-| F-GDS-02 | | Missing | `c_rfq_goods` | Done | Web: add goods RFQ. |
-| F-GDS-03 | `c_order_new` `c_order` `v_orders` | Partial | `c_orders` `c_order` `v_orders` `v_order` | Done | Web: add order list and supplier-side accept/process/ship. |
-| F-GDS-04 | `c_order` | Partial | `c_order_exc` | Done | Web: add delivery-exception state. |
-| F-GDS-05 | | Missing | `c_order_failed` | Hold | None until O-06 is decided. |
-| F-GDS-06 | | Missing | | Missing | Both: design PO dispute outcomes. |
-| F-GDS-07 | | Missing | | Missing | Both: tag as Phase 2. |
-| F-GDS-08 | | N/A | | N/A | Roadmap only. |
-| F-GDS-09 | | N/A | | N/A | Roadmap only. |
-| F-CON-01 | | Missing | `c_contract_new` `c_contract` `v_contract` | Done | Web: add propose, counter, accept screens on both sides. |
-| F-CON-02 | | Missing | | Partial | Both: add milestone confirmation and contract dispute link. |
-| F-CON-03 | | Missing | | Missing | Both: show renewal, amendment, termination as Phase 2. |
-| F-CON-04 | | Missing | | Missing | Both: tag e-sign provider as Phase 2. |
-| F-CON-05 | | Missing | | Missing | None until O-08 is decided. |
-| F-BIZ-01 | | Missing | `b_eligibility` `b_register` `b_company` | Done | Web: make Business a separate account type with these screens (D-005). |
-| F-BIZ-02 | | Missing | `b_home` `b_services` `b_messages` `b_more` `v_biz_network` `v_biz_profile` | Done | Web: add business workspace and vendor-side network. |
-| F-BIZ-03 | | Missing | `c_companies` `c_company` `c_company_order` `b_orders` `b_order` | Hold | None until O-07 is decided. |
-| F-BIZ-04 | | Missing | `ad_company` | Done | Web: add company verification queue. |
-| F-BIZ-05 | `v_explore` | Partial | `vb_home` `vb_explore` `vb_rfq` `vb_compare` `vb_order` `v_buy` | Done | Web: replace the "Buy as a business" row with the full buyer journey. |
-| F-BIZ-06 | | Missing | `team` | Done | Web: add team screen with Phase 2 badge. |
+| F-GDS-02 | `c_rfq_goods` | Done | `c_rfq_goods` | Done | Web 2026-10-30: goods RFQ with specs, quantity and delivery region. Web: add goods RFQ. |
+| F-GDS-03 | `c_order_new` `c_order` `v_orders` `c_orders` `v_order` | Done | `c_orders` `c_order` `v_orders` `v_order` | Done | Web 2026-10-30: order list and supplier-side accept/process/ship added. Web: add order list and supplier-side accept/process/ship. |
+| F-GDS-04 | `c_order` `c_order_exc` | Done | `c_order_exc` | Done | Web 2026-10-30: delivery-exception screen added. Web: add delivery-exception state. |
+| F-GDS-05 |  | Missing | `c_order_failed` | Hold | None until O-06 is decided. |
+| F-GDS-06 | `c_order_exc` | Partial |  | Missing | Web 2026-10-30: four settlement outcomes added; not linked to the case flow beyond a button. Both: design PO dispute outcomes. |
+| F-GDS-07 | `c_listing_trade` | Done |  | Missing | Web 2026-10-31: customs, export markets and trade documents shown with a Phase 2 badge. Both: tag as Phase 2. |
+| F-GDS-08 |  | N/A |  | N/A | Roadmap only. |
+| F-GDS-09 |  | N/A |  | N/A | Roadmap only. |
+| F-CON-01 | `c_contract_new` `c_contract` `v_contract` | Done | `c_contract_new` `c_contract` `v_contract` | Done | Web 2026-10-30: propose, counter and in-app acceptance on both sides; state is stored. Web: add propose, counter, accept screens on both sides. |
+| F-CON-02 | `c_contract` `v_contract` | Partial |  | Partial | Web 2026-10-30: milestone completion and customer confirmation added; contract dispute link is a button only. Both: add milestone confirmation and contract dispute link. |
+| F-CON-03 | `c_contract` `v_contract` | Done |  | Missing | Web 2026-10-31: renew, amend and terminate shown with a Phase 2 badge. Web 2026-10-30: renewal, amendment and termination shown as a Phase 2 button. Both: show renewal, amendment, termination as Phase 2. |
+| F-CON-04 | `c_contract` `v_contract` | Done |  | Missing | Web 2026-10-31: e-signature provider shown with a Phase 2 badge. Both: tag e-sign provider as Phase 2. |
+| F-CON-05 |  | Missing |  | Missing | None until O-08 is decided. |
+| F-BIZ-01 | `b_eligibility` `b_register` `b_company` | Done | `b_eligibility` `b_register` `b_company` | Done | Web 2026-10-31: Business is selectable at sign-up; eligibility (owner role, 3+ years, registered) blocks ineligible users; full six-step company form (identity, industry, operations, compliance, people, submit) with validation, saved company record and verification timeline, ported from the mobile flow. Web 2026-10-30: Business is now a separate account type (D-005). Web: make Business a separate account type with these screens (D-005). |
+| F-BIZ-02 | `b_home` `b_services` `b_messages` `b_more` `v_biz_network` `v_biz_profile` | Done | `b_home` `b_services` `b_messages` `b_more` `v_biz_network` `v_biz_profile` | Done | Web 2026-10-31: business home with completeness bar and counters, services editor, company inbox (own threads), vendor Business network with search and service filter, message-only company profile. Web 2026-10-30: business workspace, own tabs and vendor-side network added. Web: add business workspace and vendor-side network. |
+| F-BIZ-03 | `c_companies` `c_company` `c_company_order` `c_company_track` `b_orders` `b_order` | Done | `c_companies` `c_company` `c_company_order` `b_orders` `b_order` | Partial | Web 2026-10-30: directory, storefront, order form, tracking and company-side accept/process/ship added with the Phase 2 badge. Mobile: add the "Phase 2" badge to these screens (D-010, D-015). |
+| F-BIZ-04 | `ad_company` | Done | `ad_company` | Done | Web 2026-10-31: queue with detail view and approve, more-information or reject with a required reason, audit entry and notification to the owner. Web 2026-10-30: company verification queue added. Web: add company verification queue. |
+| F-BIZ-05 | `v_explore` `vb_home` `vb_explore` `vb_rfq` `vb_compare` `vb_order` `v_buy` | Done | `vb_home` `vb_explore` `vb_rfq` `vb_compare` `vb_order` `v_buy` | Done | Web 2026-10-30: full buyer journey; vendor tab "Buy" added. Web: replace the "Buy as a business" row with the full buyer journey. |
+| F-BIZ-06 | `team` | Done | `team` | Done | Web 2026-10-30: team screen carries a Phase 2 badge. Web: add team screen with Phase 2 badge. |
 | F-MSG-01 | `messages` `chat` | Partial | `messages` `chat` | Done | Web: link conversations to bookings and RFQs; privacy notice; report. |
-| F-MSG-02 | | Missing | | Partial | Web: add contact-share consent. |
-| F-MSG-03 | | Missing | | Hold | None until O-09 is decided. |
+| F-MSG-02 | `c_contact_share` | Partial |  | Partial | Web 2026-10-30: consent flow added; not yet launched from the chat screen. Web: add contact-share consent. |
+| F-MSG-03 |  | Missing |  | Hold | None until O-09 is decided. |
 | F-MSG-04 | `notifications` | Partial | `notifications` | Done | Web: every notification opens its record. |
-| F-MSG-05 | | Missing | | Missing | Both: design channel preferences and the admin template manager (replaces web "send notification"). |
-| F-SUB-01 | `v_profile` | Partial | `v_plans` `ad_plans` | Done | Both: show tier names with sample values and the "CFG-01 open" label; no prices (D-007). |
-| F-SUB-02 | | Missing | `v_sub` | Done | Web: add lifecycle with grace period. |
-| F-SUB-03 | | Missing | `v_checkout` `v_checkout_down` | Done | Web: add checkout and scheduled downgrade. |
-| F-SUB-04 | `ad_coupons` | Hold | | Hold | None until O-02 is decided. |
-| F-SUB-05 | | Missing | `v_listings` | Done | Web: add lead-usage meter. |
-| F-SUB-06 | | Missing | `v_sponsor` `ad_sponsored` | Done | Web: add sponsored visibility screens. |
-| F-SUB-07 | | Missing | `ad_subs` `ad_sub` | Done | Web: add monitoring and billing investigation. |
-| F-SUB-08 | | Missing | `invoice` `fees` | Done | Web: add tax invoice and fees explainer. |
-| F-SUB-09 | | N/A | | N/A | Roadmap only. |
-| F-PAY-01 | | Missing | | Unverified | Both: show agreed price/terms as a record with the "paid directly to the vendor" notice. |
-| F-PAY-02 | | Missing | | Missing | Both: design invoice / offline-terms records for contracts. |
-| F-PAY-03 | | Missing | `c_pay` `c_payments` | Done | Web: add with Phase 2 badge. |
-| F-PAY-04 | | Missing | `c_wallet` | Done | Web: add with Phase 2 badge. |
-| F-PAY-05 | | Missing | `c_refund` `c_refund_view` `v_refunds` | Done | Web: add with Phase 2 badge. |
-| F-PAY-06 | | Missing | `v_payouts` | Done | Web: add with Phase 2 badge. |
-| F-PAY-07 | | Missing | `ad_commission` | Done | Web: add with Phase 2 badge. |
-| F-PAY-08 | | Missing | `c_pay_fx` | Done | Web: add with Phase 2 badge. |
-| F-PAY-09 | | Missing | | Missing | Both: tag as Phase 2 inside payout screens. |
-| F-TRU-01 | `c_review` `v_reviews` | Partial | `c_review` `c_review_no` `c_reviews` `v_reviews` | Done | Web: add rating dimensions, not-eligible state, my reviews. |
-| F-TRU-02 | | Missing | `v_public` | Done | Web: add trust score and badges. |
-| F-TRU-03 | `c_issue_new` `c_issues` `c_issue` `ad_disputes` `ad_dispute` | Partial | `c_report` `c_cases` `c_case` `ad_cases` `ad_case` | Done | Both: one name, "Cases"; web adopts the mobile flow with evidence and SLA. |
-| F-TRU-04 | | Missing | `v_cases` `ad_reviews` | Done | Web: add vendor appeals and the review-moderation queue. |
-| F-TRU-05 | | Missing | | Done | Web: add emergency restriction with post-review inside case resolution. |
-| F-TRU-06 | | Missing | | Missing | Both: tag as Phase 2. |
-| F-TRU-07 | | Missing | | Missing | None until O-09 is decided. |
-| F-TRU-08 | | N/A | | N/A | Roadmap only. |
-| F-AGT-01 | `a_home` `a_leads` `a_lead` `a_lead_new` `a_log` `a_followups` `a_profile` | Done | `a_home` `a_leads` `a_lead` `a_lead_new` `a_log` `a_followups` `a_profile` | Done | Web: rename "Leads" to "Prospective vendors". |
+| F-MSG-05 | `c_notif_prefs` | Partial |  | Missing | Web 2026-10-30: preferences added; the admin template manager is still missing and "send notification" was retired (RET-12). Both: design channel preferences and the admin template manager (replaces web "send notification"). |
+| F-SUB-01 | `v_profile` `v_plans` `ad_plans` `ad_settings` | Done | `v_plans` `ad_plans` | Done | Web 2026-10-30: Free / Starter / Growth / Pro with sample values and no prices (D-007). Both: show tier names with sample values and the "CFG-01 open" label; no prices (D-007). |
+| F-SUB-02 | `v_sub` | Done | `v_sub` | Done | Web 2026-10-30: lifecycle simulator (payment, failure with grace, expiry, cancel, duplicate webhook), auto-renew confirm, scheduled-downgrade banner, billing events and live recompute of which listings are public, as on mobile. Web: add lifecycle with grace period. |
+| F-SUB-03 | `v_checkout` `v_checkout_down` | Done | `v_checkout` `v_checkout_down` | Done | Web 2026-10-30: checkout shows proration and tax lines without invented amounts; downgrade is scheduled. Web: add checkout and scheduled downgrade. |
+| F-SUB-04 | `ad_coupons` | Hold |  | Hold | None until O-02 is decided. |
+| F-SUB-05 | `v_sub` `v_listings` | Done | `v_listings` | Done | Web 2026-10-30: lead-usage and public-listing meters against the plan limits on the subscription and listings screens; limit values are samples (CFG). Web: add lead-usage meter. |
+| F-SUB-06 | `v_sponsor` `ad_sponsored` | Done | `v_sponsor` `ad_sponsored` | Done | Web 2026-10-30: sponsored request and admin approval added. Web: add sponsored visibility screens. |
+| F-SUB-07 | `ad_subs` `ad_sub` | Done | `ad_subs` `ad_sub` | Done | Web 2026-10-30: monitoring list, billing events and investigation action added. Web: add monitoring and billing investigation. |
+| F-SUB-08 | `invoice` `fees` | Done | `invoice` `fees` | Done | Web 2026-10-30: invoice and fees explainer added; amounts stay open. Web: add tax invoice and fees explainer. |
+| F-SUB-09 |  | N/A |  | N/A | Roadmap only. |
+| F-PAY-01 | `c_terms` | Partial |  | Unverified | Web 2026-10-30: agreed price/terms record with the "paid directly" notice added; not yet linked from bookings. Both: show agreed price/terms as a record with the "paid directly to the vendor" notice. |
+| F-PAY-02 | `c_terms` | Partial |  | Missing | Web 2026-10-30: Mode B record shape shown; contracts carry the offline-terms line. Both: design invoice / offline-terms records for contracts. |
+| F-PAY-03 | `c_pay` `c_payments` | Done | `c_pay` `c_payments` | Done | Web 2026-10-30: Phase 2 preview with badge. Web: add with Phase 2 badge. |
+| F-PAY-04 | `c_wallet` | Done | `c_wallet` | Done | Web 2026-10-30: Phase 2 preview with badge. Web: add with Phase 2 badge. |
+| F-PAY-05 | `c_refund` `c_refund_view` `v_refunds` | Done | `c_refund` `c_refund_view` `v_refunds` | Done | Web 2026-10-30: Phase 2 preview with badge. Web: add with Phase 2 badge. |
+| F-PAY-06 | `v_payouts` | Done | `v_payouts` | Done | Web 2026-10-30: Phase 2 preview with badge. Web: add with Phase 2 badge. |
+| F-PAY-07 | `ad_commission` | Done | `ad_commission` | Done | Web 2026-10-30: Phase 2 preview with badge. Web: add with Phase 2 badge. |
+| F-PAY-08 | `c_pay_fx` | Done | `c_pay_fx` | Done | Web 2026-10-30: Phase 2 preview with badge. Web: add with Phase 2 badge. |
+| F-PAY-09 |  | Missing |  | Missing | Both: tag as Phase 2 inside payout screens. |
+| F-TRU-01 | `c_review` `v_reviews` `c_review_no` `c_reviews` | Partial | `c_review` `c_review_no` `c_reviews` `v_reviews` | Done | Web 2026-10-30: not-eligible state and my-reviews added; rating dimensions still missing. Web: add rating dimensions, not-eligible state, my reviews. |
+| F-TRU-02 | `v_public` | Done | `v_public` | Done | Web 2026-10-30: trust score and L0 to L3 badges; "no reviews yet" is neutral. Web: add trust score and badges. |
+| F-TRU-03 | `c_report` `c_cases` `c_case` `ad_cases` `ad_case` | Partial | `c_report` `c_cases` `c_case` `ad_cases` `ad_case` | Done | Web 2026-10-30: renamed to Cases with the mobile IDs; evidence upload and SLA display still missing. Both: one name, "Cases"; web adopts the mobile flow with evidence and SLA. |
+| F-TRU-04 | `v_cases` `ad_reviews` | Done | `v_cases` `ad_reviews` | Done | Web 2026-10-30: vendor cases about them with decision text, appeal sheet and appeal list; admin appeal queue (uphold or keep) added to review moderation. Web: add vendor appeals and the review-moderation queue. |
+| F-TRU-05 |  | Missing |  | Done | Web: add emergency restriction with post-review inside case resolution. |
+| F-TRU-06 | `ad_case` | Done |  | Missing | Web 2026-10-31: helpdesk macros and SLA timers card with a Phase 2 badge. Both: tag as Phase 2. |
+| F-TRU-07 |  | Missing |  | Missing | None until O-09 is decided. |
+| F-TRU-08 |  | N/A |  | N/A | Roadmap only. |
+| F-AGT-01 | `a_home` `a_leads` `a_lead` `a_lead_new` `a_log` `a_followups` `a_profile` | Done | `a_home` `a_leads` `a_lead` `a_lead_new` `a_log` `a_followups` `a_profile` | Done | Web 2026-10-30: list titled "Prospective vendors". Web: rename "Leads" to "Prospective vendors". |
 | F-AGT-02 | `a_onboard` | Done | `a_onboard` | Done | None. |
-| F-AGT-03 | | Missing | `a_tasks` | Done | Web: add assigned onboarding tasks. |
-| F-AGT-04 | | Missing | `a_perms` | Done | Web: add permission-boundary screen. |
-| F-AGT-05 | | Missing | `a_perf` | Done | Web: add conversion performance. |
-| F-AGT-06 | `a_earnings` | Done | | Missing | Mobile: add earnings screen once O-03 defines the model; web keeps its screen. |
-| F-AGT-07 | `ad_agents` `ad_agent` | Done | `ad_agents` `ad_agent` | Done | Mobile: add commission view to agent detail after O-03; web: fold in "shop leads" (RET-11). |
-| F-AGT-08 | | N/A | | N/A | Roadmap only. |
+| F-AGT-03 | `a_tasks` | Done | `a_tasks` | Done | Web 2026-10-30: assigned onboarding tasks added. Web: add assigned onboarding tasks. |
+| F-AGT-04 | `a_perms` | Done | `a_perms` | Done | Web 2026-10-30: permission-boundary screen added. Web: add permission-boundary screen. |
+| F-AGT-05 | `a_perf` | Done | `a_perf` | Done | Web 2026-10-30: a_perf is now the fourth agent tab ("Performance") as on mobile, with registered/approved/subscribed funnel and renewals at risk. Web: add conversion performance. |
+| F-AGT-06 | `a_earnings` | Done |  | Missing | Web 2026-10-30: commissions moved off the tab bar to a link in Performance and Profile (D-006 keeps them in Phase 1); no amounts, model open (O-03). Mobile: add earnings screen once O-03 defines the model; web keeps its screen. |
+| F-AGT-07 | `ad_agents` `ad_agent` | Done | `ad_agents` `ad_agent` | Done | Web 2026-10-30: all-leads oversight folded in (RET-11); amounts unset until O-03. Mobile: add commission view to agent detail after O-03; web: fold in "shop leads" (RET-11). |
+| F-AGT-08 |  | N/A |  | N/A | Roadmap only. |
 | F-ADM-01 | `ad_dash` `ad_approvals` `ad_more` | Done | `ad_dash` `ad_approvals` `ad_more` | Done | Both: same queue list (PRS §13.1). |
 | F-ADM-02 | `ad_vendors` `ad_vendor` | Done | `ad_vendors` `ad_vendor` | Done | Web: block self-approval; require reason. |
 | F-ADM-03 | `ad_users` `ad_user` `ad_customers` | Done | `ad_users` `ad_user` | Done | Mobile: add customers filter. |
 | F-ADM-04 | `ad_roles` | Done | `ad_roles` | Done | None. |
 | F-ADM-05 | `ad_audit` | Done | `ad_audit` | Done | None. |
-| F-ADM-06 | `ad_reports` `ad_analytics` | Done | `ad_analytics` | Done | Both: add supply-gap and RFQ-health panels (RET-03, RET-06); date ranges and export. |
-| F-ADM-07 | `ad_settings` | Done | `ad_settings` | Done | Web: remove duplicate "platform settings" (RET-07). |
-| F-ADM-08 | | Missing | `ad_cfg` | Done | Web: add open configuration register. |
-| F-ADM-09 | | Missing | | Missing | None until O-05 is decided. |
-| F-ADM-10 | | Missing | | Missing | Both: design maintenance / force-update screen. |
-| F-ADM-11 | | Missing | | Missing | Both: tag as Phase 2. |
-| F-ADM-12 | | Missing | | Missing | Both: tag as Phase 2. |
-| F-ADM-13 | `ad_vendor_new` | Hold | | Missing | None until O-01 is decided. |
-| F-XCT-01 | | Partial | | Partial | Web: repair damaged Hindi text; move hard-coded copy into the dictionary. |
-| F-XCT-02 | | Missing | | Missing | Both: show language list and RTL as Phase 2. |
-| F-XCT-03 | | Partial | `ui_states` | Done | Web: add the same loading, empty, error, offline, denied, expired states. |
-| F-XCT-04 | | Partial | | Partial | Both: audit against WCAG 2.2 AA. |
-| F-XCT-05 | | Partial | | Partial | Both: same terminology and status vocabulary; this matrix is the check. |
-| F-XCT-06 | | Missing | `c_dash` | Done | Web: add customer dashboard. |
-| F-XCT-07 | | N/A | | N/A | Roadmap only. |
-| F-MCK-01 | `scope_review` | Done | `vision` `flows` `journeys` `journeys_pick` | Done | Both: same five required demo journeys and a phase view generated from these docs. |
+| F-ADM-06 | `ad_reports` `ad_analytics` | Done | `ad_analytics` | Done | Web 2026-10-30: RFQ-health and coverage-gap panels folded in (RET-03, RET-06). Both: add supply-gap and RFQ-health panels (RET-03, RET-06); date ranges and export. |
+| F-ADM-07 | `ad_settings` | Done | `ad_settings` | Done | Web 2026-10-30: duplicate platform-settings screen removed (RET-07). Web: remove duplicate "platform settings" (RET-07). |
+| F-ADM-08 | `ad_cfg` | Done | `ad_cfg` | Done | Web 2026-10-30: CFG register added (12 sample rows; the spec lists CFG-01 to CFG-19). Web: add open configuration register. |
+| F-ADM-09 |  | Missing |  | Missing | None until O-05 is decided. |
+| F-ADM-10 | `ad_maintenance` | Done |  | Missing | Web 2026-10-30: maintenance and force-update settings added. Both: design maintenance / force-update screen. |
+| F-ADM-11 | `ad_settings` | Done |  | Missing | Web 2026-10-31: feature-flag console card with a Phase 2 badge. Both: tag as Phase 2. |
+| F-ADM-12 | `ad_analytics` | Done |  | Missing | Web 2026-10-31: cohort, funnel and event-tracking card with a Phase 2 badge. Both: tag as Phase 2. |
+| F-ADM-13 | `ad_vendor_new` | Hold |  | Missing | None until O-01 is decided. |
+| F-XCT-01 |  | Partial |  | Partial | Web: repair damaged Hindi text; move hard-coded copy into the dictionary. |
+| F-XCT-02 | `c_location` | Done |  | Missing | Web 2026-10-31: Arabic, Spanish, French, German and Chinese are listed with a Phase 2 badge. Both: show language list and RTL as Phase 2. |
+| F-XCT-03 | `ui_states` | Partial | `ui_states` | Done | Web 2026-10-30: six state previews added; not every screen uses them yet. Web: add the same loading, empty, error, offline, denied, expired states. |
+| F-XCT-04 |  | Partial |  | Partial | Both: audit against WCAG 2.2 AA. |
+| F-XCT-05 |  | Partial |  | Partial | Both: same terminology and status vocabulary; this matrix is the check. |
+| F-XCT-06 | `c_dash` | Done | `c_dash` | Done | Web 2026-10-30: customer dashboard added. Web: add customer dashboard. |
+| F-XCT-07 |  | N/A |  | N/A | Roadmap only. |
+| F-MCK-01 | `scope_review` `vision` `flows` `journeys` `journeys_pick` | Partial | `vision` `flows` `journeys` `journeys_pick` | Done | Web 2026-10-30: vision, flows and journeys J1 to J5 added; the phase view still shows the old SRS v1.0 content. Both: same five required demo journeys and a phase view generated from these docs. |
 
 ## 2. Web screens to retire or fold in
 
@@ -173,18 +173,18 @@ Applied under decision D-009 ("drop web-only admin screens that are not in the P
 
 | ID | Web screen | Disposition | Folds into | Reason |
 |---|---|---|---|---|
-| RET-01 | `ad_faqs` | Retire | F-ADM-07 | FAQs management is not in the PRS. |
-| RET-02 | `ad_requirements` | Retire | F-ADM-06 | Admin browsing of customer requirements is not in the PRS; aggregate demand lives in analytics. |
-| RET-03 | `ad_supply_gaps` | Fold in | F-ADM-06 | PRS §18 asks for service-coverage gaps as a metric, not a console. |
-| RET-04 | `ad_quote_moderation` | Fold in | F-TRU-04 | Quote content problems are handled as reports and cases (PRS §12.2). |
-| RET-05 | `ad_category_templates` | Fold in | F-TAX-03 | Category templates are the per-category RFQ schema (PRS §6.2). |
-| RET-06 | `ad_rfq_health` | Fold in | F-ADM-06 | RFQ metrics are in PRS §18. |
-| RET-07 | `ad_platform_settings` | Retire | F-ADM-07 | Duplicate of `ad_settings`. |
-| RET-08 | `ad_photo_approvals` | Fold in | F-VND-07 | Photos are part of listing review (PRS §12.2). |
-| RET-09 | `ad_previous` | Fold in | F-VND-07 | Portfolio is vendor content reviewed with the listing (PRS §26.4.2). |
-| RET-10 | `ad_profile_images` | Fold in | F-VND-07 | Logo and banner are reviewed with the vendor profile. |
-| RET-11 | `ad_shop_leads` | Fold in | F-AGT-07 | All-leads oversight is part of sales oversight (PRS §4.2). |
-| RET-12 | `ad_notifications` | Replace | F-MSG-05 | Manual broadcast is not in the PRS; the PRS needs templates and preferences instead (CFG-10). |
+| RET-01 | ad_faqs (removed from web 2026-10-30) | Retire | F-ADM-07 | FAQs management is not in the PRS. |
+| RET-02 | ad_requirements (removed from web 2026-10-30) | Retire | F-ADM-06 | Admin browsing of customer requirements is not in the PRS; aggregate demand lives in analytics. |
+| RET-03 | ad_supply_gaps (removed from web 2026-10-30) | Fold in | F-ADM-06 | PRS §18 asks for service-coverage gaps as a metric, not a console. |
+| RET-04 | ad_quote_moderation (removed from web 2026-10-30) | Fold in | F-TRU-04 | Quote content problems are handled as reports and cases (PRS §12.2). |
+| RET-05 | ad_category_templates (removed from web 2026-10-30) | Fold in | F-TAX-03 | Category templates are the per-category RFQ schema (PRS §6.2). |
+| RET-06 | ad_rfq_health (removed from web 2026-10-30) | Fold in | F-ADM-06 | RFQ metrics are in PRS §18. |
+| RET-07 | ad_platform_settings (removed from web 2026-10-30) | Retire | F-ADM-07 | Duplicate of `ad_settings`. |
+| RET-08 | ad_photo_approvals (removed from web 2026-10-30) | Fold in | F-VND-07 | Photos are part of listing review (PRS §12.2). |
+| RET-09 | ad_previous (removed from web 2026-10-30) | Fold in | F-VND-07 | Portfolio is vendor content reviewed with the listing (PRS §26.4.2). |
+| RET-10 | ad_profile_images (removed from web 2026-10-30) | Fold in | F-VND-07 | Logo and banner are reviewed with the vendor profile. |
+| RET-11 | ad_shop_leads (removed from web 2026-10-30) | Fold in | F-AGT-07 | All-leads oversight is part of sales oversight (PRS §4.2). |
+| RET-12 | ad_notifications (removed from web 2026-10-30) | Replace | F-MSG-05 | Manual broadcast is not in the PRS; the PRS needs templates and preferences instead (CFG-10). |
 
 ## 3. Differences that are not features
 
@@ -192,15 +192,22 @@ These are mockup behaviours that differ between the apps and must be made the sa
 
 | Topic | Web today | Mobile today | Target |
 |---|---|---|---|
-| Demo credentials | A different OTP per role | One OTP (123456), admin MFA 654321 | Mobile's scheme on both. |
+| Demo credentials | One OTP (123456) for every role; Super Admin is asked once (since 2026-10-30) | One OTP (123456), admin MFA 654321 | Open: owner asked web to take the OTP once for admin; mobile still has the admin second step. Decide and align. |
 | Admin in role picker | Visible | Hidden (`HIDE_ADMIN`) | Open: decide with the mockup sync (see O-11). |
 | Persistence | `localStorage` | In memory | Either, but both reset the same way from a "reset demo data" action. |
 | Screen counts in READMEs | n/a | Says 93 and 111 | Generated from the registry. |
 | Verification wording | n/a | "Tier 1 to 4" | "Level L0 to L4" everywhere. |
-| Support wording | Issues / Disputes | Cases | "Cases". |
+| Support wording | Cases (since 2026-10-30; screens renamed c_report, c_cases, c_case, ad_cases, ad_case) | Cases | "Cases". Done on web. |
 
 ## Change Log
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-31 10:40 | Shil1517 | Modified: F-BIZ-01, F-BIZ-02 web business-panel logic corrected | Review found: a vendor or the demo business could be switched onto the wrong company, business could open vendor pages and switch to vendor mode (D-005 says a separate account), company chats were one-sided, order list was not scoped to the company. All fixed and browser-verified. Mobile untouched. |
+| 2026-10-31 10:37 | Shil1517 | Modified: F-BIZ-01, F-BIZ-02, F-BIZ-04, F-RFQ-01 web Done; Phase 2 badges added for F-GEO-07, F-XCT-02, F-VND-04, F-RFQ-07, F-GDS-07, F-CON-03, F-CON-04, F-TRU-06, F-ADM-11, F-ADM-12 | Owner asked web to follow the docs: Business account rebuilt from the mobile flow (it had near-empty pages), RFQ form rebuilt like mobile, Phase 2 features visibly badged (D-010). Browser-verified J2 to J5 and the business flow. Mobile untouched. |
+| 2026-10-30 17:40 | Shil1517 | Modified: F-GEO-01 web location is one shared value | The header location now follows the picker, the profile city, the Explore location filter and the RFQ form defaults, as requested by the owner. |
+| 2026-10-30 17:34 | Shil1517 | Modified: F-ACC-01 web admin sign-in asks the OTP once | Owner request 2026-10-30. Differs from mobile (admin second step 654321) and from the spec line on privileged-role extra verification; needs a decision. |
+| 2026-10-30 17:31 | Shil1517 | Modified: no status change; web flows verified in a browser run | Walked vendor sign-up, listing approval, booking, RFQ and quote flows in headless Chrome. Vendor onboarding now runs register, OTP, type chooser, verification form (F-VND-01, F-VND-02). Form screens centred; URL hash navigation fixed. |
+| 2026-10-30 17:05 | Shil1517 | Modified: F-BIZ-03, F-GEO-01, F-GEO-02, F-SUB-02, F-SUB-05, F-TRU-04, F-AGT-05, F-AGT-06 web statuses | Second web sync pass: geography picker, subscription and moderation depth, company storefront (Phase 2) and the agent Performance tab ported from the mobile flows. Mobile code untouched. |
+| 2026-10-30 16:42 | Shil1517 | Modified: web columns and statuses for ~85 features; 12 retired web screens removed from the registry; RET rows marked removed | Web sync pass requested by the owner: add the missing Phase 1 screens, rename to the mobile IDs (c_book_new, c_report, c_cases, c_case, ad_cases, ad_case), apply D-005, D-006, D-007, D-009. Mobile columns untouched. |
 | 2026-10-29 16:27 | Shil1517 | Added: sync matrix for all features; 12 retired/folded web screens | Needed a per-feature work list so web and mobile mockups can be synced to one spec. Retirements follow D-009. |

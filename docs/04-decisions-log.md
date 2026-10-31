@@ -20,6 +20,7 @@ Every scope decision lives here, with who made it and why. Features reference th
 | D-012 | 2026-10-29 | Shil1517 | **Deliverable is a Markdown set in `docs/`.** The PRS .docx is not edited; deviations are listed in section 3. | A diffable format that can be checked by script. |
 | D-013 | 2026-10-29 | Shil1517 | **Web and mobile are one product.** Every Phase 1 feature is on both, with the same rules, terms and status names. | Stated by the owner; PRS §17 requires parity. Supersedes the mobile scope doc's "Android and iOS only, web separate". |
 | D-014 | 2026-10-29 | Claude (derived from D-001), awaiting Shil1517 | **PRS items marked "Future" map to Phase 3** (cart checkout, enterprise procurement, AI, field tools, advanced ads). | D-001 defines Phase 3 as future roadmap. This is an inference, listed under O-12 for confirmation. |
+| D-015 | 2026-10-30 | Shil1517 | **Company storefront ordering (F-BIZ-03) is Phase 2.** Customers can order directly from a verified company storefront; screens carry the "Phase 2" badge on both clients. Payment stays direct between customer and company. | Closes O-07. Owner chose Phase 2 with badge (D-010) when asked during the web sync. The mobile storefront screens need the badge. |
 
 ## 2. Open decisions
 
@@ -33,7 +34,7 @@ Nothing in these rows is built, changed or removed until the decision is closed.
 | O-04 | Are country packs Phase 1 or Phase 2? | F-GEO-04 | The mobile scope doc lists country packs under both. Only India is live in Phase 1. |
 | O-05 | Are dual approval and the market activation checklist in Phase 1? | F-GEO-05, F-ADM-09 | PRS requires dual approval for market activation and commission changes. Neither mockup implements it. Phase 1 launch cities need an activation step. |
 | O-06 | What does a purchase order's "payment failed" state mean when the platform handles no payments? | F-GDS-05 | The mobile mockup has it; in Phase 1 the platform cannot fail a payment. Options: remove, or redefine as "supplier did not confirm payment terms". |
-| O-07 | Can customers order directly from a company storefront, or do vendors only message companies? | F-BIZ-03 | Mobile scope doc says message only. The mobile mockup has a company directory, storefront and an "Order from a company" flow with company-side order handling. |
+| O-07 | **Closed by D-015.** Can customers order directly from a company storefront, or do vendors only message companies? | F-BIZ-03 | Mobile scope doc says message only. The mobile mockup has a company directory, storefront and an "Order from a company" flow with company-side order handling. |
 | O-08 | Are contract suspend/resume and expiry in Phase 1 or Phase 2? | F-CON-05 | D-004 named the other lifecycle parts but not these. |
 | O-09 | Phase for PRS-required items that neither mockup has and no document placed: profile completeness, field visibility classes, saved searches and alerts, web SEO landing pages, chat attachments / scanning / read receipts, automated content screening. | F-VND-11, F-VND-12, F-DSC-08, F-DSC-09, F-MSG-03, F-TRU-07 | Each is a PRS "must" for the release wave in which it is enabled. |
 | O-10 | Do manufacturers launch under the Wholesale industry in Phase 1 while "Manufacturing and OEM" opens in Phase 2? | F-TAX-05, F-TAX-06 | Open item from the mobile scope doc (decision 7). |
@@ -71,4 +72,6 @@ The PRS is not edited (D-012). Until it is reissued, the decision wins.
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-10-30 17:05 | Shil1517 | Added: D-015; closed O-07 | Owner decided during the web sync pass that company storefront ordering is Phase 2 with a badge. |
+| 2026-10-30 16:42 | Shil1517 | Modified: no decision added; D-005, D-006, D-007 and D-009 applied to the web mockup | Web sync pass of 2026-10-30. Removed from web: ad_faqs, ad_requirements, ad_supply_gaps, ad_quote_moderation, ad_category_templates, ad_rfq_health, ad_platform_settings, ad_photo_approvals, ad_previous, ad_profile_images, ad_shop_leads, ad_notifications. Held per O-01 and O-02: ad_vendor_new, ad_coupons. |
 | 2026-10-29 16:27 | Shil1517 | Added: D-001 to D-014, O-01 to O-12, PRS differences, gap-analysis resolutions | Owner answered the phase questions on 2026-10-29; open items recorded instead of being assumed. |
