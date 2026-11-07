@@ -1,28 +1,28 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --color-brand-50: #e5f7ef;
-  --color-brand-100: #c6ecdc;
-  --color-brand-200: #9bd7bd;
-  --color-brand-300: #63c79b;
-  --color-brand-400: #2bb77a;
-  --color-brand-500: #16a875;
-  --color-brand-600: #087f5b;
-  --color-brand-700: #066b4c;
-  --color-brand-800: #064e3b;
-  --color-brand-900: #043d2e;
-  --color-ink-50: #f8faf8;
-  --color-ink-100: #eef3ef;
-  --color-ink-200: #dde5de;
-  --color-ink-300: #bccbc1;
-  --color-ink-400: #8b9a91;
-  --color-ink-500: #718078;
-  --color-ink-600: #52645a;
-  --color-ink-700: #394b42;
-  --color-ink-800: #263a31;
-  --color-ink-900: #172923;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #5b21d6;
+  --color-brand-700: #4c1d95;
+  --color-brand-800: #3b0764;
+  --color-brand-900: #1b1b4b;
+  --color-ink-50: #faf9ff;
+  --color-ink-100: #f1edf9;
+  --color-ink-200: #e3dbfa;
+  --color-ink-300: #c7bedb;
+  --color-ink-400: #8b859e;
+  --color-ink-500: #64748b;
+  --color-ink-600: #46466a;
+  --color-ink-700: #2d2d5c;
+  --color-ink-800: #1e1e48;
+  --color-ink-900: #17152f;
   --animate-slide-in: slide-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   --animate-fade-in: fade-in 0.2s ease-out;
   --animate-sheet-up: sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -36,7 +36,7 @@
 }
 
 html, body, #root { height: 100%; }
-body { margin: 0; font-family: var(--font-sans); background: #f8faf8; color: var(--color-ink-900); -webkit-font-smoothing: antialiased; }
+body { margin: 0; font-family: var(--font-sans); background: var(--color-ink-50); color: var(--color-ink-900); -webkit-font-smoothing: antialiased; }
 h1, h2, h3, h4 { font-family: var(--font-display); }
 button { font-family: inherit; cursor: pointer; }
 input, select, textarea { font-family: inherit; }
@@ -46,8 +46,8 @@ input, select, textarea { font-family: inherit; }
 input[type="date"], input[type="time"] { min-height: 1.5rem; }
 .vv-splash-loader { position: relative; width: 132px; height: 132px; perspective: 700px; }
 .vv-splash-core { position: absolute; inset: 27px; display: grid; place-items: center; transform: translateZ(35px); filter: drop-shadow(0 18px 16px rgba(0,0,0,.22)); }
-.vv-splash-orbit { position: absolute; inset: 7px; border: 2px solid rgba(153,246,228,.72); border-radius: 50%; transform: rotateX(65deg) rotateZ(15deg); animation: vv-orbit 2.6s linear infinite; box-shadow: 0 0 22px rgba(45,212,191,.28); }
-.vv-splash-orbit-a::after, .vv-splash-orbit-b::after { content: ''; position: absolute; top: -6px; left: 50%; width: 10px; height: 10px; border-radius: 999px; background: #ffd166; box-shadow: 0 0 12px #ffd166; }
+.vv-splash-orbit { position: absolute; inset: 7px; border: 2px solid rgba(196,181,253,.72); border-radius: 50%; transform: rotateX(65deg) rotateZ(15deg); animation: vv-orbit 2.6s linear infinite; box-shadow: 0 0 22px rgba(139,92,246,.28); }
+.vv-splash-orbit-a::after, .vv-splash-orbit-b::after { content: ''; position: absolute; top: -6px; left: 50%; width: 10px; height: 10px; border-radius: 999px; background: #a78bfa; box-shadow: 0 0 12px #c4b5fd; }
 .vv-splash-orbit-b { inset: 16px -5px; transform: rotateY(65deg) rotateZ(-20deg); animation: vv-orbit-reverse 2.1s linear infinite; border-color: rgba(255,255,255,.55); }
 .vv-explore-card-grid > * { min-width: 0; }
 .vv-explore-card-grid .vv-card { min-width: 0; overflow: hidden; }

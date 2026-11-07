@@ -40,7 +40,7 @@ export function useStartChat() {
 export function VerifiedBadge({ id, className }) {
   const { isVerified } = useApp()
   return isVerified(id) ? (
-    <Badge tone="green" className={className}><ShieldCheck size={11} />Verified</Badge>
+    <Badge tone="purple" className={cx('bg-[#f6f2ff] text-[#5b21d6] ring-[#e3dbfa] font-bold', className)}><ShieldCheck size={11} className="text-[#5b21d6]" />Verified</Badge>
   ) : (
     <Badge tone="gray" className={className}><ShieldAlert size={11} />Unverified</Badge>
   )
@@ -70,12 +70,12 @@ export function ListingCard({ l, onClick, showVendor = true }) {
   const out = l.type === 'product' && l.stock === 0
   return (
     <Card onClick={onClick || (() => nav.go('c_listing', { id: l.id }))} className="!p-0 min-w-0 overflow-hidden">
-      <div className="h-32 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(8,45,55,.42), rgba(8,45,55,.04)), url(${listingCover(l)})` }} />
+      <div className="h-32 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(27,27,75,.42), rgba(27,27,75,.04)), url(${listingCover(l)})` }} />
       <div className="listing-card-body flex min-w-0 gap-3 p-4">
         <div className="mt-0 grid size-16 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Thumb tone={l.tone} icon={c.icon} size={54} round="rounded-xl" /></div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1">
-            <div className="min-w-0 flex-1"><div className="mb-1"><Badge tone={l.type === 'service' ? 'sky' : 'teal'}>{l.type === 'service' ? 'Service' : 'Product'}</Badge></div><p className="line-clamp-2 text-sm font-bold leading-snug text-ink-900">{l.title}</p></div>
+            <div className="min-w-0 flex-1"><div className="mb-1"><Badge tone={l.type === 'service' ? 'sky' : 'purple'}>{l.type === 'service' ? 'Service' : 'Product'}</Badge></div><p className="line-clamp-2 text-sm font-bold leading-snug text-ink-900">{l.title}</p></div>
             <span
               role="button"
               aria-label="Save"
@@ -112,7 +112,7 @@ export function VendorRow({ v, onClick }) {
   const cover = v.cover || ({ elec: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80', build: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80', office: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80', clean: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80', home: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=900&q=80', event: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=900&q=80' }[v.cat] || 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80')
   return (
     <Card onClick={onClick || (() => nav.go('c_vendor', { id: v.id }))} className="!p-0 min-w-0 overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="h-28 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(8,45,55,.45), rgba(8,45,55,.05)), url(${cover})` }} />
+      <div className="h-28 w-full bg-cover bg-center" style={{ backgroundImage: `linear-gradient(90deg, rgba(27,27,75,.45), rgba(27,27,75,.05)), url(${cover})` }} />
       <div className="vendor-card-body flex min-w-0 items-center gap-3 p-4">
         <div className="mt-0 grid size-14 shrink-0 place-items-center rounded-2xl border-4 border-white bg-white shadow"><Avatar name={v.name} size={42} /></div>
         <div className="min-w-0 flex-1">

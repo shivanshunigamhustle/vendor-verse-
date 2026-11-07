@@ -37,7 +37,7 @@ export function AdminDashboard() {
           <Stat label="Conversations" value={threads.customer.length + 214} icon={MessageSquare} tone="violet" delta="+9%" onClick={() => nav.go('ad_reports')} />
           <Stat label="Live listings" value={listings.filter((l) => l.status === 'approved').length + 120} icon={Package} tone="emerald" delta="+14%" onClick={() => nav.go('ad_listings')} />
           <Stat label="RFQs" value={rfqs.length + 41} icon={FileText} tone="rose" delta="+6%" onClick={() => nav.go('ad_reports')} />
-          <Stat label="Verified vendors %" value="78%" icon={ShieldCheck} tone="teal" delta="+5%" onClick={() => nav.go('ad_vendors')} />
+          <Stat label="Verified vendors %" value="78%" icon={ShieldCheck} tone="purple" delta="+5%" onClick={() => nav.go('ad_vendors')} />
         </div>
         <Card><div className="flex items-center justify-between"><div><p className="text-sm font-bold">New registrations</p><p className="text-xs text-ink-500">Customers + vendors, weekly</p></div><Badge tone="green">+33%</Badge></div><div className="mt-3"><BarChart data={REPORT.weeks.map((w, i) => ({ label: w, value: REPORT.registrations[i] }))} height={96} /></div></Card>
         <Section title="Needs attention">
@@ -194,7 +194,7 @@ export function AdminVendorNew() {
   const save = () => {
     if (f.name.trim().length < 3 || f.owner.trim().length < 3 || !f.city.trim()) return setErr('Business name, owner and city are required')
     const id = `admin-v-${Date.now()}`
-    const record = { id, name: f.name.trim(), owner: f.owner.trim(), cat: f.cat, city: f.city.trim(), areas: [f.city.trim()], branches: 1, rating: 0, reviews: 0, status: 'submitted', tone: cat(f.cat).tone || 'teal', since: new Date().getFullYear(), gstin: 'Pending verification', phone: f.phone.trim() || 'Not provided', email: f.email.trim() || 'Not provided', plan: 'Starter', docs: [{ name: 'Business registration proof', status: 'pending' }, { name: 'Identity / tax document', status: 'pending' }], history: [{ s: 'submitted', at: stamp(), by: ME.admin }], ...(f.type === 'business' ? { supplierType: 'business' } : {}) }
+    const record = { id, name: f.name.trim(), owner: f.owner.trim(), cat: f.cat, city: f.city.trim(), areas: [f.city.trim()], branches: 1, rating: 0, reviews: 0, status: 'submitted', tone: cat(f.cat).tone || 'purple', since: new Date().getFullYear(), gstin: 'Pending verification', phone: f.phone.trim() || 'Not provided', email: f.email.trim() || 'Not provided', plan: 'Starter', docs: [{ name: 'Business registration proof', status: 'pending' }, { name: 'Identity / tax document', status: 'pending' }], history: [{ s: 'submitted', at: stamp(), by: ME.admin }], ...(f.type === 'business' ? { supplierType: 'business' } : {}) }
     setVendors((all) => [record, ...all]); addAudit(f.type === 'business' ? 'Created business supplier' : 'Created vendor account', record.name, 'user'); toast(f.type === 'business' ? 'Business supplier added' : 'Vendor added'); nav.go('ad_vendor', { id })
   }
   return <Screen title={f.type === 'business' ? 'Add business supplier' : 'Add vendor'} footer={<Button full size="lg" onClick={save}>Create account</Button>}>
@@ -354,7 +354,7 @@ export function UserDetail({ params }) {
   const save = () => { patchUser(u.id, { role }); addAudit(`Changed role ${u.role} → ${role}`, u.name, 'user'); toast('Role updated') }
   return (
     <Screen title="User" footer={<div className="flex gap-2"><Button variant={u.status === 'active' ? 'dangerSoft' : 'primary'} className="flex-1" icon={u.status === 'active' ? Ban : RotateCcw} onClick={toggle}>{u.status === 'active' ? 'Suspend user' : 'Reactivate'}</Button><Button variant="secondary" className="flex-1" onClick={() => toast('All sessions signed out')}>Sign out sessions</Button></div>}>
-      <Card className="text-center"><div className="mx-auto w-fit"><Avatar name={u.name} size={72} /></div><p className="mt-3 text-lg font-extrabold">{u.name}</p><p className="text-sm text-ink-500">{u.phone}</p><div className="mt-2 flex justify-center gap-2"><Badge tone="teal">{u.role}</Badge><StatusBadge s={u.status} /></div></Card>
+      <Card className="text-center"><div className="mx-auto w-fit"><Avatar name={u.name} size={72} /></div><p className="mt-3 text-lg font-extrabold">{u.name}</p><p className="text-sm text-ink-500">{u.phone}</p><div className="mt-2 flex justify-center gap-2"><Badge tone="purple">{u.role}</Badge><StatusBadge s={u.status} /></div></Card>
       <Card><KV rows={[['Joined', u.joined], ['Last active', 'Today, 9:41 AM'], ['2-step verification', u.role === 'Super Admin' ? 'Enabled (required)' : 'Not required']]} /></Card>
       <Section title="Role"><Card className="space-y-3"><Select value={role} onChange={(e) => setRole(e.target.value)} options={['Customer', 'Vendor', 'Sales Agent', 'Super Admin']} /><Button full variant="soft" disabled={role === u.role} onClick={save}>Update role</Button><button onClick={() => nav.go('ad_roles')} className="w-full text-center text-xs font-bold text-brand-700">View permission matrix</button></Card></Section>
     </Screen>
@@ -413,7 +413,7 @@ export function AdminCategory({ params = {} }) {
   const save = () => {
     if (f.name.trim().length < 3) return setErr('Category name is required')
     if (!f.subs.length) return setErr('Add at least one subcategory')
-    if (!ex) setCustomCategories((all) => [...all, { id: `custom-${Date.now()}`, name: f.name.trim(), industry: f.industry, type: f.type, subs: f.subs, fields: f.fields, filters: f.filters, tone: 'teal', active: true }])
+    if (!ex) setCustomCategories((all) => [...all, { id: `custom-${Date.now()}`, name: f.name.trim(), industry: f.industry, type: f.type, subs: f.subs, fields: f.fields, filters: f.filters, tone: 'purple', active: true }])
     else if (ex.id.startsWith('custom-')) setCustomCategories((all) => all.map((c) => c.id === ex.id ? { ...c, name: f.name.trim(), industry: f.industry, type: f.type, subs: f.subs, fields: f.fields, filters: f.filters } : c))
     else setCategoryOverrides((all) => ({ ...all, [ex.id]: { ...(all[ex.id] || {}), name: f.name.trim(), industry: f.industry, type: f.type, subs: f.subs, fields: f.fields, filters: f.filters } }))
     addAudit(ex ? 'Updated category' : 'Created category', f.name, 'setting'); toast('Category saved'); nav.back()
@@ -541,7 +541,7 @@ export function AdminReports() {
     >
       <Segmented value={range} onChange={setRange} options={[{ id: '7', label: '7 days' }, { id: '30', label: '30 days' }, { id: '90', label: '90 days' }]} />
       <button onClick={() => setSheet(true)} className="flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-ink-200"><span className="flex items-center gap-2"><Layers size={17} className="text-brand-600" />Filters</span><span className="text-xs text-ink-500">{filters ? `${filters} applied` : 'Date, category, location, vendor, agent'}</span></button>
-      <div className="grid grid-cols-2 gap-3"><Stat label="Registrations" value={n(340)} icon={UserPlus} tone="sky" /><Stat label="Active vendors" value={n(64)} icon={Store} tone="emerald" /><Stat label="Conversations" value={n(1188)} icon={MessageSquare} tone="amber" /><Stat label="Vendor replies < 2h" value={`${Math.min(96, 84 + Math.round(mult * 2))}%`} icon={CheckCircle2} tone="violet" /><Stat label="RFQs" value={n(41)} icon={FileText} tone="rose" /><Stat label="Agent conversions" value={n(19)} icon={BadgeCheck} tone="teal" /></div>
+      <div className="grid grid-cols-2 gap-3"><Stat label="Registrations" value={n(340)} icon={UserPlus} tone="sky" /><Stat label="Active vendors" value={n(64)} icon={Store} tone="emerald" /><Stat label="Conversations" value={n(1188)} icon={MessageSquare} tone="amber" /><Stat label="Vendor replies < 2h" value={`${Math.min(96, 84 + Math.round(mult * 2))}%`} icon={CheckCircle2} tone="violet" /><Stat label="RFQs" value={n(41)} icon={FileText} tone="rose" /><Stat label="Agent conversions" value={n(19)} icon={BadgeCheck} tone="purple" /></div>
       <Card><p className="mb-3 text-sm font-bold">Customer–vendor conversations</p><BarChart data={REPORT.weeks.map((w, i) => ({ label: w, value: Math.max(1, Math.round(REPORT.gmv[i] * (mult > 1 ? 1 : Math.max(mult, 0.15)))) }))} height={110} /></Card>
       <Card className="flex items-center justify-between"><div><p className="text-sm font-bold">Cohort and funnel analytics, event tracking</p><p className="text-xs text-ink-500">Retention cohorts, funnels and event console</p></div><P2Badge /></Card>
       <Card className="space-y-3"><p className="text-sm font-bold">RFQ health</p><div className="grid grid-cols-3 gap-2 text-center">{[['Open', rfqs.filter((r) => r.status === 'open').length], ['With quotes', rfqs.filter((r) => r.status === 'quoted').length], ['No quotes', rfqs.filter((r) => !r.quotes.length).length]].map(([k, v]) => <div key={k} className="rounded-xl bg-ink-50 p-2"><p className="text-lg font-extrabold">{v}</p><p className="text-[11px] text-ink-500">{k}</p></div>)}</div></Card>
@@ -585,12 +585,12 @@ export function AdminMore() {
         <Card className="!p-4"><div className="flex items-center gap-3.5"><Avatar name={me.name || 'Priya Nair'} size={56} /><div><p className="text-base font-extrabold">{me.name || 'Priya Nair'}</p><p className="text-sm text-ink-500">Super Admin</p><Badge tone="green" className="mt-1.5"><Lock size={10} />2-step verified</Badge></div></div></Card>
         <Group>
           <ListRow icon={Layers} tone="indigo" title="Categories & fields" subtitle="Subcategories, required fields" onClick={() => nav.go('ad_categories')} />
-          <ListRow icon={Briefcase} tone="teal" title="Sales agents" subtitle="Performance, commissions" onClick={() => nav.go('ad_agents')} />
+          <ListRow icon={Briefcase} tone="purple" title="Sales agents" subtitle="Performance, commissions" onClick={() => nav.go('ad_agents')} />
           <ListRow icon={MessageSquare} tone="amber" title="Reports & activity" subtitle="Enquiries, RFQs, registrations" onClick={() => nav.go('ad_reports')} />
           <ListRow icon={Gavel} tone="rose" title="Cases" onClick={() => nav.go('ad_cases')} />
           <ListRow icon={Layers} tone="indigo" title="Taxonomy builder" onClick={() => nav.go('ad_taxonomy')} />
           <ListRow icon={Layers} tone="indigo" title="Geo rollout manager" onClick={() => nav.go('ad_geo')} />
-          <ListRow icon={Briefcase} tone="teal" title="Company verification" onClick={() => nav.go('ad_company')} />
+          <ListRow icon={Briefcase} tone="purple" title="Company verification" onClick={() => nav.go('ad_company')} />
           <ListRow icon={Percent} tone="emerald" title="Subscriptions & billing" onClick={() => nav.go('ad_subs')} />
           <ListRow icon={MessageSquare} tone="amber" title="Review moderation" onClick={() => nav.go('ad_reviews')} />
           <ListRow icon={ScrollText} tone="slate" title="Configuration register" onClick={() => nav.go('ad_cfg')} />

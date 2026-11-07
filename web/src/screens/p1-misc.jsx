@@ -94,7 +94,7 @@ export function PublicProfile({ params = {} }) {
   return <Page title={v.name} subtitle="How customers see you">
     <Card className="space-y-3">
       <div className="flex items-center justify-between"><p className="text-sm font-bold">Trust</p>{rv.length ? <Badge tone="green">Trust score {Math.min(99, Math.round(v.rating * 20))}</Badge> : <Badge tone="gray">No reviews yet</Badge>}</div>
-      <div className="flex flex-wrap gap-2">{TRUST_LEVELS.slice(0, lvl + 1).map(([k, l]) => <Badge key={k} tone="teal"><ShieldCheck size={12} />{k} {l} · 06 Mar 2026</Badge>)}</div>
+      <div className="flex flex-wrap gap-2">{TRUST_LEVELS.slice(0, lvl + 1).map(([k, l]) => <Badge key={k} tone="purple"><ShieldCheck size={12} />{k} {l} · 06 Mar 2026</Badge>)}</div>
       <div className="flex items-center gap-2 text-xs text-ink-500"><Badge tone="gray">L4 Third-party KYB</Badge><P2Badge /></div><p className="text-xs text-ink-500">Badges say what was verified and when. Trust is computed by the platform and cannot be bought.</p>
     </Card>
     <Facts rows={[['Since', v.since], ['Areas', (v.areas || []).join(', ')], ['Rating', v.rating ? `${v.rating} (${v.reviews})` : 'New']]} />

@@ -52,7 +52,7 @@ export function CustomerHome() {
           <Carousel auto={4500}>
             {[
               ['from-ink-900 to-ink-700', FileText, 'text-amber-300', t('rfqTitle'), t('rfqBody'), t('rfqCta'), () => nav.go('c_rfq_new')],
-              ['from-brand-600 to-teal-500', ShieldCheck, 'text-white', 'Verified vendors only', 'Every vendor’s documents are checked by our team before they get the Verified badge.', 'Browse vendors', () => nav.go('c_explore', { mode: 'vendors' })],
+              ['from-brand-600 to-purple-500', ShieldCheck, 'text-white', 'Verified vendors only', 'Every vendor’s documents are checked by our team before they get the Verified badge.', 'Browse vendors', () => nav.go('c_explore', { mode: 'vendors' })],
               ['from-violet-600 to-indigo-500', MessageCircle, 'text-amber-200', 'Talk to vendors directly', 'Ask questions, share photos and agree the deal in chat — no middlemen.', 'Open messages', () => nav.go('messages')],
             ].map(([g, I, ic, h, b, cta, fn]) => (
               <div key={h} className={cx('vv-customer-promo relative h-[168px] overflow-hidden bg-gradient-to-br p-5 pb-9 text-white', g)}>

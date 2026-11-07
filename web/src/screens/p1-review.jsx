@@ -24,7 +24,7 @@ export function Flows() {
   const nav = useNav()
   const flows = [['Booking', ['Requested', 'Confirmed', 'In progress', 'Completed', 'Closed'], 'c_book_new'], ['RFQ', ['Open', 'Quotes received', 'Accepted', 'Work order'], 'c_rfq_new'], ['Purchase order', ['Placed', 'Confirmed', 'Shipped', 'Delivered'], 'c_orders'], ['Contract', ['Proposed', 'Countered', 'Accepted', 'Milestones'], 'c_contract']]
   return <Page title="Flows" subtitle="Workflow states, one vocabulary">
-    {flows.map(([n, s, to]) => <Card key={n} onClick={() => nav.go(to)}><p className="text-sm font-bold">{n}</p><div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">{s.map((x, i) => <span key={x} className="flex items-center gap-1.5"><Badge tone="teal">{x}</Badge>{i < s.length - 1 && <span className="text-ink-300">→</span>}</span>)}</div></Card>)}
+    {flows.map(([n, s, to]) => <Card key={n} onClick={() => nav.go(to)}><p className="text-sm font-bold">{n}</p><div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">{s.map((x, i) => <span key={x} className="flex items-center gap-1.5"><Badge tone="purple">{x}</Badge>{i < s.length - 1 && <span className="text-ink-300">→</span>}</span>)}</div></Card>)}
   </Page>
 }
 

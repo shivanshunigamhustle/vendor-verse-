@@ -132,7 +132,7 @@ export function AgentHome() {
           <PipelineFunnel leads={leads} onPick={(s) => nav.go('a_leads', { stage: s })} />
         </Section>
         <Card className="vv-agent-chart-card">
-          <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold">Lead activity</p><p className="text-xs text-ink-500">New and converted leads · last 6 weeks</p></div><Badge tone="teal">Live pipeline</Badge></div>
+          <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold">Lead activity</p><p className="text-xs text-ink-500">New and converted leads · last 6 weeks</p></div><Badge tone="purple">Live pipeline</Badge></div>
           <div className="mt-4"><BarChart data={[{ label: 'W1', value: 8 }, { label: 'W2', value: 12 }, { label: 'W3', value: 10 }, { label: 'W4', value: 16 }, { label: 'W5', value: 14 }, { label: 'W6', value: Math.max(18, active.length) }]} height={126} /></div>
         </Card>
         <Section title="Today’s follow-ups" action="All" onAction={() => nav.go('a_followups')}>
@@ -411,14 +411,14 @@ export function AgentProfile() {
   return (
     <Screen title="Profile" back={false} pad={false} overlay={<Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete sales-agent account?" actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={deleteAccount}>Delete account</Button></>}><p>This signs you out and records the deletion request in this browser demo. Assigned leads remain with the marketplace.</p></Dialog>}>
       <div className="space-y-4 p-4">
-        <Card className="!p-4"><div className="flex items-center gap-3.5"><Avatar name={me.name || 'Neha Verma'} size={60} /><div><p className="text-lg font-extrabold">{me.name || 'Neha Verma'}</p><p className="text-sm text-ink-500">Sales Agent · Jaipur North</p><Badge tone="teal" className="mt-1.5">ID SA-0142</Badge></div></div></Card>
+        <Card className="!p-4"><div className="flex items-center gap-3.5"><Avatar name={me.name || 'Neha Verma'} size={60} /><div><p className="text-lg font-extrabold">{me.name || 'Neha Verma'}</p><p className="text-sm text-ink-500">Sales Agent · Jaipur North</p><Badge tone="purple" className="mt-1.5">ID SA-0142</Badge></div></div></Card>
         <div className="grid grid-cols-3 gap-2">{[['Leads', leads.length], ['Converted', conv], ['Rate', `${Math.round((conv / leads.length) * 100)}%`]].map(([a, b]) => <Card key={a} className="!p-3 text-center"><p className="text-lg font-extrabold">{b}</p><p className="text-[11px] text-ink-500">{a}</p></Card>)}</div>
         <Card><p className="mb-2 text-sm font-bold">Monthly target</p><HBar label="Vendors onboarded" value={2} max={5} right="2 / 5" /><div className="mt-3"><HBar label="Customers registered" value={1} max={4} right="1 / 4" color="bg-sky-500" /></div></Card>
         <Group>
           <ListRow icon={Globe} tone="sky" title="Language" subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} />
           <ListRow icon={Bell} tone="orange" title="Notifications" onClick={() => nav.go('notifications')} />
           <ListRow icon={ShieldCheck} tone="emerald" title="Permissions" subtitle="View assigned leads · no approval rights" onClick={() => nav.go('a_perms')} />
-          <ListRow icon={ShieldCheck} tone="teal" title="Onboarding tasks" subtitle="Assigned by Super Admin" onClick={() => nav.go('a_tasks')} />
+          <ListRow icon={ShieldCheck} tone="purple" title="Onboarding tasks" subtitle="Assigned by Super Admin" onClick={() => nav.go('a_tasks')} />
           <ListRow icon={ShieldCheck} tone="amber" title="Commissions" subtitle="Model not decided yet (O-03)" onClick={() => nav.go('a_earnings')} />
           <ListRow icon={ShieldCheck} tone="violet" title="Conversion performance" subtitle="Leads to registrations" onClick={() => nav.go('a_perf')} last />
         </Group>

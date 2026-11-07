@@ -10,10 +10,15 @@ import './auth-visuals.css'
 export function Logo({ size = 64, light }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
-      <rect width="64" height="64" rx="18" fill={light ? '#fff' : '#00857c'} />
-      <circle cx="32" cy="32" r="21" stroke={light ? '#00857c' : '#fff'} strokeOpacity=".28" strokeWidth="2" />
-      <path d="M18 21h8.2l5.8 15.6L37.8 21H46L35.5 46h-7L18 21Z" fill={light ? '#00857c' : '#fff'} />
-      <circle cx="48" cy="19" r="4.5" fill={light ? '#14284b' : '#ffd166'} />
+      <defs>
+        <linearGradient id="logoVGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8b5cf6" />
+          <stop offset="60%" stopColor="#5b21d6" />
+          <stop offset="100%" stopColor="#3b0fa3" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="18" fill={light ? '#fff' : 'url(#logoVGrad)'} />
+      <path d="M18 21h8.2l5.8 15.6L37.8 21H46L35.5 46h-7L18 21Z" fill={light ? '#5b21d6' : '#fff'} />
     </svg>
   )
 }
@@ -34,13 +39,13 @@ export function Splash() {
     return () => clearTimeout(t)
   }, [])
   return (
-    <div onClick={() => nav.reset('c_home')} className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-ink-900 text-white">
+    <div onClick={() => nav.reset('c_home')} className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#1b1b4b] via-[#4c1d95] to-[#5b21d6] text-white">
       <div className="absolute -left-20 -top-20 size-72 rounded-full bg-white/10" />
       <div className="absolute -bottom-24 -right-16 size-80 rounded-full bg-white/5" />
       <div className="vv-splash-loader"><div className="vv-splash-orbit vv-splash-orbit-a" /><div className="vv-splash-orbit vv-splash-orbit-b" /><div className="vv-splash-core"><Logo size={78} light /></div></div>
       <h1 className="mt-5 text-3xl font-extrabold tracking-tight">VendorVerse</h1>
       <p className="mt-1.5 text-sm text-white/75">Global Marketplace · Products · Services · Quotes</p>
-      <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-white/65"><span className="size-2 animate-pulse rounded-full bg-teal-300" />Preparing your marketplace</div>
+      <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-white/65"><span className="size-2 animate-pulse rounded-full bg-violet-300" />Preparing your marketplace</div>
       <p className="absolute bottom-10 text-[11px] tracking-widest text-white/50">ADRSTECHNO PRIVATE LIMITED</p>
     </div>
   )
@@ -51,7 +56,7 @@ export function Welcome() {
   const { t, lang, setLang, setMe } = useApp()
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-ink-900 px-6 pt-5 text-white">
+      <div className="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-br from-[#1b1b4b] via-[#4c1d95] to-[#5b21d6] px-6 pt-5 text-white">
         <div className="absolute -right-24 top-10 size-72 rounded-full bg-white/10" />
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-2"><Logo size={34} light /><span className="text-lg font-extrabold">VendorVerse</span></div>
@@ -143,14 +148,14 @@ export function Login({ params = {} }) {
             <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Choose your workspace</p>
             <div className="mt-2.5 grid grid-cols-2 gap-2">
               {ROLES.map((r) => (
-                <button type="button" key={r.id} onClick={() => setRole(r.id)} className={cx('rounded-xl px-3 py-2.5 text-[13px] font-semibold ring-1 ring-inset transition', role === r.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-ink-700 ring-ink-200')}>
+                <button type="button" key={r.id} onClick={() => setRole(r.id)} className={cx('rounded-xl px-3 py-2.5 text-[13px] font-semibold ring-1 ring-inset transition', role === r.id ? 'bg-[#5b21d6] text-white ring-[#5b21d6] shadow-sm shadow-purple-900/20' : 'bg-white text-ink-700 ring-[#e3dbfa] hover:bg-[#f6f2ff]')}>
                   {r.short}
                 </button>
               ))}
             </div>
             <p className="mt-2.5 text-xs text-ink-500">Sales Agents and Super Admins are invited by the platform — they cannot self-register.</p>
           </div>
-          <p className="text-center text-sm text-ink-500">New to VendorVerse? <button type="button" onClick={() => nav.replace('register')} className="font-bold text-brand-700">Create account</button></p>
+          <p className="text-center text-sm text-ink-500">New to VendorVerse? <button type="button" onClick={() => nav.replace('register')} className="font-bold text-[#5b21d6] hover:underline">Create account</button></p>
         </form>
       </div>
     </Screen>
@@ -200,7 +205,7 @@ export function Otp({ params }) {
       <div className="vv-otp-stage">
         <div className="vv-otp-card">
           <div className="vv-otp-heading">
-            <div className="grid size-14 place-items-center rounded-2xl bg-brand-50 text-brand-700">{step === 0 ? <ShieldCheck size={28} /> : <Lock size={28} />}</div>
+            <div className="grid size-14 place-items-center rounded-2xl bg-[#f6f2ff] text-[#5b21d6]">{step === 0 ? <ShieldCheck size={28} /> : <Lock size={28} />}</div>
             <div className="vv-otp-scene" aria-hidden="true">
               <div className="vv-otp-orbit vv-otp-orbit-one" /><div className="vv-otp-orbit vv-otp-orbit-two" />
               <div className="vv-otp-mini-cube"><span>V</span><span>+</span><span>✓</span></div>
@@ -217,7 +222,7 @@ export function Otp({ params }) {
           <div className="vv-otp-entry relative">
             <div className="flex justify-between gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className={cx('grid h-14 flex-1 place-items-center rounded-xl text-xl font-extrabold ring-1 ring-inset', i === code.length ? 'ring-2 ring-brand-500' : err ? 'ring-red-300' : 'ring-ink-200', code[i] ? 'bg-brand-50' : 'bg-white')}>{code[i] || ''}</div>
+                <div key={i} className={cx('grid h-14 flex-1 place-items-center rounded-xl text-xl font-extrabold ring-1 ring-inset', i === code.length ? 'ring-2 ring-[#5b21d6]' : err ? 'ring-red-300' : 'ring-[#e3dbfa]', code[i] ? 'bg-[#f6f2ff] text-[#5b21d6]' : 'bg-white')}>{code[i] || ''}</div>
               ))}
             </div>
             <input autoFocus aria-label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => { const nextCode = e.target.value.replace(/\D/g, '').slice(0, 6); setCode(nextCode); setErr(''); if (nextCode.length === 6) window.setTimeout(() => verify(nextCode), 0) }} className="absolute inset-0 h-full w-full cursor-text opacity-0" />
@@ -227,7 +232,7 @@ export function Otp({ params }) {
           <Button full size="lg" onClick={verify}>{step === 0 && role === 'admin' ? 'Continue' : mode === 'register' ? 'Verify & create account' : 'Verify & log in'}</Button>
           {step === 0 && (
             <p className="text-center text-sm text-ink-500">
-              {secs > 0 ? `Resend code in 0:${String(secs).padStart(2, '0')}` : <button onClick={() => { setSecs(30); toast('A new OTP has been sent') }} className="font-bold text-brand-700">Resend OTP</button>}
+              {secs > 0 ? `Resend code in 0:${String(secs).padStart(2, '0')}` : <button onClick={() => { setSecs(30); toast('A new OTP has been sent') }} className="font-bold text-[#5b21d6] hover:underline">Resend OTP</button>}
             </p>
           )}
         </div>
@@ -260,8 +265,8 @@ export function Register() {
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[['customer', User, 'Customer', 'Buy products, book services, request quotes'], ['vendor', Store, 'Vendor', 'Sell products and services to customers'], ['business', Building2, 'Business', 'Registered company, 3+ years. Supply and services for vendors']].map(([id, I, a, b]) => (
-            <button key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3.5 text-left ring-1 ring-inset transition', role === id ? 'bg-brand-50 ring-2 ring-brand-600' : 'bg-white ring-ink-200')}>
-              <span className={cx('grid size-10 place-items-center rounded-xl', role === id ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500')}><I size={20} /></span>
+            <button key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3.5 text-left ring-1 ring-inset transition', role === id ? 'bg-[#f6f2ff] ring-2 ring-[#5b21d6]' : 'bg-white ring-[#e3dbfa] hover:bg-[#fbfaff]')}>
+              <span className={cx('grid size-10 place-items-center rounded-xl', role === id ? 'bg-[#5b21d6] text-white' : 'bg-[#f6f2ff] text-[#5b21d6]')}><I size={20} /></span>
               <p className="mt-2.5 text-sm font-bold">{a}</p>
               <p className="mt-0.5 text-xs leading-snug text-ink-500">{b}</p>
             </button>
@@ -272,13 +277,13 @@ export function Register() {
         <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(normalizePhone(e.target.value))} error={errs.phone} className="!pl-10" />
         <Input label="Email (optional)" icon={Mail} type="email" placeholder="you@company.com" value={f.email} onChange={set('email')} error={errs.email} />
         <div>
-          <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-brand-700">Terms of Service</b> and <b className="text-brand-700">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>
+          <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-[#5b21d6]">Terms of Service</b> and <b className="text-[#5b21d6]">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>
           {errs.agree && <p className="mt-1 text-xs font-medium text-red-600">{errs.agree}</p>}
         </div>
         {role === 'business' && <Banner tone="blue" title="Business accounts are for company owners">You will confirm that you own a registered company that has operated for 3+ years, then submit a six-step company form for admin verification.</Banner>}
         {role === 'vendor' && <Banner tone="amber" title="Verification required">Vendors are shown as <b>Verified</b> only after Super Admin approves your business documents.</Banner>}
         <Button full size="lg" onClick={submit}>Continue</Button>
-        <p className="text-center text-sm text-ink-500">Already have an account? <button onClick={() => nav.replace('login')} className="font-bold text-brand-700">Log in</button></p>
+        <p className="text-center text-sm text-ink-500">Already have an account? <button onClick={() => nav.replace('login')} className="font-bold text-[#5b21d6] hover:underline">Log in</button></p>
       </div>
     </Screen>
   )

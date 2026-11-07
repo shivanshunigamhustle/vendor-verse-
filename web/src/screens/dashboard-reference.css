@@ -4,15 +4,15 @@
 .vv-vendor-dashboard-route,
 .vv-agent-route,
 .vv-admin-route {
-  --vv-ref-ink: #0c2233;
+  --vv-ref-ink: #1b1b4b;
   --vv-ref-muted: #5b7080;
-  --vv-ref-brand: #0b7180;
-  --vv-ref-brand-2: #54a99f;
+  --vv-ref-brand: #5b21d6;
+  --vv-ref-brand-2: #8b5cf6;
   background:
-    radial-gradient(ellipse at 12% 8%, #bfe9e3 0, transparent 38%),
-    radial-gradient(ellipse at 88% 18%, #c6dcf3 0, transparent 36%),
-    radial-gradient(ellipse at 60% 96%, #d5efe6 0, transparent 40%),
-    #e8f0f3;
+    radial-gradient(ellipse at 12% 8%, #ede9fe 0, transparent 38%),
+    radial-gradient(ellipse at 88% 18%, #ddd6fe 0, transparent 36%),
+    radial-gradient(ellipse at 60% 96%, #f5f3ff 0, transparent 40%),
+    #faf9ff;
   color: var(--vv-ref-ink);
 }
 
@@ -21,7 +21,7 @@
 .vv-vendor-dashboard .vv-vendor-sidebar {
   border-right-color: rgba(255, 255, 255, .78);
   background: rgba(255, 255, 255, .68);
-  box-shadow: 1px 0 0 rgba(12, 34, 51, .08), 8px 0 28px rgba(12, 34, 51, .035);
+  box-shadow: 1px 0 0 rgba(91, 33, 214, .08), 8px 0 28px rgba(91, 33, 214, .035);
   backdrop-filter: blur(22px) saturate(170%);
   -webkit-backdrop-filter: blur(22px) saturate(170%);
 }
@@ -31,7 +31,7 @@
 .vv-vendor-dashboard .vv-sidebar-business {
   border-color: rgba(255, 255, 255, .8);
   background: rgba(255, 255, 255, .72);
-  box-shadow: 0 8px 18px rgba(12, 34, 51, .06);
+  box-shadow: 0 8px 18px rgba(91, 33, 214, .06);
 }
 
 .vv-agent-route .vv-agent-main > header,
@@ -39,7 +39,7 @@
 .vv-vendor-dashboard .vv-vendor-topbar {
   border-bottom-color: rgba(255, 255, 255, .72);
   background: rgba(255, 255, 255, .58);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 8px 22px rgba(12, 34, 51, .045);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 8px 22px rgba(91, 33, 214, .045);
   backdrop-filter: blur(22px) saturate(170%);
   -webkit-backdrop-filter: blur(22px) saturate(170%);
 }
@@ -48,9 +48,9 @@
 .vv-admin-route .vv-screen-scroll,
 .vv-vendor-dashboard-route [class~="min-h-0"][class~="flex-1"][class~="overflow-y-auto"] {
   background:
-    radial-gradient(ellipse at 12% 8%, rgba(191, 233, 227, .7) 0, transparent 38%),
-    radial-gradient(ellipse at 88% 18%, rgba(198, 220, 243, .6) 0, transparent 36%),
-    linear-gradient(145deg, #e8f0f3, #eef7f5 58%, #f7fbfc);
+    radial-gradient(ellipse at 12% 8%, rgba(237, 233, 254, .7) 0, transparent 38%),
+    radial-gradient(ellipse at 88% 18%, rgba(221, 214, 254, .6) 0, transparent 36%),
+    linear-gradient(145deg, #faf9ff, #f6f2ff 58%, #faf9ff);
 }
 
 /* The reference uses an airy KPI strip rather than a narrow two-column stack. */
@@ -70,7 +70,7 @@
 .vv-vendor-dashboard .vv-vendor-dashboard-body > [class*="rounded-2xl"][class*="bg-white"] {
   border-color: rgba(255, 255, 255, .78);
   background: rgba(255, 255, 255, .68);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 14px 34px rgba(12, 34, 51, .09);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 14px 34px rgba(91, 33, 214, .09);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
 }

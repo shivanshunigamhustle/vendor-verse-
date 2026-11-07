@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useState } from 'react'
-import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut, MapPin } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut, MapPin, ChevronDown } from 'lucide-react'
 import { AppProvider, COUNTRY_SETTINGS, LOCATION_PRESETS, useApp } from './store.jsx'
 import { canOpenRoute } from './services/authorization.js'
 import { NavProvider, useNav } from './nav.jsx'
@@ -214,25 +214,98 @@ function SpecPanel() {
 function WebHeader({ onMenu, hideTabs }) {
   const nav = useNav()
   const { lang, setLang, locale, setLocale, me, setMe, t } = useApp()
-  const [locationOpen, setLocationOpen] = useState(false)
-  const [locationQuery, setLocationQuery] = useState('')
   const screen = SCREENS[nav.id] || SCREENS.welcome
   const tabs = TABS[me.role || 'customer'] || TABS.customer
   const activeTab = nav.stack.slice().reverse().map((entry) => tabs.find((tab) => tab.id === entry.id)).find(Boolean)?.id || nav.id
   return (
-    <header className="sticky top-0 z-40 shrink-0 border-b border-ink-200 bg-white/95 shadow-[0_2px_10px_rgba(20,40,75,.04)] backdrop-blur">
-      <div className="mx-auto flex h-[72px] max-w-[1600px] items-center gap-3 px-4 sm:px-7 lg:px-10">
-          <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 rounded-xl text-left" aria-label="VendorVerse home"><Logo size={42} /><span className="hidden lg:block"><span className="block text-[18px] font-black leading-tight tracking-tight text-ink-900">VendorVerse</span><span className="block text-[11px] font-medium text-ink-500">Global Marketplace · products · services · quotes</span></span></button>
-        <nav className={cx("no-scrollbar ml-3 hidden min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto", hideTabs ? "" : "md:flex")} style={hideTabs ? { display: "none" } : undefined} aria-label="Main navigation">
-          {tabs.map((tab) => { const on = activeTab === tab.id; return <button key={tab.id} onClick={() => nav.reset(tab.id)} aria-current={on ? 'page' : undefined} className={cx('flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-[13px] font-bold transition', on ? 'bg-brand-50 text-brand-800' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900')}><tab.icon size={17} />{t(tab.k)}</button> })}
+    <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_4px_rgba(0,0,0,0.03)] backdrop-blur">
+      <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-8 lg:px-12">
+        <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 text-left" aria-label="VendorVerse home">
+          <Logo size={36} />
+          <div>
+            <span className="block text-[17px] font-black leading-none tracking-tight text-slate-900">VendorVerse</span>
+            <span className="block text-[10.5px] font-semibold text-slate-500 leading-tight mt-0.5">Global B2B Marketplace</span>
+          </div>
+        </button>
+
+        <nav className={cx("no-scrollbar hidden min-w-0 items-center justify-center gap-1 overflow-x-auto rounded-2xl bg-[#f6f2ff] p-1 border border-[#e3dbfa]", hideTabs ? "" : "md:flex")} style={hideTabs ? { display: "none" } : undefined} aria-label="Main navigation">
+          {tabs.map((tab) => {
+            const on = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => nav.reset(tab.id)}
+                aria-current={on ? 'page' : undefined}
+                className={cx(
+                  'flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all',
+                  on ? 'bg-white text-[#5b21d6] shadow-sm shadow-purple-900/10' : 'text-slate-700 hover:bg-white/60 hover:text-[#5b21d6]'
+                )}
+              >
+                <tab.icon size={16} strokeWidth={on ? 2.5 : 2} />
+                <span>{t(tab.k)}</span>
+              </button>
+            )
+          })}
         </nav>
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-          <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50"><Menu size={20} /></button>
-          {me.loggedIn && me.role !== 'business' && me.hasVendorAccount && <button onClick={() => { const nextRole = me.role === 'business' ? 'vendor' : me.role === 'vendor' ? 'customer' : 'vendor'; setMe({ ...me, role: nextRole, name: nextRole === 'customer' ? (me.customerName || me.name) : nextRole === 'vendor' && me.vendorOwnerName ? me.vendorOwnerName : (me.vendorName || me.name), buyerMode: false }); nav.reset(nextRole === 'customer' ? 'c_home' : 'v_dash') }} className="flex h-10 items-center gap-1.5 rounded-xl bg-brand-50 px-2.5 text-xs font-bold text-brand-800 hover:bg-brand-100" title={me.role === 'business' ? 'Switch to vendor workspace' : me.role === 'vendor' ? 'Switch to customer' : 'Switch to vendor workspace'}><ArrowLeftRight size={16} /><span className="hidden sm:inline">{me.role === 'business' ? 'Vendor' : me.role === 'vendor' ? 'Customer' : 'Vendor'}</span></button>}
-          <button onClick={() => nav.go('c_location')} className="hidden max-w-[210px] truncate rounded-xl bg-ink-50 px-3 py-2 text-left text-xs font-bold text-ink-700 hover:bg-brand-50 sm:block" title={t('searchLocation')}><MapPin size={14} className="mr-1 inline text-brand-700" />{locale.city || 'Jaipur'}{locale.pincode ? ` ${locale.pincode}` : ''}, {locale.state || 'Rajasthan'}, {locale.countryName || 'India'}</button>
-          <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>
-          <button onClick={() => nav.go('notifications')} className="relative grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50" aria-label="Notifications"><Bell size={19} /></button>
-          {!me.loggedIn && <button onClick={() => nav.go('login')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Sign in</button>}
+
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+          <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 md:hidden">
+            <Menu size={18} />
+          </button>
+          {me.loggedIn && me.role !== 'business' && me.hasVendorAccount && (
+            <button
+              onClick={() => {
+                const nextRole = me.role === 'business' ? 'vendor' : me.role === 'vendor' ? 'customer' : 'vendor'
+                setMe({ ...me, role: nextRole, name: nextRole === 'customer' ? (me.customerName || me.name) : nextRole === 'vendor' && me.vendorOwnerName ? me.vendorOwnerName : (me.vendorName || me.name), buyerMode: false })
+                nav.reset(nextRole === 'customer' ? 'c_home' : 'v_dash')
+              }}
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-slate-100 px-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
+              title={me.role === 'business' ? 'Switch to vendor workspace' : me.role === 'vendor' ? 'Switch to customer' : 'Switch to vendor workspace'}
+            >
+              <ArrowLeftRight size={15} />
+              <span className="hidden sm:inline">{me.role === 'business' ? 'Vendor' : me.role === 'vendor' ? 'Customer' : 'Vendor'}</span>
+            </button>
+          )}
+
+          <div className="hidden lg:block h-4 w-px bg-slate-200 mx-0.5" />
+
+          <button
+            onClick={() => nav.go('c_location')}
+            className="hidden sm:flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition max-w-[210px] truncate"
+            title={t('searchLocation')}
+          >
+            <MapPin size={14} className="text-[#5b21d6] shrink-0" />
+            <span className="truncate">{locale.city || 'Jaipur'}, {locale.state || 'Rajasthan'}, {locale.countryName || 'India'}</span>
+            <ChevronDown size={13} className="text-slate-400 shrink-0" />
+          </button>
+
+          <button
+            onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+            className="hidden sm:flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition"
+            aria-label="Switch language"
+          >
+            <Globe size={14} className="shrink-0" />
+            <span>{lang === 'en' ? 'EN' : 'हि'}</span>
+            <ChevronDown size={13} className="text-slate-400 shrink-0" />
+          </button>
+
+          <button
+            onClick={() => nav.go('notifications')}
+            className="relative grid size-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 transition"
+            aria-label="Notifications"
+          >
+            <Bell size={18} />
+            <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 ring-2 ring-white" />
+          </button>
+
+          {!me.loggedIn && (
+            <button
+              onClick={() => nav.go('login')}
+              className="h-9 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#5b21d6] hover:from-[#6d28d9] hover:to-[#4c1d95] px-4 sm:px-5 text-xs sm:text-sm font-bold text-white shadow-md shadow-violet-900/20 transition active:scale-95"
+            >
+              Sign in
+            </button>
+          )}
         </div>
       </div>
       <div className="sr-only" aria-live="polite">{screen.title}</div>
@@ -335,7 +408,7 @@ function Shell() {
       {showAgentSidebar && <AgentSidebar collapsed={agentSidebarCollapsed} onToggle={() => setAgentSidebarCollapsed((value) => !value)} onNavigate={(id) => nav.reset(id)} onLogout={agentLogout} me={me} t={t} activeId={nav.id} />}
       {showAdminSidebar && <AdminSidebar collapsed={adminSidebarCollapsed} onToggle={() => setAdminSidebarCollapsed((value) => !value)} onNavigate={jump} onLogout={adminLogout} me={me} t={t} activeId={nav.id} />}
       <div className={cx('flex min-h-0 min-w-0 flex-1 flex-col', showAgentSidebar && 'vv-agent-main', showAdminSidebar && 'vv-admin-main')}>
-        <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} />
+        {nav.id !== 'c_home' && <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} />}
         <main className="relative flex min-h-0 flex-1 flex-col bg-white">
           <Phone frame={false} scale={1} web={desktop} />
         </main>

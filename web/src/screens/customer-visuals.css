@@ -2,8 +2,10 @@
   width: 100%;
   min-width: 0;
   height: 100%;
-  color: #193543;
-  background: #f4f8f9;
+  overflow-y: auto;
+  overflow-x: clip;
+  color: #1b1b4b;
+  background: #faf9ff;
 }
 
 .vv-customer-route > .relative.flex.h-full.flex-col { min-width: 0; }
@@ -40,7 +42,7 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .vv-customer-route button[class*="ring-ink-100"]:hover,
-  .vv-customer-route button[class*="shadow-"]:hover { box-shadow: 0 8px 24px rgba(20, 57, 69, .12); }
+  .vv-customer-route button[class*="shadow-"]:hover { box-shadow: 0 8px 24px rgba(91, 33, 214, .12); }
 }
 
 .vv-customer-route .vv-compare-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
