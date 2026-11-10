@@ -54,6 +54,9 @@ export function FeaturedVendors({ onQuoteRequest, onViewProfile }) {
   const handleViewAll = (e) => {
     e.preventDefault()
     nav.go('c_explore_suppliers')
+    const sc = document.querySelector('.vv-customer-route')
+    if (sc) sc.scrollTop = 0
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
   return (
@@ -86,7 +89,7 @@ export function FeaturedVendors({ onQuoteRequest, onViewProfile }) {
         </div>
         <a
           className="more"
-          href="#vendors"
+          href="#/c_explore_suppliers"
           onClick={handleViewAll}
         >
           View all vendors

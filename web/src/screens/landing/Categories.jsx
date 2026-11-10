@@ -106,6 +106,9 @@ export function Categories({ onSelectCategory }) {
   const handleViewAll = (e) => {
     e.preventDefault()
     nav.go('c_categories')
+    const sc = document.querySelector('.vv-customer-route')
+    if (sc) sc.scrollTop = 0
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
   return (
@@ -117,7 +120,7 @@ export function Categories({ onSelectCategory }) {
         </div>
         <a
           className="more"
-          href="#categories"
+          href="#/c_categories"
           onClick={handleViewAll}
         >
           View all categories

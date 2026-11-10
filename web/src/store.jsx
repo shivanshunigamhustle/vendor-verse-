@@ -3,7 +3,7 @@ import {
   VENDORS0, LISTINGS0, ORDERS0, BOOKINGS0, RFQS0, LEADS0, COMMISSIONS0, DISPUTES0, USERS0, AGENTS0, AUDIT0,
   NOTIFS0, THREADS0, SETTINGS0, REVIEWS0, CONTRACTS0, COMPANY_ORDERS0, ME,
 } from './data.jsx'
-import { CATS } from './data.jsx'
+import { CATS, ALL_CATS } from './data.jsx'
 import { clearState, loadState, saveState } from './services/browserRepository.js'
 import { COMPANIES_SEED } from './bizdata.js'
 import { can, ownsCustomerRecord, ownsVendor } from './services/authorization.js'
@@ -155,7 +155,7 @@ export function AppProvider({ children, initialMe }) {
       agents, setAgents,
       audit, notifs, setNotifs, threads, setThreads,
       settings, setSettings, reviews, setReviews, reviewed, setReviewed,
-      categories: [...CATS.map((c) => ({ ...c, ...(categoryOverrides[c.id] || {}) })), ...customCategories.map((c) => ({ ...c, icon: CATS[0].icon }))], customCategories, setCustomCategories, categoryOverrides, setCategoryOverrides,
+      categories: [...ALL_CATS.map((c) => ({ ...c, ...(categoryOverrides[c.id] || {}) })), ...customCategories.map((c) => ({ ...c, icon: CATS[0].icon }))], customCategories, setCustomCategories, categoryOverrides, setCategoryOverrides,
       industries, setIndustries,
       saved, setSaved, compare, setCompare, prefs, setPrefs,
       toggleSaved: (id) => setSaved((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])),

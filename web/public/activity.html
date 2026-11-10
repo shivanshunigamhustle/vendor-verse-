@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VendorVerse - Activity Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#5b21d6;--p2:#7c3aed;--p-dark:#4c1d95;
+  --navy:#1b1b4b;--mut:#46466a;--mut2:#5b5b7b;
+  --lav:#f6f2ff;--lav2:#ede9fe;--lav3:#ddd6fe;
+  --bg:#faf9ff;--card:#ffffff;
+  --bd:#e3dbfa;--bd2:#d8ccf9;
+  --green:#0b6b3a;--green-bg:#dcf7e8;
+  --amber:#8a5200;--amber-bg:#fff3d6;
+  --blue:#0369a1;--blue-bg:#e0f2fe;
+  --sh:0 4px 18px rgba(91,33,214,.08);
+  --sh2:0 12px 30px rgba(91,33,214,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  color:var(--navy);
+  background:linear-gradient(180deg,#f2edff 0,#faf9ff 340px) no-repeat,var(--bg);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+h1,h2,h3,h4,p{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Ticker */
+.ticker{display:flex;align-items:center;gap:12px;padding:0 12px 0 0;height:38px;background:linear-gradient(90deg,#1b1b4b,#5b21d6);color:#fff;font-size:13px;font-weight:500;overflow:hidden;position:relative;z-index:60}
+.tlabel{display:flex;align-items:center;gap:8px;flex:none;height:100%;padding:0 24px 0 16px;background:#fff;color:var(--p);font-weight:800;font-size:12px;letter-spacing:.06em;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.tdot{width:8px;height:8px;border-radius:50%;background:#e5322d;animation:tb 1.2s ease-in-out infinite}
+@keyframes tb{50%{opacity:.25}}
+.tview{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent)}
+.ttrack{display:flex;width:max-content;animation:tk 45s linear infinite}
+.tg{display:flex;align-items:center;flex:none}
+.ti{padding:0 18px;white-space:nowrap}.ti:hover{text-decoration:underline}
+.tsep{font-size:8px;opacity:.7}
+@keyframes tk{to{transform:translateX(-50%)}}
+.tview:hover .ttrack,.ticker.paused .ttrack{animation-play-state:paused}
+.tpause{flex:none;width:28px;height:28px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tpause:hover{background:rgba(255,255,255,.3)}
+.tpause .pl{display:none}.ticker.paused .pl{display:block}.ticker.paused .pi{display:none}
+
+/* Navbar */
+.vvhead{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid #eeeaf8;transition:box-shadow .25s}
+.vvhead.scrolled{box-shadow:0 8px 28px rgba(40,20,100,.12)}
+.vvin{max-width:1360px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 32px}
+.brand{display:flex;align-items:center;gap:11px;flex:none}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#5b21d6 60%,#3b0fa3);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;box-shadow:0 6px 16px rgba(91,33,214,.35)}
+.bt{display:flex;flex-direction:column;line-height:1.15}.bt b{font-size:18px;letter-spacing:-.01em}.bt small{font-size:11px;color:var(--mut2)}
+.vvnav{display:flex;align-items:center;gap:4px;margin-left:14px;padding:4px;border-radius:14px;background:var(--lav);border:1px solid var(--bd)}
+.vvl{position:relative;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;font-weight:600;font-size:13.5px;color:#2d2d5c;transition:background .2s,color .2s;white-space:nowrap}
+.vvl:hover{background:#fff;color:var(--p)}
+.vvl.on{background:#fff;color:var(--p);font-weight:700;box-shadow:0 2px 10px rgba(91,33,214,.14)}
+.vvright{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.locwrap{position:relative}
+.vvloc{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--bd);border-radius:12px;background:#faf8ff;color:var(--navy);cursor:pointer;white-space:nowrap;font-size:13px;font-weight:600}
+.vvloc svg:first-child{color:var(--p)}.vvloc:hover{border-color:#b9a2f5;background:#fff}
+.vvloc[aria-expanded=true]{border-color:var(--p);background:var(--lav2)}
+.vvloc[aria-expanded=true] svg:last-child{transform:rotate(180deg)}
+.locpanel{position:absolute;right:0;top:calc(100% + 8px);z-index:70;width:min(320px,90vw);padding:8px;border-radius:16px;background:#fff;border:1px solid #eeeaf8;box-shadow:0 20px 45px rgba(40,20,100,.18)}
+.locpanel[hidden]{display:none}
+.lochead{padding:8px 10px 4px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut2)}
+.locopt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;border:0;border-radius:10px;background:none;font:600 13px 'Plus Jakarta Sans',sans-serif;color:var(--navy);text-align:left;cursor:pointer}
+.locopt span{flex:1}.locopt .chk{visibility:hidden;color:var(--p)}
+.locopt:hover{background:var(--lav)}.locopt.sel{background:var(--lav2);color:var(--p);font-weight:700}.locopt.sel .chk{visibility:visible}
+.locopt small{font-size:11px;color:var(--mut2);display:block;margin-top:1px}
+.vvicon{position:relative;display:flex;align-items:center;justify-content:center;gap:5px;min-width:40px;height:40px;padding:0 8px;border:0;border-radius:12px;background:none;font:600 13px 'Plus Jakarta Sans',sans-serif;color:var(--navy);cursor:pointer;white-space:nowrap}
+.vvicon:hover{background:var(--lav2);color:var(--p)}
+.dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#e5322d;border:2px solid #fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--p2),var(--p));color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;box-shadow:0 6px 18px rgba(91,33,214,.28);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(91,33,214,.38)}
+.btn.sm{padding:7px 13px;font-size:12.5px;border-radius:10px}
+.btn-o{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border:1.5px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.btn-o:hover{background:var(--lav);color:var(--p)}
+.btn-o.sm{padding:7px 12px;font-size:12.5px;border-radius:10px}
+.burger{display:none;width:40px;height:40px;border:1px solid var(--bd);border-radius:12px;background:#fff;color:var(--navy);cursor:pointer;align-items:center;justify-content:center}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#5b21d6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;flex:none}
+
+/* Main Layout */
+.wrap{max-width:1360px;margin:0 auto;padding:24px 32px 64px}
+.phead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+.phead h1{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--navy)}
+.phead p{margin-top:6px;font-size:14.5px;color:var(--mut);max-width:680px;line-height:1.5}
+
+/* 1. Summary Cards Row */
+.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.sum-card{
+  background:#fff;
+  border:1px solid var(--bd);
+  border-radius:18px;
+  padding:18px 20px;
+  box-shadow:var(--sh);
+  display:flex;
+  align-items:center;
+  gap:16px;
+  transition:transform .2s,box-shadow .2s,border-color .2s;
+}
+.sum-card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--sh2);
+  border-color:var(--p2);
+}
+.sum-icon{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background:var(--lav);
+  color:var(--p);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+}
+.sum-meta{flex:1;min-width:0}
+.sum-val{
+  font-size:24px;
+  font-weight:800;
+  line-height:1.1;
+  color:var(--navy);
+}
+.sum-label{
+  font-size:13px;
+  font-weight:700;
+  color:var(--navy);
+  margin-top:2px;
+}
+.sum-sub{
+  font-size:11.5px;
+  color:var(--mut2);
+  margin-top:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* 2. Activity Type Navigation Tabs */
+.type-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #eeeaf8}
+.type-tab{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 18px;
+  border-radius:12px;
+  border:1.5px solid var(--bd);
+  background:#fff;
+  color:var(--navy);
+  font-size:13.5px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+}
+.type-tab:hover{background:var(--lav);border-color:var(--p);color:var(--p)}
+.type-tab.on{
+  background:var(--p);
+  border-color:var(--p);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(91,33,214,.25);
+}
+.type-tab small{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:2px 7px;
+  border-radius:999px;
+  background:rgba(0,0,0,.06);
+  font-size:11.5px;
+  font-weight:800;
+}
+.type-tab.on small{background:rgba(255,255,255,.24);color:#fff}
+
+/* 3. Status Filter Chips (Separated from Type Tabs) */
+.status-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.status-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 14px;
+  border:1px solid var(--bd);
+  border-radius:999px;
+  background:#fff;
+  color:var(--navy);
+  font-size:12.5px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s;
+}
+.chip:hover{border-color:var(--p);color:var(--p);background:var(--lav)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.filter-info{font-size:12.5px;font-weight:600;color:var(--mut2)}
+
+/* 4. Split-Pane Layout */
+.alay{
+  display:grid;
+  grid-template-columns:minmax(360px,430px) minmax(0,1fr);
+  gap:24px;
+  align-items:start;
+}
+.mobile-back-btn{
+  display:none;
+  align-items:center;
+  gap:8px;
+  padding:11px 16px;
+  border-radius:12px;
+  background:var(--lav);
+  border:1px solid var(--bd);
+  color:var(--p);
+  font-weight:700;
+  font-size:13.5px;
+  cursor:pointer;
+  margin-bottom:16px;
+  width:100%;
+  box-shadow:0 2px 8px rgba(91,33,214,.08);
+  transition:background .15s;
+}
+.mobile-back-btn:hover{background:var(--lav2)}
+
+/* Left List */
+.rlist{display:flex;flex-direction:column;gap:12px}
+.ritem{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:18px 20px;
+  border:1.5px solid #efeaff;
+  border-radius:18px;
+  background:#fff;
+  cursor:pointer;
+  color:var(--navy);
+  box-shadow:var(--sh);
+  transition:all .2s ease;
+  position:relative;
+}
+.ritem:hover{border-color:var(--p2);transform:translateY(-1px);box-shadow:var(--sh2)}
+.ritem.on{border-color:var(--p);background:#faf8ff;box-shadow:0 0 0 3px rgba(91,33,214,.12)}
+.ritem b{display:block;font-size:15px;margin:8px 0 5px;font-weight:700;line-height:1.35}
+.ritem .meta{font-size:12.5px;color:var(--mut);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+/* Kind Badges */
+.kind-pill{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:6px;
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  background:var(--lav2);
+  color:var(--p);
+}
+.kind-pill.bkg{background:#e0f2fe;color:#0369a1}
+.kind-pill.ord{background:#fef3c7;color:#92400e}
+.kind-pill.con{background:#ede9fe;color:#5b21d6}
+
+/* Status Badges */
+.st{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.st.Pending{background:#fff3d6;color:#8a5200}
+.st.Quoted{background:var(--lav3);color:#4a15b3}
+.st.Accepted{background:#dcf7e8;color:#0b6b3a}
+.st.Closed{background:#ececf3;color:#4b4b66}
+.st.Confirmed{background:#e0f2fe;color:#0369a1}
+.st.Completed{background:#dcf7e8;color:#0b6b3a}
+.st.Shipped{background:#fef3c7;color:#92400e}
+.st.Delivered{background:#dcf7e8;color:#0b6b3a}
+.st.Active{background:var(--lav2);color:var(--p)}
+
+/* Detail Cards */
+.card{background:#fff;border:1px solid #efeaff;border-radius:20px;box-shadow:var(--sh)}
+.pad{padding:26px}
+.fade{animation:fd .25s ease both}
+@keyframes fd{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Timeline */
+.timeline{display:flex;gap:0;margin:22px 0 10px;list-style:none;padding:0}
+.timeline li{flex:1;position:relative;text-align:center;font-size:12px;font-weight:600;color:var(--mut2)}
+.timeline li::before{content:"";display:block;width:24px;height:24px;margin:0 auto 8px;border-radius:50%;background:#e8e3f6;border:3px solid #fff;box-shadow:0 0 0 1.5px #d9d0f2;position:relative;z-index:1}
+.timeline li::after{content:"";position:absolute;top:11px;left:calc(50% + 14px);right:calc(-50% + 14px);height:3px;background:#e8e3f6}
+.timeline li:last-child::after{display:none}
+.timeline li.done{color:var(--navy)}
+.timeline li.done::before{background:var(--p);box-shadow:0 0 0 1.5px var(--p)}
+.timeline li.done::after{background:var(--p)}
+
+/* Quotation Cards */
+.qcard{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:16px;align-items:center;padding:18px;border:1.5px solid #efeaff;border-radius:16px;margin-top:14px;background:#fff;transition:border-color .15s}
+.qcard:hover{border-color:var(--bd2)}
+.qcard.win{border-color:#86d9ac;background:#f3fcf7}
+.qcard.dim{opacity:.6}
+.qprice{font-size:20px;font-weight:800;text-align:right;color:var(--navy)}
+.qflag{display:inline-block;margin-left:8px;padding:3px 9px;border-radius:999px;background:#dcf7e8;color:#0b6b3a;font-size:11px;font-weight:700}
+
+/* Info Box / Spec Grid / Milestones */
+.info-box{padding:14px 16px;border-radius:14px;background:var(--lav);border:1px solid var(--bd);font-size:13px;line-height:1.5;color:var(--navy);margin-top:18px}
+.info-box b{color:var(--p)}
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:16px;border-radius:14px;background:#faf8ff;border:1px solid #eeeaf8;margin:18px 0;font-size:13px}
+.spec-grid span{color:var(--mut2);display:block;font-size:11.5px}
+.spec-grid b{color:var(--navy);font-weight:700}
+.m-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.m-table th{text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--bd);color:var(--mut2);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+.m-table td{padding:12px 12px;border-bottom:1px solid #f0ebfb}
+
+/* Empty State */
+.empty{padding:48px 24px;text-align:center;color:var(--mut);background:#fff;border-radius:20px;border:1px solid var(--bd)}
+.empty .ei{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:var(--lav2);color:var(--p);display:flex;align-items:center;justify-content:center}
+.empty h3{color:var(--navy);font-size:18px;margin-bottom:6px}
+
+/* Dialog & Toast */
+dialog{width:min(560px,calc(100% - 24px));max-height:calc(100vh - 24px);padding:0;border:0;border-radius:22px;box-shadow:0 30px 80px rgba(27,27,75,.4);color:var(--navy);font-family:inherit}
+dialog::backdrop{background:rgba(27,27,75,.55);backdrop-filter:blur(3px)}
+.dh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:22px 24px 8px}
+.dh h2{font-size:20px}.dh p{font-size:13px;color:var(--mut);margin-top:4px}
+.db{padding:12px 24px 24px;display:grid;gap:14px}
+.xbtn{width:36px;height:36px;border:0;border-radius:50%;background:var(--lav);color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
+.xbtn:hover{background:var(--lav3)}
+.inp,.sel,.ta{width:100%;padding:10px 12px;border:1.5px solid var(--bd2);border-radius:12px;background:#fff;color:var(--navy);font-size:13.5px;font-weight:500}
+.ta{min-height:90px;resize:vertical}
+.inp:focus,.sel:focus,.ta:focus{border-color:var(--p);outline:0;box-shadow:0 0 0 3px rgba(91,33,214,.15)}
+label.fl{display:block;font-size:12.5px;font-weight:700;margin-bottom:5px;color:var(--navy)}
+
+.toast{position:fixed;left:50%;bottom:28px;z-index:100;transform:translate(-50%,30px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:14px;background:var(--navy);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 16px 40px rgba(27,27,75,.4);transition:opacity .25s,transform .25s;max-width:calc(100% - 24px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.foot{border-top:1px solid #eeeaf8;background:#fff;padding:22px 32px;text-align:center;font-size:13px;color:var(--mut2)}
+
+/* Mobile Responsive Modes */
+@media (max-width:1020px){
+  .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .burger{display:flex}
+  .vvnav{display:none;position:absolute;top:100%;left:0;right:0;margin:0;flex-direction:column;align-items:stretch;gap:2px;padding:10px 20px 16px;border-radius:0 0 18px 18px;background:#fff;box-shadow:0 20px 30px rgba(40,20,100,.14)}
+  .vvnav.open{display:flex}
+  .vvin{padding:12px 20px}.wrap{padding:20px 16px 48px}
+  
+  .alay{display:block}
+  /* On mobile: Toggle between list view and detail view */
+  .alay.mobile-list #rlist{display:flex}
+  .alay.mobile-list #detail{display:none}
+  .alay.mobile-detail #rlist{display:none}
+  .alay.mobile-detail #detail{display:block}
+  .alay.mobile-detail .mobile-back-btn{display:inline-flex}
+}
+
+@media (max-width:600px){
+  .summary-grid{grid-template-columns:1fr}
+  .bt small,.hideM{display:none}
+  .phead h1{font-size:24px}
+  .qcard{grid-template-columns:44px minmax(0,1fr)}.qcard .qa{grid-column:1/-1}.qprice{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- Announcement Ticker -->
+<div class="ticker" id="ticker" role="region" aria-label="Announcements">
+  <span class="tlabel"><i class="tdot"></i>NEW</span>
+  <div class="tview"><div class="ttrack" id="ttrack"></div></div>
+  <button class="tpause" id="tpause" type="button" aria-label="Pause announcements" aria-pressed="false">
+    <svg class="pi" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    <svg class="pl" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+  </button>
+</div>
+
+<!-- Header / Navbar -->
+<header class="vvhead" id="vvhead">
+  <div class="vvin" id="vvin"></div>
+</header>
+
+<!-- Main Activity Hub -->
+<main class="wrap">
+  <!-- 1. Page Heading, Short Description, and New Request Button -->
+  <div class="phead">
+    <div>
+      <h1 id="page-title">Activity Hub</h1>
+      <p id="page-sub">Track your requirements, compare quotations from vendors, and manage orders and bookings in one place.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--lav);border:1px solid var(--bd);color:var(--p)">
+        P1 Direct Commercial Terms &middot; INR Only
+      </span>
+      <button class="btn" type="button" data-act="newreq">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span id="btn-newreq">New request</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Row of Summary Cards (Calculated Dynamically from Available Data) -->
+  <section class="summary-grid" id="summary-cards" aria-label="Activity Summary">
+    <!-- Populated dynamically via JS -->
+  </section>
+
+  <!-- 3. Activity Type Navigation Tabs -->
+  <div class="type-tabs" id="type-tabs" role="tablist" aria-label="Activity type filter"></div>
+
+  <!-- 4. Status Filter Chips (Separated from Type Tabs) -->
+  <div class="status-bar">
+    <div class="status-chips" id="status-chips" role="group" aria-label="Status filter"></div>
+    <span class="filter-info" id="filter-info">Showing records</span>
+  </div>
+
+  <!-- 5. Responsive Split-Pane (List + Details) -->
+  <div class="alay mobile-list" id="alay">
+    <!-- Left Column: Activity List -->
+    <div class="rlist" id="rlist"></div>
+
+    <!-- Right Column: Selected-Item Detail Area -->
+    <div id="detail">
+      <!-- Back button visible only in mobile detail mode -->
+      <button class="mobile-back-btn" type="button" data-act="backtolist">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        <span>Back to activity list</span>
+      </button>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <p><b>VendorVerse Activity Hub</b> &middot; Realistic customer sample records for P1 demonstration &middot; Direct B2B payments (Mode A / Mode B).</p>
+</footer>
+
+<!-- New RFQ Dialog -->
+<dialog id="qd" aria-labelledby="qdt">
+  <form id="qform" method="dialog">
+    <div class="dh">
+      <div>
+        <h2 id="qdt">Post an RFQ Requirement</h2>
+        <p>Send your specifications to eligible verified vendors.</p>
+      </div>
+      <button class="xbtn" type="button" id="qclose" aria-label="Close">×</button>
+    </div>
+    <div class="db">
+      <div>
+        <label class="fl" for="qt">Requirement title</label>
+        <input class="inp" id="qt" name="t" required placeholder="e.g. Structural steel, 40 tons">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="fl" for="qc">Category</label>
+          <select class="sel" id="qc" name="c"></select>
+        </div>
+        <div>
+          <label class="fl" for="qloc">Location</label>
+          <select class="sel" id="qloc" name="loc">
+            <option>Jaipur, Rajasthan</option>
+            <option>Delhi NCR</option>
+            <option>Ajmer, Rajasthan</option>
+            <option>Sikar, Rajasthan</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="fl" for="qn">Specifications &amp; quantities</label>
+        <textarea class="ta" id="qn" name="n" placeholder="Quantity, technical specifications, required delivery timeline..."></textarea>
+      </div>
+      <div style="font-size:12px;color:var(--mut);background:var(--lav);padding:10px;border-radius:10px">
+        <b>Sample RFQ:</b> In Phase 1, quotations are submitted by verified vendors. You compare quotes and transact directly under agreed commercial terms.
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+        <button type="button" class="btn-o" id="qcancel">Cancel</button>
+        <button class="btn" type="submit">Publish RFQ</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Interactive Action Dialog (Reschedule / Rate) -->
+<dialog id="actd" aria-labelledby="actdt">
+  <div class="dh">
+    <div>
+      <h2 id="actdt">Action</h2>
+      <p id="actdsub"></p>
+    </div>
+    <button class="xbtn" type="button" id="actclose" aria-label="Close">×</button>
+  </div>
+  <div class="db" id="actdb"></div>
+</dialog>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+
+var P={
+  home:'<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+  chart:'<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.7 7L4 20l1.2-4.6A8 8 0 1 1 21 12z"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+  pin:'<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  down:'<path d="m6 9 6 6 6-6"/>',
+  bell:'<path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  check:'<path d="m5 12 5 5 9-10"/>',
+  build:'<path d="M3 21h18M6 21V8l6-4 6 4v13"/><path d="M10 21v-6h4v6"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>',
+  code:'<path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/>',
+  truck:'<path d="M2 6h11v10H2zM13 9h4l4 4v3h-8z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  inbox:'<path d="M3 13h5l1 3h6l1-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  package:'<line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  star:'<path d="m12 2 3 6.5 7 .9-5.1 4.9 1.3 7L12 17.8 5.8 21.3l1.3-7L2 9.4l7-.9z" fill="#f5a623"/>'
+};
+function ic(n,s){s=s||18;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[n]||P.file)+'</svg>'}
+var star='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">'+P.star+'</svg>';
+
+/* Localization Strings */
+var currentLang = 'en';
+var I18N = {
+  en: {
+    title: 'Activity Hub',
+    subtitle: 'Track your requirements, compare quotations from vendors, and manage orders and bookings in one place.',
+    newReq: 'New request',
+    allTab: 'All activity',
+    rfqTab: 'RFQs',
+    bkgTab: 'Bookings',
+    ordTab: 'Purchase orders',
+    conTab: 'Contracts',
+    emptyTitle: 'No activity found',
+    emptyBody: 'No records match the selected type or status filters.',
+    acceptBtn: 'Accept quote',
+    acceptedBadge: 'Accepted',
+    p1TermsNotice: 'P1 Direct Commercial Terms (Mode A/B): Payments and contract settlements are transacted directly between you and the vendor. VendorVerse provides transparent tracking and does not collect buyer funds.'
+  },
+  hi: {
+    title: 'गतिविधि केंद्र (Activity Hub)',
+    subtitle: 'अपनी आवश्यकताएं ट्रैक करें, वेंडरों के कोटेशन की तुलना करें, और ऑर्डर तथा बुकिंग प्रबंधित करें।',
+    newReq: 'नया अनुरोध',
+    allTab: 'सभी गतिविधियां',
+    rfqTab: 'RFQs',
+    bkgTab: 'बुकिंग्स',
+    ordTab: 'खरीद ऑर्डर',
+    conTab: 'अनुबंध (Contracts)',
+    emptyTitle: 'कोई गतिविधि नहीं मिली',
+    emptyBody: 'चयनित फ़िल्टर के अनुसार कोई रिकॉर्ड उपलब्ध नहीं है।',
+    acceptBtn: 'कोटेशन स्वीकार करें',
+    acceptedBadge: 'स्वीकृत',
+    p1TermsNotice: 'P1 प्रत्यक्ष व्यावसायिक शर्तें (Mode A/B): भुगतान और अनुबंध सीधे आपके और वेंडर के बीच तय होते हैं।'
+  }
+};
+function t(k){ return (I18N[currentLang] && I18N[currentLang][k]) || I18N.en[k] || k; }
+
+var CATS=['Construction & infrastructure','Manufacturing & OEM (O-10)','Wholesale, suppliers & distribution','Professional & business services','Home & household services','Events & entertainment'];
+var CI={
+  'Construction':'build','Construction & infrastructure':'build',
+  'Manufacturing':'gear','Manufacturing & OEM':'gear','Manufacturing & OEM (O-10)':'gear',
+  'IT & Software':'code','Professional & business services':'user',
+  'Logistics':'truck','Wholesale, suppliers & distribution':'truck',
+  'Home & household services':'wrench','Events & entertainment':'utensils'
+};
+
+/* Vendors directory matching existing IDs */
+var V=[
+  {id:2,n:'Prime Manufacturing Ltd.',city:'Pune',r:4.7},
+  {id:3,n:'TechNova Solutions',city:'Bengaluru',r:4.9},
+  {id:5,n:'Rajasthan Steelworks',city:'Jaipur',r:4.5},
+  {id:6,n:'CloudAxis Technologies',city:'Hyderabad',r:4.7},
+  {id:7,n:'UrbanFrame Builders',city:'Jaipur',r:4.4},
+  {id:8,n:'OceanLink Shipping',city:'Chennai',r:4.8},
+  {id:10,n:'BrightSpark Home Services',city:'Jaipur',r:4.8},
+  {id:11,n:'Sharma Electricals & Hardware',city:'Jaipur',r:4.6},
+  {id:12,n:'UrbanBuild Traders',city:'Jaipur',r:4.4},
+  {id:13,n:'BuildWell Infrastructure Pvt Ltd',city:'Jaipur',r:4.8}
+];
+var vById=function(id){return V.filter(function(v){return v.id==id})[0] || {n:'Verified Vendor',city:'Jaipur',r:4.5}};
+
+/* ==========================================================================
+   Activity Records: Preserves all 5 existing RFQ records + adds P1 types
+   ========================================================================== */
+var ACTIVITIES = [
+  // 1. Existing RFQ records (UNTOUCHED)
+  {
+    kind:'rfq',
+    id:'R-1042',
+    t:'Structural steel, 40 tons',
+    c:'Manufacturing',
+    st:'Quoted',
+    date:'05 Nov 2026',
+    q:[{v:2,p:18.4,d:21},{v:5,p:17.2,d:28},{v:8,p:19.9,d:14}],
+    desc:'Need 40 MT Fe-550D TMT rebars delivered to Jaipur industrial site. Mill test cert required.'
+  },
+  {
+    kind:'rfq',
+    id:'R-1041',
+    t:'Warehouse construction, 20,000 sq ft',
+    c:'Construction',
+    st:'Pending',
+    date:'06 Nov 2026',
+    q:[],
+    desc:'Civil work, PEB structure, industrial flooring, and rainwater harvesting for warehousing setup.'
+  },
+  {
+    kind:'rfq',
+    id:'R-1038',
+    t:'Custom ERP development',
+    c:'IT & Software',
+    st:'Quoted',
+    date:'31 Oct 2026',
+    q:[{v:3,p:12.5,d:90},{v:6,p:10.8,d:105}],
+    desc:'Inventory, invoicing, GST integration, and mobile app for multi-warehouse wholesale distribution.'
+  },
+  {
+    kind:'rfq',
+    id:'R-1030',
+    t:'Container shipping, Mumbai to Rotterdam',
+    c:'Logistics',
+    st:'Accepted',
+    date:'22 Oct 2026',
+    q:[{v:8,p:6.2,d:30}],
+    win:8,
+    desc:'2x40ft dry containers, industrial machinery shipment with export customs clearance.'
+  },
+  {
+    kind:'rfq',
+    id:'R-1024',
+    t:'Office interior fit-out',
+    c:'Construction',
+    st:'Closed',
+    date:'09 Oct 2026',
+    q:[{v:7,p:9.6,d:35}],
+    win:7,
+    desc:'Complete false ceiling, modular workstations, electrical cabling, and glass partitions.'
+  },
+
+  // 2. P1 Service Bookings (Service lifecycle)
+  {
+    kind:'booking',
+    id:'BKG-1039',
+    t:'Deep Cleaning & Commercial Sanitization',
+    c:'Home & household services',
+    st:'Confirmed',
+    date:'04 Nov 2026',
+    vendorId:10,
+    slot:'12 Nov 2026 &middot; 10:00 AM – 1:00 PM',
+    location:'Plot 42, Malviya Nagar Industrial Area, Jaipur',
+    amount:'₹4,200',
+    payMode:'Mode A (Direct payment to technician upon completion)',
+    desc:'4-member team for mechanized floor scrubbing, window cleaning, and sanitization.'
+  },
+  {
+    kind:'booking',
+    id:'BKG-1031',
+    t:'Electrical Load Audit & Panel Inspection',
+    c:'Wholesale, suppliers & distribution',
+    st:'Completed',
+    date:'28 Oct 2026',
+    vendorId:11,
+    slot:'02 Nov 2026 &middot; 2:00 PM',
+    location:'Warehouse 3, Sitapura Industrial Zone, Jaipur',
+    amount:'₹2,800',
+    payMode:'Mode A (Direct UPI settled)',
+    desc:'Inspection of 3-phase LT panel, thermal scan, and load sanction review.'
+  },
+
+  // 3. P1 Purchase Orders (Goods lifecycle)
+  {
+    kind:'order',
+    id:'ORD-24020',
+    t:'500 Bags UltraTech Cement & Binding Wire',
+    c:'Construction & infrastructure',
+    st:'Shipped',
+    date:'03 Nov 2026',
+    vendorId:12,
+    amount:'₹1,95,000',
+    payMode:'Mode B (50% Advance via RTGS, 50% on Delivery)',
+    tracking:'Dispatched via E-Way Bill 841029419102 &middot; Driver: +91 98290 44551',
+    desc:'Grade 53 Portland Cement in 50kg moisture-proof bags + 50kg annealed binding wire.'
+  },
+  {
+    kind:'order',
+    id:'ORD-24011',
+    t:'Industrial Copper Flexible Wires (20 Coils)',
+    c:'Wholesale, suppliers & distribution',
+    st:'Delivered',
+    date:'19 Oct 2026',
+    vendorId:11,
+    amount:'₹68,400',
+    payMode:'Mode B (Tax invoice with 30-day commercial terms)',
+    tracking:'Delivered & acknowledged by Site Supervisor on 24 Oct 2026',
+    desc:'2.5 sq mm and 4.0 sq mm flame retardant low smoke (FRLS) copper cables.'
+  },
+
+  // 4. P1 Milestone Contract (Contract lifecycle)
+  {
+    kind:'contract',
+    id:'CON-501',
+    t:'Industrial HVAC Ducting & Air Handling Unit',
+    c:'Construction & infrastructure',
+    st:'Active',
+    date:'15 Oct 2026',
+    vendorId:13,
+    amount:'₹6,50,000',
+    payMode:'Mode B (Milestone payments via direct NEFT / Bank Transfer)',
+    desc:'Design, fabrication, on-site installation, and testing of central air handling unit.',
+    milestones:[
+      {title:'Milestone 1: Design & CAD Approval',pct:'20%',amt:'₹1,30,000',st:'Completed'},
+      {title:'Milestone 2: Fabrication & Site Delivery',pct:'40%',amt:'₹2,60,000',st:'In progress'},
+      {title:'Milestone 3: Testing & Handover',pct:'40%',amt:'₹2,60,000',st:'Upcoming'}
+    ]
+  }
+];
+
+// State
+var S = {
+  type: 'all', // 'all', 'booking', 'rfq', 'order', 'contract'
+  status: 'All',
+  cur: 'R-1042'
+};
+
+function toast(m){
+  var t=$('#toast');
+  t.innerHTML=ic('check',18)+esc(m);
+  t.classList.add('show');
+  clearTimeout(toast.h);
+  toast.h=setTimeout(function(){t.classList.remove('show')},2800);
+}
+
+/* Shell Setup */
+var MSG = [
+  'Activity Hub: Track RFQs, service bookings, purchase orders, and milestone contracts',
+  'P1 Scope: Direct B2B transactions under Mode A & Mode B terms (INR only)',
+  'Compare vendor quotations side by side before issuing formal work orders',
+  'Verified B2B suppliers across Jaipur, Ajmer, Sikar, and Delhi NCR'
+];
+var NAV = [
+  ['home','Home','customer-panel.html#/home'],
+  ['compass','Explore','explore.html'],
+  ['chart','Activity','#'],
+  ['chat','Messages','customer-panel.html#/messages'],
+  ['user','Profile','customer-panel.html#/profile']
+];
+var LOCS=['Jaipur, Rajasthan, India','Delhi NCR, India','Ajmer, Rajasthan, India','Sikar, Rajasthan, India'],LOC=LOCS[0];
+
+function setupNav(){
+  var g=function(h){return '<div class="tg"'+(h?' aria-hidden="true"':'')+'>'+MSG.map(function(m){return '<span class="ti">'+m+'</span><span class="tsep" aria-hidden="true">&#9670;</span>'}).join('')+'</div>'};
+  $('#ttrack').innerHTML=g(0)+g(1);
+
+  $('#vvin').innerHTML=
+    '<a class="brand" href="customer-panel.html#/home" aria-label="VendorVerse home"><span class="logo">V</span><span class="bt"><b>VendorVerse</b><small>Global B2B Marketplace</small></span></a>'
+    +'<nav class="vvnav" id="vvnav" aria-label="Main">'
+    +NAV.map(function(n){var on=n[1]==='Activity';return '<a class="vvl'+(on?' on':'')+'"'+(on?' aria-current="page"':'')+' href="'+n[2]+'">'+ic(n[0])+n[1]+'</a>'}).join('')
+    +'</nav>'
+    +'<div class="vvright">'
+    +'<div class="locwrap"><button class="vvloc" id="locbtn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="locpanel" aria-label="Location" title="'+LOC+'">'+ic('pin',16)+'<span>'+LOC.split(',')[0]+'</span>'+ic('down',14)+'</button>'
+    +'<div class="locpanel" id="locpanel" role="listbox" aria-label="Choose location" hidden><div class="lochead">P1 Live Markets</div>'+LOCS.map(function(l){return '<button type="button" class="locopt'+(l===LOC?' sel':'')+'" role="option" aria-selected="'+(l===LOC)+'" data-loc="'+l+'">'+ic('pin',16)+'<span>'+l+'</span><span class="chk">'+ic('check',16)+'</span></button>'}).join('')+'</div></div>'
+    +'<button class="vvicon lang" id="langbtn" type="button" aria-label="Switch language">'+ic('globe')+'<span>'+(currentLang==='en'?'EN':'हि')+'</span></button>'
+    +'<a class="vvicon" href="customer-panel.html#/messages" aria-label="Notifications">'+ic('bell',20)+'<i class="dot"></i></a>'
+    +'<button class="btn-o hideM" type="button" data-act="newreq">'+ic('plus',16)+t('newReq')+'</button>'
+    +'<a class="avatar" href="customer-panel.html#/profile" aria-label="My profile">A</a>'
+    +'<button class="burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="vvnav">'+ic('menu',22)+'</button></div>';
+
+  var h=$('#vvhead'),b=$('#burger'),n=$('#vvnav'),lb=$('#locbtn'),lp=$('#locpanel'),tbar=$('#ticker'),tp=$('#tpause'),lg=$('#langbtn');
+  function sc(){h.classList.toggle('scrolled',window.scrollY>8)}sc();window.addEventListener('scroll',sc,{passive:true});
+  b.addEventListener('click',function(){var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o);b.setAttribute('aria-label',o?'Close menu':'Open menu')});
+  function setL(o){lb.setAttribute('aria-expanded',o);lp.hidden=!o}
+  lb.addEventListener('click',function(e){e.stopPropagation();setL(lp.hidden)});
+  lp.addEventListener('click',function(e){var o=e.target.closest('.locopt');if(!o)return;$$('.locopt',lp).forEach(function(x){x.classList.remove('sel');x.setAttribute('aria-selected','false')});o.classList.add('sel');o.setAttribute('aria-selected','true');LOC=o.dataset.loc;setL(false);$('.vvloc span',lb).textContent=LOC.split(',')[0];toast('Location set to '+LOC)});
+  document.addEventListener('click',function(e){if(!lp.hidden&&!lp.contains(e.target)&&!e.target.closest('#locbtn'))setL(false)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!lp.hidden){setL(false);lb.focus()}});
+  tp.addEventListener('click',function(){var p=tbar.classList.toggle('paused');tp.setAttribute('aria-pressed',p);tp.setAttribute('aria-label',p?'Play announcements':'Pause announcements')});
+
+  lg.addEventListener('click',function(){
+    currentLang = currentLang === 'en' ? 'hi' : 'en';
+    setupNav();
+    $('#page-title').textContent = t('title');
+    $('#page-sub').textContent = t('subtitle');
+    $('#btn-newreq').textContent = t('newReq');
+    render();
+    toast('Language: '+(currentLang==='en'?'English':'Hindi'));
+  });
+}
+
+/* ==========================================================================
+   1. Summary Cards Calculation (Dynamically Computed from Available Data)
+   ========================================================================== */
+function renderSummaryCards(){
+  // Calculate dynamic metrics
+  var activeRfqs = ACTIVITIES.filter(function(x){ return x.kind === 'rfq' && (x.st === 'Pending' || x.st === 'Quoted') }).length;
+  var totalRfqs = ACTIVITIES.filter(function(x){ return x.kind === 'rfq' }).length;
+
+  var quotesCount = ACTIVITIES.filter(function(x){ return x.kind === 'rfq' }).reduce(function(acc, x){
+    return acc + (x.q ? x.q.length : 0);
+  }, 0);
+
+  var bookingsCount = ACTIVITIES.filter(function(x){ return x.kind === 'booking' }).length;
+  var confirmedBookings = ACTIVITIES.filter(function(x){ return x.kind === 'booking' && x.st === 'Confirmed' }).length;
+
+  var ordersContractsCount = ACTIVITIES.filter(function(x){ return x.kind === 'order' || x.kind === 'contract' }).length;
+  var inProgressOrders = ACTIVITIES.filter(function(x){ return (x.kind === 'order' && x.st === 'Shipped') || (x.kind === 'contract' && x.st === 'Active') }).length;
+
+  var cards = [
+    {
+      icon: 'file',
+      val: activeRfqs,
+      label: currentLang === 'hi' ? 'सक्रिय RFQ अनुरोध' : 'Active Requests (RFQs)',
+      sub: currentLang === 'hi' ? (totalRfqs + ' कुल अनुरोधों में से') : (activeRfqs + ' awaiting · ' + (totalRfqs - activeRfqs) + ' settled'),
+      typeTab: 'rfq'
+    },
+    {
+      icon: 'chat',
+      val: quotesCount,
+      label: currentLang === 'hi' ? 'प्राप्त कोटेशन' : 'Quotations Received',
+      sub: currentLang === 'hi' ? 'सत्यापित वेंडरों द्वारा प्रेषित' : (quotesCount + ' total vendor quotes'),
+      typeTab: 'rfq'
+    },
+    {
+      icon: 'calendar',
+      val: bookingsCount,
+      label: currentLang === 'hi' ? 'सर्विस बुकिंग्स' : 'Service Bookings',
+      sub: currentLang === 'hi' ? (confirmedBookings + ' आगामी · 1 पूर्ण') : (confirmedBookings + ' upcoming · ' + (bookingsCount - confirmedBookings) + ' completed'),
+      typeTab: 'booking'
+    },
+    {
+      icon: 'package',
+      val: ordersContractsCount,
+      label: currentLang === 'hi' ? 'ऑर्डर और अनुबंध' : 'Orders & Contracts',
+      sub: currentLang === 'hi' ? (inProgressOrders + ' प्रगति पर') : (inProgressOrders + ' active · ' + (ordersContractsCount - inProgressOrders) + ' fulfilled'),
+      typeTab: 'order'
+    }
+  ];
+
+  $('#summary-cards').innerHTML = cards.map(function(c){
+    return '<div class="sum-card" data-act="type" data-type="'+c.typeTab+'" style="cursor:pointer">'
+      +'<div class="sum-icon">'+ic(c.icon,22)+'</div>'
+      +'<div class="sum-meta">'
+      +'<div class="sum-val">'+c.val+'</div>'
+      +'<div class="sum-label">'+c.label+'</div>'
+      +'<div class="sum-sub">'+c.sub+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+/* ==========================================================================
+   2. Activity Type Navigation Tabs (All activity, Bookings, RFQs, Purchase orders, Contracts)
+   ========================================================================== */
+function renderTypeTabs(){
+  var types = [
+    {id:'all',l:t('allTab'),c:ACTIVITIES.length},
+    {id:'booking',l:t('bkgTab'),c:ACTIVITIES.filter(function(x){return x.kind==='booking'}).length},
+    {id:'rfq',l:t('rfqTab'),c:ACTIVITIES.filter(function(x){return x.kind==='rfq'}).length},
+    {id:'order',l:t('ordTab'),c:ACTIVITIES.filter(function(x){return x.kind==='order'}).length},
+    {id:'contract',l:t('conTab'),c:ACTIVITIES.filter(function(x){return x.kind==='contract'}).length}
+  ];
+
+  $('#type-tabs').innerHTML = types.map(function(tb){
+    var on = S.type === tb.id;
+    return '<button type="button" role="tab" class="type-tab'+(on?' on':'')+'" aria-selected="'+on+'" data-act="type" data-type="'+tb.id+'">'
+      +'<span>'+tb.l+'</span><small>'+tb.c+'</small></button>';
+  }).join('');
+}
+
+/* ==========================================================================
+   3. Status Filter Chips (Separated from Type Tabs)
+   ========================================================================== */
+function renderStatusChips(){
+  var pool = S.type === 'all' ? ACTIVITIES : ACTIVITIES.filter(function(x){return x.kind === S.type});
+  var statuses = ['All'].concat(Array.from(new Set(pool.map(function(x){return x.st}))));
+
+  $('#status-chips').innerHTML = statuses.map(function(st){
+    var on = S.status === st;
+    var count = st === 'All' ? pool.length : pool.filter(function(x){return x.st === st}).length;
+    return '<button type="button" class="chip'+(on?' on':'')+'" data-act="status" data-st="'+st+'">'
+      +'<span>'+st+'</span><span style="opacity:.7;font-size:11px">('+count+')</span></button>';
+  }).join('');
+
+  $('#filter-info').textContent = 'Showing ' + (S.status === 'All' ? pool.length : pool.filter(function(x){return x.st === S.status}).length) + ' of ' + pool.length + ' records';
+}
+
+/* ==========================================================================
+   4. Split-Pane & Responsive List / Detail
+   ========================================================================== */
+function render(){
+  renderSummaryCards();
+  renderTypeTabs();
+  renderStatusChips();
+
+  // Filter list
+  var list = ACTIVITIES.filter(function(item){
+    if(S.type !== 'all' && item.kind !== S.type) return false;
+    if(S.status !== 'All' && item.st !== S.status) return false;
+    return true;
+  });
+
+  // Current selected item
+  var cur = list.filter(function(x){return x.id === S.cur})[0];
+  if(!cur && list.length > 0) cur = list[0];
+  if(!list.length) cur = null;
+
+  // Render left column list
+  if(list.length > 0){
+    $('#rlist').innerHTML = list.map(function(item){
+      var isCur = cur && item.id === cur.id;
+      var kindLabel = item.kind === 'rfq' ? 'RFQ' : item.kind === 'booking' ? 'Booking' : item.kind === 'order' ? 'PO' : 'Contract';
+      var kindClass = item.kind === 'rfq' ? '' : item.kind === 'booking' ? 'bkg' : item.kind === 'order' ? 'ord' : 'con';
+      var subtitle = item.kind === 'rfq'
+        ? (item.q.length + ' quotation' + (item.q.length === 1 ? '' : 's'))
+        : item.kind === 'booking'
+          ? (vById(item.vendorId).n + ' &middot; ' + item.amount)
+          : item.kind === 'order'
+            ? (vById(item.vendorId).n + ' &middot; ' + item.amount)
+            : (vById(item.vendorId).n + ' &middot; ' + item.amount);
+
+      return '<button type="button" class="ritem'+(isCur?' on':'')+'" data-act="open" data-id="'+item.id+'">'
+        +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'
+        +'<span class="meta"><span class="kind-pill '+kindClass+'">'+kindLabel+'</span> '+item.id+' &middot; '+item.date+'</span>'
+        +'<span class="st '+item.st+'">'+item.st+'</span>'
+        +'</div>'
+        +'<b>'+esc(item.t)+'</b>'
+        +'<span class="meta">'+(CI[item.c]?ic(CI[item.c],14):ic('file',14))+esc(item.c)+' &middot; '+subtitle+'</span>'
+        +'</button>';
+    }).join('');
+  } else {
+    $('#rlist').innerHTML = '<div class="card empty"><div class="ei">'+ic('inbox',28)+'</div>'
+      +'<h3>'+t('emptyTitle')+'</h3><p>'+t('emptyBody')+'</p>'
+      +'<button class="btn-o sm" type="button" data-act="resetfilter">Show all activity</button></div>';
+  }
+
+  // Render right column details
+  if(!cur){
+    $('#detail-content').innerHTML = '<div class="card empty"><div class="ei">'+ic('inbox',28)+'</div><h3>No item selected</h3><p>Choose an activity record from the list to view specifications and vendor responses.</p></div>';
+    return;
+  }
+
+  // Render detail pane based on activity kind
+  if(cur.kind === 'rfq'){
+    renderRfqDetail(cur);
+  } else if(cur.kind === 'booking'){
+    renderBookingDetail(cur);
+  } else if(cur.kind === 'order'){
+    renderOrderDetail(cur);
+  } else if(cur.kind === 'contract'){
+    renderContractDetail(cur);
+  }
+}
+
+/* 4A. RFQ Detail View (Preserves all existing quotation compare and accept logic) */
+function renderRfqDetail(cur){
+  var order=['Pending','Quoted','Accepted','Closed'], ix=order.indexOf(cur.st);
+  var steps=['Posted','Quotes received','Accepted','Closed'].map(function(s,i){
+    var done = i === 0 || (i === 1 && (cur.q.length > 0 || ix >= 1)) || (i === 2 && ix >= 2) || (i === 3 && ix >= 3);
+    return '<li class="'+(done?'done':'')+'">'+s+'</li>';
+  }).join('');
+
+  var minP = cur.q.length ? Math.min.apply(null, cur.q.map(function(q){return q.p})) : null;
+  var minD = cur.q.length ? Math.min.apply(null, cur.q.map(function(q){return q.d})) : null;
+
+  var qh = cur.q.length ? cur.q.map(function(q){
+    var v = vById(q.v), won = cur.win === q.v, dim = cur.win && !won;
+    var fl = (cur.q.length > 1 && q.p === minP ? '<span class="qflag">Lowest price</span>' : '')
+           + (cur.q.length > 1 && q.d === minD ? '<span class="qflag">Fastest</span>' : '');
+
+    var act = cur.win
+      ? (won ? '<span class="st Accepted">'+t('acceptedBadge')+'</span>' : '')
+      : '<button class="btn sm" type="button" data-act="accept" data-id="'+cur.id+'" data-v="'+q.v+'">'+t('acceptBtn')+'</button>';
+
+    return '<div class="qcard'+(won?' win':'')+(dim?' dim':'')+'">'
+      +'<span class="avatar">'+esc(v.n[0])+'</span>'
+      +'<div>'
+      +'<b>'+esc(v.n)+fl+'</b>'
+      +'<span class="meta">'+star+v.r.toFixed(1)+' &middot; Delivery in '+q.d+' days &middot; '+esc(v.city)+'</span>'
+      +'</div>'
+      +'<div class="qa" style="display:flex;align-items:center;gap:14px;justify-content:flex-end;flex-wrap:wrap">'
+      +'<span class="qprice">₹'+q.p+' L</span>'
+      +act
+      +'</div>'
+      +'</div>';
+  }).join('')
+  : '<div class="empty"><div class="ei">'+ic('clock',28)+'</div><h3>Waiting for quotations</h3><p>Eligible verified vendors have been notified in Rajasthan & Delhi NCR. Their quotations will appear here.</p></div>';
+
+  $('#detail-content').innerHTML =
+    '<section class="card pad fade" aria-live="polite">'
+    +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">'
+    +'<div><span class="meta"><span class="kind-pill">RFQ</span> '+cur.id+' &middot; Posted '+cur.date+'</span>'
+    +'<h2 style="font-size:22px;font-weight:800;letter-spacing:-.01em;margin-top:6px">'+esc(cur.t)+'</h2>'
+    +'<span class="meta" style="margin-top:6px">'+(CI[cur.c]?ic(CI[cur.c],14):ic('file',14))+esc(cur.c)+'</span></div>'
+    +'<span class="st '+cur.st+'">'+cur.st+'</span>'
+    +'</div>'
+    +'<div class="spec-grid">'
+    +'<div><span>REQUIREMENT ID</span><b>'+cur.id+'</b></div>'
+    +'<div><span>STATUS</span><b>'+cur.st+'</b></div>'
+    +'<div><span>CATEGORY</span><b>'+esc(cur.c)+'</b></div>'
+    +'<div><span>TARGET MARKET</span><b>Jaipur / North India</b></div>'
+    +'</div>'
+    +'<p style="font-size:13.5px;line-height:1.55;color:var(--navy);margin:14px 0">'+esc(cur.desc || '')+'</p>'
+    +'<ol class="timeline" aria-label="Progress">'+steps+'</ol>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:26px;flex-wrap:wrap;gap:8px">'
+    +'<h3 style="font-size:17px;font-weight:800">Quotations ('+cur.q.length+')</h3>'
+    +(cur.q.length > 1 ? '<span style="font-size:12px;font-weight:700;color:var(--mut2)">Side-by-side comparison active</span>' : '')
+    +'</div>'
+    +qh
+    +'<div class="info-box">'
+    +'<b>P1 Mode B Direct Term:</b> Once you accept a quotation, commercial payment terms are agreed directly with the vendor. VendorVerse tracks the acceptance and provides verifiable audit records without escrow or fee deductions.'
+    +'</div>'
+    +'</section>';
+}
+
+/* 4B. Service Booking Detail View */
+function renderBookingDetail(cur){
+  var v = vById(cur.vendorId);
+  var steps = ['Requested','Confirmed','In progress','Completed'].map(function(s){
+    var done = s === 'Requested' || (s === 'Confirmed' && cur.st !== 'Requested') || (s === 'Completed' && cur.st === 'Completed');
+    return '<li class="'+(done?'done':'')+'">'+s+'</li>';
+  }).join('');
+
+  $('#detail-content').innerHTML =
+    '<section class="card pad fade" aria-live="polite">'
+    +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">'
+    +'<div><span class="meta"><span class="kind-pill bkg">Service Booking</span> '+cur.id+' &middot; '+cur.date+'</span>'
+    +'<h2 style="font-size:22px;font-weight:800;letter-spacing:-.01em;margin-top:6px">'+esc(cur.t)+'</h2>'
+    +'<span class="meta" style="margin-top:6px">'+ic('wrench',14)+esc(cur.c)+'</span></div>'
+    +'<span class="st '+cur.st+'">'+cur.st+'</span>'
+    +'</div>'
+    +'<div class="spec-grid">'
+    +'<div><span>ASSIGNED VENDOR</span><b>'+esc(v.n)+'</b></div>'
+    +'<div><span>SCHEDULED SLOT</span><b>'+cur.slot+'</b></div>'
+    +'<div><span>TOTAL CHARGE</span><b style="color:var(--p);font-size:15px">'+cur.amount+'</b></div>'
+    +'<div><span>PAYMENT TERMS</span><b>Direct Mode A (COD/UPI)</b></div>'
+    +'</div>'
+    +'<ol class="timeline" aria-label="Booking progress">'+steps+'</ol>'
+    +'<div style="background:#fff;border:1.5px solid var(--bd);border-radius:14px;padding:16px;margin-top:20px">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--mut2);text-transform:uppercase;letter-spacing:.04em">SERVICE LOCATION &amp; CONTACT</div>'
+    +'<p style="font-size:14px;font-weight:600;margin-top:4px">'+cur.location+'</p>'
+    +'<p style="font-size:12.5px;color:var(--mut);margin-top:4px">Technician team verified by '+esc(v.n)+' &middot; '+star+' '+v.r.toFixed(1)+' rating</p>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">'
+    +'<button class="btn sm" type="button" data-act="reschedule" data-id="'+cur.id+'">Reschedule Slot</button>'
+    +'<button class="btn-o sm" type="button" data-act="rate" data-id="'+cur.id+'">Rate &amp; Review Vendor</button>'
+    +'<button class="btn-o sm" type="button" data-act="invoice" data-id="'+cur.id+'">View Service Receipt</button>'
+    +'</div>'
+    +'<div class="info-box">'
+    +'<b>P1 Mode A Payment Notice:</b> Payment for this service is made directly to the vendor/technician upon inspection. VendorVerse does not collect platform booking fees or hold customer balances.'
+    +'</div>'
+    +'</section>';
+}
+
+/* 4C. Purchase Order Detail View */
+function renderOrderDetail(cur){
+  var v = vById(cur.vendorId);
+  var steps = ['Placed','Confirmed','Packed','Shipped','Delivered'].map(function(s){
+    var done = s === 'Placed' || s === 'Confirmed' || (s === 'Shipped' && (cur.st === 'Shipped' || cur.st === 'Delivered')) || (s === 'Delivered' && cur.st === 'Delivered');
+    return '<li class="'+(done?'done':'')+'">'+s+'</li>';
+  }).join('');
+
+  $('#detail-content').innerHTML =
+    '<section class="card pad fade" aria-live="polite">'
+    +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">'
+    +'<div><span class="meta"><span class="kind-pill ord">Purchase Order</span> '+cur.id+' &middot; '+cur.date+'</span>'
+    +'<h2 style="font-size:22px;font-weight:800;letter-spacing:-.01em;margin-top:6px">'+esc(cur.t)+'</h2>'
+    +'<span class="meta" style="margin-top:6px">'+ic('truck',14)+esc(cur.c)+'</span></div>'
+    +'<span class="st '+cur.st+'">'+cur.st+'</span>'
+    +'</div>'
+    +'<div class="spec-grid">'
+    +'<div><span>SUPPLIER</span><b>'+esc(v.n)+'</b></div>'
+    +'<div><span>DISPATCH STATUS</span><b>'+cur.st+'</b></div>'
+    +'<div><span>TOTAL ORDER VALUE</span><b style="color:var(--p);font-size:15px">'+cur.amount+'</b></div>'
+    +'<div><span>COMMERCIAL TERMS</span><b>'+cur.payMode+'</b></div>'
+    +'</div>'
+    +'<ol class="timeline" aria-label="Order fulfillment progress">'+steps+'</ol>'
+    +'<div style="background:#faf8ff;border:1.5px solid var(--bd);border-radius:14px;padding:16px;margin-top:20px">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--mut2);text-transform:uppercase;letter-spacing:.04em">DISPATCH &amp; E-WAY BILL TRACKING</div>'
+    +'<p style="font-size:13.5px;font-weight:600;margin-top:4px">'+cur.tracking+'</p>'
+    +'<p style="font-size:12px;color:var(--mut);margin-top:4px">Goods inspected under GST compliant tax invoice &middot; Transporter verified</p>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">'
+    +'<button class="btn sm" type="button" data-act="trackpo" data-id="'+cur.id+'">View E-Way Manifest</button>'
+    +'<button class="btn-o sm" type="button" data-act="invoice" data-id="'+cur.id+'">Download Tax Invoice</button>'
+    +'</div>'
+    +'<div class="info-box">'
+    +'<b>P1 Mode B Goods Notice:</b> Settlement is completed directly via bank transfer / RTGS between buyer and supplier under formal commercial tax invoice. Platform payments and escrow are out of P1 scope.'
+    +'</div>'
+    +'</section>';
+}
+
+/* 4D. Milestone Contract Detail View */
+function renderContractDetail(cur){
+  var v = vById(cur.vendorId);
+  var rows = (cur.milestones||[]).map(function(m, idx){
+    return '<tr>'
+      +'<td><b>#'+(idx+1)+'</b></td>'
+      +'<td><b>'+esc(m.title)+'</b></td>'
+      +'<td>'+m.pct+'</td>'
+      +'<td><b style="color:var(--p)">'+m.amt+'</b></td>'
+      +'<td><span class="st '+m.st+'">'+m.st+'</span></td>'
+      +'</tr>';
+  }).join('');
+
+  $('#detail-content').innerHTML =
+    '<section class="card pad fade" aria-live="polite">'
+    +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">'
+    +'<div><span class="meta"><span class="kind-pill con">Commercial Contract</span> '+cur.id+' &middot; '+cur.date+'</span>'
+    +'<h2 style="font-size:22px;font-weight:800;letter-spacing:-.01em;margin-top:6px">'+esc(cur.t)+'</h2>'
+    +'<span class="meta" style="margin-top:6px">'+ic('build',14)+esc(cur.c)+'</span></div>'
+    +'<span class="st '+cur.st+'">'+cur.st+'</span>'
+    +'</div>'
+    +'<div class="spec-grid">'
+    +'<div><span>CONTRACTOR</span><b>'+esc(v.n)+'</b></div>'
+    +'<div><span>TOTAL CONTRACT VALUE</span><b style="color:var(--p);font-size:15px">'+cur.amount+'</b></div>'
+    +'<div><span>PAYMENT TERMS</span><b>Direct Mode B (Milestone NEFT)</b></div>'
+    +'<div><span>STAGE</span><b>Milestones Active</b></div>'
+    +'</div>'
+    +'<h3 style="font-size:16px;font-weight:800;margin-top:22px">Milestone Schedule &amp; Approvals</h3>'
+    +'<div style="overflow-x:auto">'
+    +'<table class="m-table">'
+    +'<thead><tr><th>#</th><th>Milestone Description</th><th>Share</th><th>Amount (INR)</th><th>Status</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'</table>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">'
+    +'<button class="btn sm" type="button" data-act="contractdoc" data-id="'+cur.id+'">View Executed Contract Agreement</button>'
+    +'<button class="btn-o sm" type="button" data-act="signmilestone" data-id="'+cur.id+'">Approve Milestone Sign-Off</button>'
+    +'</div>'
+    +'<div class="info-box">'
+    +'<b>P1 Direct Contract Governance:</b> Milestone deliverables are verified on-site by buyer engineers. Payments are wired directly to the contractor bank account without platform intermediary fees.'
+    +'</div>'
+    +'</section>';
+}
+
+/* Event Handlers */
+var qd=$('#qd');
+var actd=$('#actd');
+$('#qc').innerHTML=CATS.map(function(c){return '<option>'+c+'</option>'}).join('');
+
+document.addEventListener('click',function(e){
+  var a=e.target.closest('[data-act]');
+  if(!a) return;
+  var act=a.dataset.act, id=a.dataset.id;
+
+  if(act==='type'){
+    S.type=a.dataset.type;
+    S.status='All';
+    // On mobile: switch to list view
+    $('#alay').className = 'alay mobile-list';
+    render();
+  }
+  else if(act==='status'){
+    S.status=a.dataset.st;
+    $('#alay').className = 'alay mobile-list';
+    render();
+  }
+  else if(act==='open'){
+    S.cur=id;
+    // On mobile: switch to detail view
+    $('#alay').className = 'alay mobile-detail';
+    render();
+    // Smooth scroll to top of details if on mobile
+    if(window.innerWidth <= 1020){
+      $('#detail').scrollIntoView({behavior:'smooth'});
+    }
+  }
+  else if(act==='backtolist'){
+    // Mobile back to list
+    $('#alay').className = 'alay mobile-list';
+    $('#rlist').scrollIntoView({behavior:'smooth'});
+  }
+  else if(act==='accept'){
+    var r=ACTIVITIES.filter(function(x){return x.id===id})[0];
+    r.st='Accepted';
+    r.win=+a.dataset.v;
+    render();
+    toast('Quote accepted! '+vById(r.win).n+' has been notified under Mode B direct terms.');
+  }
+  else if(act==='newreq'){
+    qd.showModal();
+    $('#qt').focus();
+  }
+  else if(act==='resetfilter'){
+    S.type='all';
+    S.status='All';
+    $('#alay').className = 'alay mobile-list';
+    render();
+  }
+  else if(act==='reschedule'){
+    $('#actdt').textContent = 'Reschedule Service Slot';
+    $('#actdsub').textContent = 'Select a revised date & preferred time window for technicians.';
+    $('#actdb').innerHTML =
+      '<div><label class="fl">New Preferred Date</label><input type="date" class="inp" value="2026-11-15"></div>'
+      +'<div><label class="fl">Time Slot</label><select class="sel"><option>10:00 AM – 1:00 PM</option><option>2:00 PM – 5:00 PM</option></select></div>'
+      +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px"><button type="button" class="btn-o" onclick="actd.close()">Cancel</button><button type="button" class="btn" onclick="actd.close();toast(\'Reschedule request submitted to vendor\')">Confirm New Slot</button></div>';
+    actd.showModal();
+  }
+  else if(act==='rate'){
+    $('#actdt').textContent = 'Rate & Review Vendor';
+    $('#actdsub').textContent = 'Share verified customer feedback regarding quality of work and punctuality.';
+    $('#actdb').innerHTML =
+      '<div><label class="fl">Rating</label><select class="sel"><option>⭐⭐⭐⭐⭐ (5.0 - Excellent)</option><option>⭐⭐⭐⭐ (4.0 - Good)</option><option>⭐⭐⭐ (3.0 - Average)</option></select></div>'
+      +'<div><label class="fl">Review Comments</label><textarea class="ta" placeholder="Describe the quality of materials, communication, and work completion..."></textarea></div>'
+      +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px"><button type="button" class="btn-o" onclick="actd.close()">Cancel</button><button type="button" class="btn" onclick="actd.close();toast(\'Review recorded in verified database\')">Submit Review</button></div>';
+    actd.showModal();
+  }
+  else if(act==='invoice'){
+    toast('Demonstration: In production, vendor GST tax invoices are generated via server-side PDF service.');
+  }
+  else if(act==='trackpo'){
+    toast('E-Way Bill 841029419102: Verified in transit from Jaipur Industrial Yard.');
+  }
+  else if(act==='contractdoc'){
+    toast('Executed Agreement CON-501 (Stamped): Available for download in buyer portal.');
+  }
+  else if(act==='signmilestone'){
+    toast('Milestone 2 sign-off recorded. Direct Mode B remittance advice sent.');
+  }
+});
+
+/* New Request Submit */
+$('#qform').addEventListener('submit',function(e){
+  e.preventDefault();
+  var f=e.target;
+  var newId='R-'+(1043+ACTIVITIES.filter(function(x){return x.kind==='rfq'}).length-5);
+  var newRecord={
+    kind:'rfq',
+    id:newId,
+    t:f.t.value.trim(),
+    c:f.c.value,
+    st:'Pending',
+    date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),
+    q:[],
+    desc:f.n.value.trim() || 'Custom requirement published to verified vendors in Jaipur and Delhi NCR.'
+  };
+
+  ACTIVITIES.unshift(newRecord);
+  S.cur=newId;
+  S.type='rfq';
+  S.status='All';
+  qd.close();
+  f.reset();
+  $('#alay').className = 'alay mobile-list';
+  render();
+  toast('New RFQ posted! Verified vendors notified.');
+});
+
+$('#qclose').addEventListener('click',function(){qd.close()});
+$('#qcancel').addEventListener('click',function(){qd.close()});
+$('#actclose').addEventListener('click',function(){actd.close()});
+qd.addEventListener('click',function(e){if(e.target===qd)qd.close()});
+actd.addEventListener('click',function(e){if(e.target===actd)actd.close()});
+
+// Handle window resize between mobile and desktop
+window.addEventListener('resize',function(){
+  if(window.innerWidth > 1020){
+    $('#alay').className = 'alay';
+  } else if(!$('#alay').classList.contains('mobile-detail')){
+    $('#alay').className = 'alay mobile-list';
+  }
+});
+
+// Initial Setup
+setupNav();
+if(window.innerWidth > 1020){
+  $('#alay').className = 'alay';
+} else {
+  $('#alay').className = 'alay mobile-list';
+}
+render();
+
+})();
+</script>
+</body>
+</html>

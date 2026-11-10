@@ -1,13 +1,14 @@
-﻿import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Phone, MapPin, ChevronDown, Search, SlidersHorizontal, Package, CalendarCheck, FileText, Heart, Star, Minus, Plus, ShieldCheck,
   MessageCircle, GitCompare, Truck, Clock, CreditCard, Smartphone, Landmark, Banknote, Lock, CheckCircle2, XCircle, Loader2,
   Store, ChevronRight, BadgeCheck, Home as HomeIcon, Briefcase, Receipt, ArrowRight, Share2, Check,
+  Sparkles, X, ArrowLeft
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { findCity } from '../geo.js'
-import { CATS, P2_INDUSTRIES, P3_INDUSTRIES, cat, calcPrice, BUSY_SLOTS, SLOTS, listing as findListing } from '../data.jsx'
+import { CATS, CATS_P1, CATS_P2, CATS_P3, ALL_CATS, P2_INDUSTRIES, P3_INDUSTRIES, cat, calcPrice, BUSY_SLOTS, SLOTS, listing as findListing } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Input, Select, Toggle, Badge, Rating, Banner, EmptyState,
   PriceBreakdown, KV, fmt, cx, Pill, SearchBar, IconBtn, StatusBadge, Stars, ListRow, Group, Meta, SOFT, GRAD, Carousel, Avatar,
@@ -126,27 +127,329 @@ export function CustomerHome() {
 /* ================= CATEGORIES ================= */
 export function Categories() {
   const nav = useNav()
+  const { lang, t } = useApp()
+  const [q, setQ] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all') // 'all' | 'product' | 'service'
+  const [sectorFilter, setSectorFilter] = useState('all')
+
+  useEffect(() => {
+    // Reset scroll container on mount
+    const sc = document.querySelector('.vv-customer-route')
+    if (sc) sc.scrollTop = 0
+    window.scrollTo(0, 0)
+  }, [])
+
+  const SECTORS = [
+    { id: 'all', label: 'All Industries', hi: 'सभी उद्योग' },
+    { id: 'const', label: 'Construction & Infra', hi: 'निर्माण', cats: ['build', 'mining', 'real'] },
+    { id: 'mfg', label: 'Manufacturing & Materials', hi: 'मैन्युफैक्चरिंग', cats: ['manu', 'chem', 'textile', 'pack', 'aero'] },
+    { id: 'tech', label: 'IT & Digital', hi: 'आईटी और डिजिटल', cats: ['office', 'telecom'] },
+    { id: 'trade', label: 'Wholesale & Supply', hi: 'थोक और आपूर्ति', cats: ['elec', 'food', 'luxury'] },
+    { id: 'logistics', label: 'Logistics & Freight', hi: 'लॉजिस्टिक्स', cats: ['print', 'marine', 'auto'] },
+    { id: 'corp', label: 'Professional & Business', hi: 'पेशेवर सेवाएं', cats: ['staff', 'fin', 'media', 'security', 'edu'] },
+    { id: 'services', label: 'Facility & Energy', hi: 'सुविधा और ऊर्जा', cats: ['home', 'clean', 'agri', 'energy', 'event', 'hosp', 'beauty', 'sport', 'recycle'] },
+  ]
+
+  const all = ALL_CATS || CATS
+
+  const filtered = useMemo(() => {
+    return all.filter((c) => {
+      // Type filter
+      if (typeFilter !== 'all' && c.type !== typeFilter) return false
+
+      // Sector filter
+      if (sectorFilter !== 'all') {
+        const sector = SECTORS.find((s) => s.id === sectorFilter)
+        if (sector && !sector.cats.includes(c.id)) return false
+      }
+
+      // Keyword query
+      if (q.trim()) {
+        const term = q.toLowerCase()
+        const matchesName = c.name.toLowerCase().includes(term)
+        const matchesHi = c.hi && c.hi.includes(term)
+        const matchesSub = c.subs.some((s) => s.toLowerCase().includes(term))
+        if (!matchesName && !matchesHi && !matchesSub) return false
+      }
+
+      return true
+    })
+  }, [all, q, typeFilter, sectorFilter])
+
+  const productCount = useMemo(() => all.filter((c) => c.type === 'product').length, [all])
+  const serviceCount = useMemo(() => all.filter((c) => c.type === 'service').length, [all])
+
   return (
-    <Screen title="All categories">
-      {CATS.map((c) => (
-        <Card key={c.id} onClick={() => nav.go('c_category', { id: c.id })}>
-          <div className="flex items-center gap-3">
-            <Thumb tone={c.tone} icon={c.icon} size={52} />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold">{c.name}</p>
-              <p className="text-xs text-ink-500">{c.type === 'service' ? 'Services' : 'Products'} · {c.subs.length} subcategories</p>
+    <Screen headerless bg="bg-[#faf9ff]">
+      <div className="space-y-6 pb-12 pt-2">
+        {/* 1. Royal Purple Hero Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1b1b4b] via-[#3b1285] to-[#5b21d6] p-6 text-white shadow-xl sm:p-8">
+          {/* Decorative glowing background elements */}
+          <div className="pointer-events-none absolute -right-12 -top-12 size-56 rounded-full bg-white/10 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-16 left-1/3 size-64 rounded-full bg-[#7c3aed]/25 blur-3xl" />
+
+          <div className="relative z-10 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => nav.back()}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md transition hover:bg-white hover:text-[#5b21d6]"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft size={14} />
+                  <span>{lang === 'hi' ? 'पीछे जाएं' : 'Back'}</span>
+                </button>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-bold tracking-wide backdrop-blur-md">
+                  <span className="size-2 animate-pulse rounded-full bg-emerald-400" />
+                  {lang === 'hi' ? 'सत्यापित B2B उद्योग कैटलॉग' : 'Verified B2B Industry Directory'}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => nav.go('c_rfq_new')}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md transition hover:bg-white hover:text-[#5b21d6]"
+              >
+                <Sparkles size={14} className="text-amber-300" />
+                {lang === 'hi' ? 'कोटेशन मांगें (RFQ)' : 'Post an RFQ'}
+              </button>
             </div>
-            <ChevronRight size={18} className="text-ink-300" />
+
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+                {lang === 'hi' ? 'सभी श्रेणियां और उद्योग' : 'All Categories & Industries'}
+              </h1>
+              <p className="mt-1.5 max-w-2xl text-xs font-medium text-purple-100/90 sm:text-sm">
+                {lang === 'hi'
+                  ? '30+ विशिष्ट वाणिज्यिक क्षेत्रों में सत्यापित आपूर्तिकर्ताओं, निर्माताओं और सेवा प्रदाताओं को खोजें।'
+                  : 'Discover verified suppliers, manufacturers, contractors, and specialized B2B services across 30+ commercial sectors.'}
+              </p>
+            </div>
+
+            {/* Quick Metrics Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-semibold text-purple-100">
+              <span className="rounded-lg bg-white/10 px-2.5 py-1 backdrop-blur-sm">
+                🏷️ <b>30</b> {lang === 'hi' ? 'उद्योग' : 'Industries'}
+              </span>
+              <span className="rounded-lg bg-white/10 px-2.5 py-1 backdrop-blur-sm">
+                📦 <b>150+</b> {lang === 'hi' ? 'उप-श्रेणियां' : 'Subcategories'}
+              </span>
+              <span className="rounded-lg bg-white/10 px-2.5 py-1 backdrop-blur-sm">
+                🛡️ <b>100%</b> {lang === 'hi' ? 'सत्यापित' : 'Verified'}
+              </span>
+              <span className="rounded-lg bg-white/10 px-2.5 py-1 backdrop-blur-sm">
+                ⚡ {lang === 'hi' ? 'सीधे कोटेशन' : 'Direct Quotes'}
+              </span>
+            </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">{c.subs.map((s) => <Pill key={s}>{s}</Pill>)}</div>
-        </Card>
-      ))}
-      <Section title="Coming in Phase 2">
-        <div className="flex flex-wrap gap-1.5">{P2_INDUSTRIES.map((n) => <Pill key={n}>{n} · Phase 2</Pill>)}</div>
-      </Section>
-      <Section title="Roadmap (Phase 3)">
-        <div className="flex flex-wrap gap-1.5">{P3_INDUSTRIES.map((n) => <Pill key={n}>{n}</Pill>)}</div>
-      </Section>
+        </div>
+
+        {/* 2. Interactive Search & Sector Navigation */}
+        <div className="space-y-3">
+          {/* Search Bar with Purple Focus */}
+          <div className="relative">
+            <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-400" />
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={lang === 'hi' ? 'उद्योग, उत्पाद, सेवा या कीवर्ड खोजें...' : 'Search categories, products, services, or subcategories...'}
+              className="h-12 w-full rounded-2xl border border-violet-100 bg-white pl-11 pr-10 text-sm font-medium text-ink-900 shadow-sm outline-none transition placeholder:text-ink-400 focus:border-[#5b21d6] focus:ring-2 focus:ring-[#5b21d6]/20"
+            />
+            {q && (
+              <button
+                onClick={() => setQ('')}
+                className="absolute right-3.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-ink-100 text-ink-500 hover:bg-ink-200"
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Type Filter Tabs (All / Products / Services) */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 rounded-xl border border-violet-100 bg-white p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setTypeFilter('all')}
+                className={cx(
+                  'rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all',
+                  typeFilter === 'all'
+                    ? 'bg-[#5b21d6] text-white shadow-sm'
+                    : 'text-ink-600 hover:bg-violet-50 hover:text-[#5b21d6]'
+                )}
+              >
+                {lang === 'hi' ? 'सभी श्रेणियां' : 'All Categories'} ({all.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTypeFilter('product')}
+                className={cx(
+                  'rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all',
+                  typeFilter === 'product'
+                    ? 'bg-[#5b21d6] text-white shadow-sm'
+                    : 'text-ink-600 hover:bg-violet-50 hover:text-[#5b21d6]'
+                )}
+              >
+                {lang === 'hi' ? 'उत्पाद व सामग्री' : 'Products & Supply'} ({productCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTypeFilter('service')}
+                className={cx(
+                  'rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all',
+                  typeFilter === 'service'
+                    ? 'bg-[#5b21d6] text-white shadow-sm'
+                    : 'text-ink-600 hover:bg-violet-50 hover:text-[#5b21d6]'
+                )}
+              >
+                {lang === 'hi' ? 'व्यावसायिक सेवाएं' : 'Services & Contracting'} ({serviceCount})
+              </button>
+            </div>
+
+            <span className="text-xs font-medium text-ink-500">
+              {filtered.length} {lang === 'hi' ? 'परिणाम मिले' : 'categories found'}
+            </span>
+          </div>
+
+          {/* Industry Sector Quick Chips */}
+          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+            {SECTORS.map((s) => {
+              const active = sectorFilter === s.id
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSectorFilter(s.id)}
+                  className={cx(
+                    'shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all',
+                    active
+                      ? 'border border-[#5b21d6] bg-[#5b21d6] text-white shadow-sm'
+                      : 'border border-violet-100 bg-white text-ink-700 hover:border-violet-300 hover:bg-violet-50'
+                  )}
+                >
+                  {lang === 'hi' ? s.hi : s.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 3. Category Grid (2 columns on tablet/desktop, 1 column on mobile) */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {filtered.map((c) => {
+            const IconComp = c.icon || Package
+            return (
+              <div
+                key={c.id}
+                className="group relative flex flex-col justify-between rounded-2xl border border-violet-100 bg-white p-5 shadow-[0_4px_16px_rgba(91,33,214,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-[0_10px_26px_rgba(91,33,214,0.1)]"
+              >
+                <div>
+                  {/* Top: Icon + Title + Type Pill */}
+                  <div className="flex items-start gap-3.5">
+                    <div
+                      className={cx(
+                        'flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm transition-transform duration-200 group-hover:scale-105',
+                        GRAD[c.tone] || 'from-violet-600 to-indigo-700'
+                      )}
+                    >
+                      <IconComp size={22} strokeWidth={2.2} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => nav.go('c_category', { id: c.id })}
+                          className="truncate text-left text-[15px] font-bold text-ink-900 transition-colors hover:text-[#5b21d6]"
+                        >
+                          {lang === 'hi' ? c.hi || c.name : c.name}
+                        </button>
+                        <span
+                          className={cx(
+                            'shrink-0 rounded-md px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider',
+                            c.type === 'service'
+                              ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60'
+                              : 'bg-violet-50 text-violet-700 ring-1 ring-violet-200/60'
+                          )}
+                        >
+                          {c.type === 'service' ? (lang === 'hi' ? 'सेवा' : 'Service') : (lang === 'hi' ? 'उत्पाद' : 'Product')}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-ink-500">
+                        {c.subs.length} {lang === 'hi' ? 'उप-श्रेणियां' : 'subcategories'} · {lang === 'hi' ? 'सत्यापित आपूर्तिकर्ता' : 'Verified vendors & quotes'}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => nav.go('c_category', { id: c.id })}
+                      className="grid size-8 shrink-0 place-items-center rounded-lg bg-violet-50 text-violet-700 transition group-hover:bg-[#5b21d6] group-hover:text-white"
+                      aria-label={`View ${c.name}`}
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+
+                  {/* Subcategories Pills */}
+                  <div className="mt-3.5 flex flex-wrap gap-1.5">
+                    {c.subs.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => nav.go('c_explore', { cat: c.id, q: s })}
+                        className="rounded-lg border border-[#e3dbfa] bg-[#f6f2ff] px-2.5 py-1 text-xs font-semibold text-[#5b21d6] transition hover:border-[#5b21d6] hover:bg-[#5b21d6] hover:text-white"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card Bottom Actions */}
+                <div className="mt-4 flex items-center justify-between border-t border-violet-100/70 pt-3 text-xs">
+                  <button
+                    onClick={() => nav.go('c_category', { id: c.id })}
+                    className="font-bold text-[#5b21d6] hover:underline"
+                  >
+                    {lang === 'hi' ? 'सभी लिस्टिंग देखें →' : 'Browse listings & vendors →'}
+                  </button>
+                  <button
+                    onClick={() => nav.go('c_rfq_new', { cat: c.id, title: `Requirement for ${c.name}` })}
+                    className="rounded-lg bg-violet-50 px-2.5 py-1 font-semibold text-[#5b21d6] transition hover:bg-violet-100"
+                  >
+                    {lang === 'hi' ? 'कोटेशन मांगें' : 'Request quote'}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Empty State */}
+        {filtered.length === 0 && (
+          <EmptyState
+            icon={Package}
+            title={lang === 'hi' ? 'कोई श्रेणी नहीं मिली' : 'No categories found'}
+            body={
+              lang === 'hi'
+                ? `"${q}" के लिए कोई परिणाम नहीं मिला। कृपया दूसरा कीवर्ड खोजें या फ़िल्टर साफ़ करें।`
+                : `No categories match "${q}". Try another keyword or clear your filters.`
+            }
+            action={
+              <Button
+                size="sm"
+                onClick={() => {
+                  setQ('')
+                  setTypeFilter('all')
+                  setSectorFilter('all')
+                }}
+              >
+                {lang === 'hi' ? 'फ़िल्टर साफ़ करें' : 'Clear filters'}
+              </Button>
+            }
+          />
+        )}
+      </div>
     </Screen>
   )
 }
@@ -158,24 +461,57 @@ export function Category({ params }) {
   const [sub, setSub] = useState('All')
   const items = listings.filter((l) => l.cat === c.id && l.status === 'approved' && (sub === 'All' || l.sub === sub))
   const vs = visibleVendors(vendors).filter((v) => v.cat === c.id)
+
   return (
-    <Screen title={c.name} subtitle={c.type === 'service' ? 'Services' : 'Products'} right={<IconBtn label="Search" onClick={() => nav.go('c_explore', { cat: c.id })}><Search size={20} /></IconBtn>}>
-      <div className={cx('relative overflow-hidden rounded-3xl bg-gradient-to-br p-5 text-white', GRAD[c.tone])}>
+    <Screen
+      title={c.name}
+      subtitle={c.type === 'service' ? 'Services' : 'Products'}
+      right={
+        <IconBtn label="Search" onClick={() => nav.go('c_explore', { cat: c.id })}>
+          <Search size={20} />
+        </IconBtn>
+      }
+    >
+      <div className={cx('relative overflow-hidden rounded-3xl bg-gradient-to-br p-5 text-white', GRAD[c.tone] || GRAD.teal)}>
         <div className="absolute -right-6 -top-6 size-28 rounded-full bg-white/20" />
         <c.icon size={30} />
         <p className="mt-2 text-lg font-extrabold">{c.name}</p>
-        <p className="text-[13px] text-white/85">{items.length} listings · {vs.length} vendors</p>
+        <p className="text-[13px] text-white/85">
+          {items.length > 0 || vs.length > 0
+            ? `${items.length} listings · ${vs.length} vendors`
+            : `${c.subs.length} subcategories · Quotations & verified suppliers`}
+        </p>
       </div>
+
       <Chips value={sub} onChange={setSub} options={['All', ...c.subs]} />
+
       {vs.length > 0 && (
         <Section title="Vendors">
-          <div className="space-y-2.5">{vs.map((v) => <VendorRow key={v.id} v={v} />)}</div>
+          <div className="space-y-2.5">
+            {vs.map((v) => (
+              <VendorRow key={v.id} v={v} />
+            ))}
+          </div>
         </Section>
       )}
+
       <Section title={c.type === 'service' ? 'Services' : 'Products'}>
         <div className="space-y-2.5">
-          {items.map((l) => <ListingCard key={l.id} l={l} />)}
-          {items.length === 0 && <EmptyState icon={Package} title="Nothing here yet" body="No listings in this subcategory. Try another one or post an RFQ." action={<Button size="sm" onClick={() => nav.go('c_rfq_new')}>Request quotation</Button>} />}
+          {items.map((l) => (
+            <ListingCard key={l.id} l={l} />
+          ))}
+          {items.length === 0 && (
+            <EmptyState
+              icon={Package}
+              title="Request quotation for this category"
+              body="No instant catalog listings in this subcategory yet. Post your requirement to receive direct quotes from verified vendors."
+              action={
+                <Button size="sm" onClick={() => nav.go('c_rfq_new', { cat: c.id, title: `Requirement for ${c.name}` })}>
+                  Request quotation (RFQ)
+                </Button>
+              }
+            />
+          )}
         </div>
       </Section>
     </Screen>

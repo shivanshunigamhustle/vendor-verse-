@@ -1,13 +1,18 @@
 import {
   Zap, Hammer, Monitor, Wrench, UtensilsCrossed, Users, Truck, Car, HeartPulse, Sprout,
+  Cpu, Shirt, FlaskConical, GraduationCap, Landmark, Megaphone, Printer, Pickaxe, Hotel,
+  Building2, Sparkles, Dumbbell, ShieldCheck, Radio, Plane, Ship, Recycle, Gem, Package,
 } from 'lucide-react'
 
 export const ME = { customer: 'Aarav Mehta', vendor: 'Rakesh Sharma', business: 'Atlas Industrial Supply Co.', agent: 'Neha Verma', admin: 'Priya Nair' }
 
 /* ---------- categories (Super Admin managed – FR-04) ---------- */
-const P1 = (id, name, hi, icon, tone, type, subs, fields, live = true, rfq = []) => ({ id, name, hi, icon, tone, type, subs, fields, live, rfq })
+const P1 = (id, name, hi, icon, tone, type, subs, fields, live = true, rfq = []) => ({ id, name, hi, icon, tone, type, subs, fields, live, phase: 'P1', rfq })
+const P2 = (id, name, hi, icon, tone, type, subs, fields, rfq = []) => ({ id, name, hi, icon, tone, type, subs, fields, live: false, phase: 'P2', rfq })
+const P3 = (id, name, hi, icon, tone, type, subs, fields, rfq = []) => ({ id, name, hi, icon, tone, type, subs, fields, live: false, phase: 'P3', rfq })
+
 /* Ten Phase 1 industries (F-TAX-05). Live at go-live: Home, Construction, Events, Professional, Wholesale. */
-export const CATS = [
+export const CATS_P1 = [
   P1('home', 'Home & household services', 'घरेलू सेवाएं', Wrench, 'sky', 'service', ['Electrician', 'Plumbing', 'Deep Cleaning', 'Sofa & Carpet', 'Pest Control', 'Carpentry', 'Painting'], ['Experience (yrs)', 'Tools provided', 'Service radius (km)'], true, ['Scope of work', 'Property type', 'Preferred date']),
   P1('build', 'Construction & infrastructure', 'निर्माण और बुनियादी ढांचा', Hammer, 'orange', 'product', ['Cement', 'Steel & TMT', 'Bricks & Blocks', 'Plywood', 'Civil contractors'], ['Grade', 'Unit of measure', 'Delivery radius (km)'], true, ['Scope & drawings', 'Site address', 'Start date']),
   P1('event', 'Events & entertainment', 'इवेंट और मनोरंजन', UtensilsCrossed, 'rose', 'service', ['Wedding', 'Corporate', 'Decoration', 'Catering', 'Photography'], ['Min guests', 'Cuisine', 'Setup included'], true, ['Event type', 'Guest count', 'Date & venue']),
@@ -19,10 +24,103 @@ export const CATS = [
   P1('clean', 'Healthcare, education & wellness', 'स्वास्थ्य, शिक्षा और वेलनेस', HeartPulse, 'emerald', 'service', ['Physiotherapy', 'Tutors', 'Yoga & fitness', 'Home nursing'], ['Qualification', 'Mode', 'Session length'], true, ['Need', 'Schedule']),
   P1('agri', 'Agriculture, energy & environment', 'कृषि, ऊर्जा और पर्यावरण', Sprout, 'lime', 'service', ['Solar installation', 'Agri equipment', 'Waste & recycling', 'Water treatment'], ['Capacity', 'Certification', 'Coverage'], true, ['Site details', 'Capacity needed', 'Timeline']),
 ]
+
+export const CATS = CATS_P1
+
+/* Phase 2 industries (9) - F-TAX-06 */
+export const CATS_P2 = [
+  P2('manu', 'Manufacturing & OEM', 'मैन्युफैक्चरिंग और ओईएम', Cpu, 'teal', 'product',
+    ['Electronics & PCB', 'CNC & machining', 'Plastics & moulding', 'Metal fabrication', 'Auto components'],
+    ['Production capacity', 'Certifications (ISO/IATF)', 'MOQ'],
+    ['Scope of production', 'Drawings / CAD', 'Target batch size']),
+  P2('textile', 'Textiles, apparel & fashion', 'कपड़ा, परिधान और फैशन', Shirt, 'rose', 'product',
+    ['Garment manufacturing', 'Fabrics & yarn', 'Embroidery', 'Uniforms', 'Apparel sourcing'],
+    ['Fabric GSM', 'Minimum order quantity', 'Lead time'],
+    ['Garment style', 'Quantity & sizes', 'Fabric requirements']),
+  P2('chem', 'Chemicals, plastics & materials', 'रसायन, प्लास्टिक और सामग्री', FlaskConical, 'violet', 'product',
+    ['Industrial chemicals', 'Polymers', 'Adhesives', 'Paints & coatings', 'Resins & composites'],
+    ['Purity grade', 'Packaging type', 'MSDS available'],
+    ['Chemical name / grade', 'Required volume', 'Delivery location']),
+  P2('food', 'Food, beverage & agri-processing', 'खाद्य, पेय और कृषि-प्रसंस्करण', UtensilsCrossed, 'amber', 'product',
+    ['Packaged food', 'Spices & seasonings', 'Beverages', 'Cold storage & processing', 'Dairy products'],
+    ['FSSAI licence', 'Shelf life', 'Packaging type'],
+    ['Product category', 'Quantity', 'Delivery schedule']),
+  P2('edu', 'Education & training providers', 'शिक्षा और प्रशिक्षण प्रदाता', GraduationCap, 'indigo', 'service',
+    ['Corporate training', 'Test prep', 'Vocational skills', 'E-learning services', 'Language coaching'],
+    ['Trainer experience', 'Mode (Online/Offline)', 'Batch size'],
+    ['Training topic', 'Audience size', 'Duration']),
+  P2('fin', 'Finance, insurance & real estate', 'वित्त, बीमा और रियल एस्टेट', Landmark, 'slate', 'service',
+    ['Accounting & audit', 'Insurance brokers', 'Commercial property', 'Valuation & appraisal', 'Tax filing'],
+    ['Licence / registration', 'Experience (yrs)', 'Coverage areas'],
+    ['Service required', 'Business turnover', 'Timeline']),
+  P2('media', 'Marketing, media & printing', 'मार्केटिंग, मीडिया और प्रिंटिंग', Megaphone, 'rose', 'service',
+    ['Branding & design', 'Video production', 'Commercial printing', 'Signage & displays', 'Digital campaigns'],
+    ['Deliverables', 'Turnaround time', 'Portfolio available'],
+    ['Campaign goal', 'Budget range', 'Deadlines']),
+  P2('energy', 'Power, utilities & electrical', 'ऊर्जा, उपयोगिताएं और विद्युत', Zap, 'amber', 'product',
+    ['Transformers & switchgear', 'Generators & backup', 'EV charging infrastructure', 'Industrial electricals'],
+    ['Capacity / kVA', 'BIS / IEC compliance', 'Warranty (months)'],
+    ['Power rating', 'Installation required', 'Site location']),
+  P2('pack', 'Packaging & printing', 'पैकेजिंग और प्रिंटिंग', Printer, 'violet', 'product',
+    ['Corrugated boxes', 'Labels & barcodes', 'Custom packaging', 'Rigid boxes', 'Biodegradable packaging'],
+    ['Ply & burst strength', 'Printing (CMYK/Pantone)', 'MOQ'],
+    ['Box dimensions', 'Quantity needed', 'Print artwork status']),
+]
+
+/* Phase 3 industries (11) - F-TAX-07 */
+export const CATS_P3 = [
+  P3('mining', 'Mining, metals & minerals', 'खनन, धातु और खनिज', Pickaxe, 'orange', 'product',
+    ['Steel & alloys', 'Aggregates & gravel', 'Industrial minerals', 'Sheet metal'],
+    ['Material grade', 'Tonnage available', 'Transport terms'],
+    ['Metal / mineral grade', 'Quantity (MT)', 'Delivery terms']),
+  P3('hosp', 'Hospitality, travel & tourism', 'आतिथ्य, यात्रा और पर्यटन', Hotel, 'sky', 'service',
+    ['Hotels & corporate stays', 'Tour operators', 'Travel desks & fleets', 'Event venues'],
+    ['Star rating / class', 'Room capacity', 'Locations'],
+    ['Dates', 'Number of guests', 'Destination']),
+  P3('real', 'Real estate & property services', 'रियल एस्टेट और संपत्ति सेवाएं', Building2, 'teal', 'service',
+    ['Facility management', 'Interior design', 'Property inspection', 'Commercial leasing'],
+    ['Property type', 'Square footage coverage', 'RERA registered'],
+    ['Property details', 'Work scope', 'Budget']),
+  P3('beauty', 'Beauty, salon & personal care', 'सौंदर्य, सैलून और व्यक्तिगत देखभाल', Sparkles, 'rose', 'service',
+    ['Salon at home', 'Spa & wellness', 'Makeup artists', 'Bridal styling'],
+    ['Experience (yrs)', 'Brands used', 'On-site availability'],
+    ['Services requested', 'Date & time', 'Location']),
+  P3('sport', 'Sports, fitness & recreation', 'खेल, फिटनेस और मनोरंजन', Dumbbell, 'emerald', 'service',
+    ['Fitness coaches', 'Sports equipment', 'Turf & courts', 'Gym maintenance'],
+    ['Certification', 'Equipment warranty', 'Venue facilities'],
+    ['Requirement details', 'Schedule', 'Location']),
+  P3('security', 'Security & safety services', 'सुरक्षा और संरक्षा सेवाएं', ShieldCheck, 'indigo', 'service',
+    ['Guards & bouncers', 'CCTV & surveillance', 'Fire safety systems', 'Access control'],
+    ['PSARA licence', 'Guards armed/unarmed', 'Response time'],
+    ['Number of posts', 'Location / premises', 'Shift timings']),
+  P3('telecom', 'Telecom & networking', 'दूरसंचार और नेटवर्किंग', Radio, 'violet', 'service',
+    ['Network cabling & fiber', 'Telecom towers', 'ISP & leased lines', 'PBX & VoIP'],
+    ['Bandwidth / speed', 'SLA uptime', 'Equipment included'],
+    ['Bandwidth needed', 'Location count', 'Setup timeline']),
+  P3('aero', 'Aerospace & defence suppliers', 'एयरोस्पेस और रक्षा आपूर्तिकर्ता', Plane, 'slate', 'product',
+    ['Precision aero components', 'MRO services', 'Avionics', 'Defense hardware'],
+    ['AS9100 / Def certs', 'Traceability', 'Testing facilities'],
+    ['Spec drawing / standard', 'Batch quantity', 'Certs needed']),
+  P3('marine', 'Marine & shipbuilding', 'समुद्री और जहाज निर्माण', Ship, 'sky', 'service',
+    ['Ship repair & drydock', 'Marine equipment', 'Port logistics', 'Vessel survey'],
+    ['Class society approvals', 'Dock capacity', 'Locations'],
+    ['Vessel type', 'Work required', 'Port of call']),
+  P3('recycle', 'Recycling & circular economy', 'पुनर्चक्रण और चक्रीय अर्थव्यवस्था', Recycle, 'lime', 'service',
+    ['E-waste management', 'Scrap metals', 'Plastic recycling', 'Industrial waste disposal'],
+    ['PCB authorization', 'Collection fleet', 'Disposal certificate'],
+    ['Waste type & volume', 'Pickup frequency', 'Location']),
+  P3('luxury', 'Jewellery, gifts & luxury', 'गहने, उपहार और विलासिता', Gem, 'amber', 'product',
+    ['Jewellery makers & wholesale', 'Corporate gifting', 'Diamond & gems', 'Luxury packaging'],
+    ['Hallmark / BIS certified', 'Custom design', 'Gift packaging'],
+    ['Item category', 'Budget per unit', 'Quantity & timeline']),
+]
+
+export const ALL_CATS = [...CATS_P1, ...CATS_P2, ...CATS_P3]
+
 /* Later industries stay visible with a phase marker (F-TAX-06, F-TAX-07). */
-export const P2_INDUSTRIES = ['Manufacturing & OEM', 'Textiles, apparel & fashion', 'Chemicals, plastics & materials', 'Food, beverage & agri-processing', 'Education & training providers', 'Finance, insurance & real estate', 'Marketing, media & printing', 'Power, utilities & electrical', 'Packaging & printing']
-export const P3_INDUSTRIES = ['Mining, metals & minerals', 'Hospitality, travel & tourism', 'Real estate & property services', 'Beauty, salon & personal care', 'Sports, fitness & recreation', 'Security & safety services', 'Telecom & networking', 'Aerospace & defence suppliers', 'Marine & shipbuilding', 'Recycling & circular economy', 'Jewellery, gifts & luxury']
-export const cat = (id) => CATS.find((c) => c.id === id) || CATS[0]
+export const P2_INDUSTRIES = CATS_P2.map((c) => c.name)
+export const P3_INDUSTRIES = CATS_P3.map((c) => c.name)
+export const cat = (id) => ALL_CATS.find((c) => c.id === id) || CATS[0]
 
 /* ---------- vendors ---------- */
 const docs = (st = 'verified') => [

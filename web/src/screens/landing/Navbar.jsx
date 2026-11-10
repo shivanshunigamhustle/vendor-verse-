@@ -95,6 +95,9 @@ export function Navbar({ activeTab = 'home', onSelectTab }) {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         nav.go(routeId)
+        const sc = document.querySelector('.vv-customer-route')
+        if (sc) sc.scrollTop = 0
+        window.scrollTo({ top: 0, behavior: 'instant' })
       }
     }
   }

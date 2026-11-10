@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VendorVerse - All B2B Categories & Industries</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#5b21d6;--p2:#7c3aed;--p-dark:#4c1d95;
+  --navy:#1b1b4b;--mut:#46466a;--mut2:#64748b;
+  --lav:#f6f2ff;--lav2:#ede9fe;--lav3:#ddd6fe;
+  --bg:#faf9ff;--card:#ffffff;
+  --bd:#e3dbfa;--bd2:#d8ccf9;
+  --green:#0b6b3a;--green-bg:#dcf7e8;
+  --amber:#8a5200;--amber-bg:#fff3d6;
+  --sh:0 4px 18px rgba(91,33,214,.08);
+  --sh2:0 12px 30px rgba(91,33,214,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  color:var(--navy);
+  background:linear-gradient(180deg,#f2edff 0,#faf9ff 340px) no-repeat,var(--bg);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Ticker */
+.ticker{display:flex;align-items:center;gap:12px;padding:0 12px 0 0;height:38px;background:linear-gradient(90deg,#1b1b4b,#5b21d6);color:#fff;font-size:13px;font-weight:500;overflow:hidden;position:relative;z-index:60}
+.tlabel{display:flex;align-items:center;gap:8px;flex:none;height:100%;padding:0 24px 0 16px;background:#fff;color:var(--p);font-weight:800;font-size:12px;letter-spacing:.06em;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.tdot{width:8px;height:8px;border-radius:50%;background:#e5322d;animation:tb 1.2s ease-in-out infinite}
+@keyframes tb{50%{opacity:.25}}
+.tview{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent)}
+.ttrack{display:flex;width:max-content;animation:tk 48s linear infinite}
+.tg{display:flex;align-items:center;flex:none}
+.ti{padding:0 18px;white-space:nowrap}.ti:hover{text-decoration:underline}
+.tsep{font-size:8px;opacity:.7}
+@keyframes tk{to{transform:translateX(-50%)}}
+.tview:hover .ttrack,.ticker.paused .ttrack{animation-play-state:paused}
+.tpause{flex:none;width:28px;height:28px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tpause:hover{background:rgba(255,255,255,.3)}
+.tpause .pl{display:none}.ticker.paused .pl{display:block}.ticker.paused .pi{display:none}
+
+/* Navbar */
+.vvhead{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid #eeeaf8;transition:box-shadow .25s}
+.vvhead.scrolled{box-shadow:0 8px 28px rgba(40,20,100,.12)}
+.vvin{max-width:1360px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 32px}
+.brand{display:flex;align-items:center;gap:11px;flex:none}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#5b21d6 60%,#3b0fa3);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;box-shadow:0 6px 16px rgba(91,33,214,.35)}
+.bt{display:flex;flex-direction:column;line-height:1.15}.bt b{font-size:18px;letter-spacing:-.01em}.bt small{font-size:11px;color:var(--mut2)}
+.vvnav{display:flex;align-items:center;gap:4px;margin-left:14px;padding:4px;border-radius:14px;background:var(--lav);border:1px solid var(--bd)}
+.vvl{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:10px;font-size:13px;font-weight:600;color:var(--mut);transition:all .18s;cursor:pointer}
+.vvl:hover{color:var(--p);background:rgba(255,255,255,.6)}
+.vvl.on{background:#fff;color:var(--p);font-weight:700;box-shadow:0 2px 8px rgba(91,33,214,.12)}
+.nav-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.nbtn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 12px;border:1px solid var(--bd);border-radius:10px;background:#fff;color:var(--navy);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s}
+.nbtn:hover{border-color:var(--p2);color:var(--p)}
+.nbtn.loc{display:inline-flex;align-items:center;gap:8px;padding:0 12px;background:#fff}
+.nbtn.ico{width:38px;padding:0;justify-content:center;position:relative}
+.nbadge{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#e5322d;box-shadow:0 0 0 2px #fff}
+.signbtn{height:38px;padding:0 18px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--p),#7c3aed);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(91,33,214,.28);transition:opacity .18s}
+.signbtn:hover{opacity:.92}
+
+/* Page Layout */
+.wrap{max-width:1360px;margin:0 auto;padding:24px 32px 80px}
+
+/* Hero Section */
+.hero-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:24px;
+  background:linear-gradient(135deg,#1b1b4b 0%,#3b1285 55%,#5b21d6 100%);
+  color:#fff;
+  padding:36px 40px;
+  box-shadow:var(--sh2);
+  margin-bottom:28px;
+}
+.hero-glow-1{position:absolute;top:-60px;right:-40px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,0.08);filter:blur(40px);pointer-events:none}
+.hero-glow-2{position:absolute;bottom:-70px;left:35%;width:340px;height:340px;border-radius:50%;background:rgba(124,58,237,0.3);filter:blur(50px);pointer-events:none}
+.hero-top-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.24);font-size:12px;font-weight:700;letter-spacing:0.02em;backdrop-filter:blur(6px);margin-bottom:16px}
+.hero-top-pill .pulse-dot{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399}
+.hero-title{font-size:32px;font-weight:800;letter-spacing:-0.02em;line-height:1.2;margin-bottom:8px}
+.hero-desc{font-size:15px;line-height:1.55;color:rgba(243,238,255,0.92);max-width:720px;margin-bottom:20px}
+.hero-meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.hero-meta-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,0.12);font-size:12px;font-weight:600;backdrop-filter:blur(4px)}
+.hero-cta{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:#ffffff;color:var(--p);font-size:13px;font-weight:800;border:0;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.15);transition:all .18s}
+.hero-cta:hover{transform:translateY(-1px);background:#f6f2ff}
+
+/* Search & Filter Toolbar */
+.toolbar{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.search-box{position:relative;width:100%}
+.search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--p);pointer-events:none}
+.search-input{width:100%;height:52px;padding:0 50px 0 50px;border-radius:16px;border:1.5px solid var(--bd);background:#fff;font-size:15px;font-weight:500;color:var(--navy);box-shadow:0 2px 10px rgba(91,33,214,.04);transition:all .2s;outline:none}
+.search-input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(91,33,214,.15)}
+.search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;border:0;background:var(--lav);color:var(--mut);display:none;align-items:center;justify-content:center;cursor:pointer}
+.search-clear.active{display:flex}
+
+/* Filter Tabs */
+.filter-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.type-tabs{display:inline-flex;align-items:center;gap:4px;padding:4px;border-radius:14px;background:#fff;border:1px solid var(--bd);box-shadow:0 2px 8px rgba(91,33,214,.04)}
+.type-tab{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;color:var(--mut);border:0;background:transparent;cursor:pointer;transition:all .18s}
+.type-tab:hover{color:var(--p);background:var(--lav)}
+.type-tab.active{background:var(--p);color:#fff;box-shadow:0 2px 8px rgba(91,33,214,.25)}
+.res-count{font-size:13px;font-weight:600;color:var(--mut2)}
+
+/* Sector Chips */
+.sector-scroll{display:flex;align-items:center;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.sector-scroll::-webkit-scrollbar{display:none}
+.sec-chip{flex:none;padding:8px 16px;border-radius:12px;font-size:13px;font-weight:600;border:1px solid var(--bd);background:#fff;color:var(--navy);cursor:pointer;transition:all .18s}
+.sec-chip:hover{border-color:var(--p);color:var(--p);background:var(--lav)}
+.sec-chip.active{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+
+/* Categories Grid */
+.cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:20px}
+.cat-card{
+  background:#fff;
+  border-radius:20px;
+  border:1px solid var(--bd);
+  padding:22px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:var(--sh);
+  transition:all .22s cubic-bezier(.2,.8,.2,1);
+  position:relative;
+}
+.cat-card:hover{
+  transform:translateY(-3px);
+  border-color:var(--p2);
+  box-shadow:var(--sh2);
+}
+.cat-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.cat-icon-tile{
+  width:48px;
+  height:48px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:20px;
+  flex:none;
+  box-shadow:0 4px 12px rgba(91,33,214,.2);
+}
+.cat-meta{flex:1;min-width:0}
+.cat-title-wrap{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.cat-title{font-size:16px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;cursor:pointer}
+.cat-title:hover{color:var(--p)}
+.type-tag{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em}
+.type-tag.prod{background:#ede9fe;color:var(--p)}
+.type-tag.serv{background:#dcfce7;color:#15803d}
+.cat-subline{font-size:12px;color:var(--mut2);font-weight:500}
+.cat-arrow{width:32px;height:32px;border-radius:10px;background:var(--lav);color:var(--p);display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:all .18s}
+.cat-card:hover .cat-arrow{background:var(--p);color:#fff}
+
+/* Subcategory Chips */
+.sub-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.sub-chip{
+  padding:5px 11px;
+  border-radius:8px;
+  background:var(--lav);
+  border:1px solid var(--bd);
+  font-size:12px;
+  font-weight:600;
+  color:var(--p);
+  cursor:pointer;
+  transition:all .15s;
+}
+.sub-chip:hover{
+  background:var(--p);
+  border-color:var(--p);
+  color:#fff;
+}
+
+/* Card Footer */
+.cat-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid #f1ecfc;font-size:12px}
+.cat-browse-link{font-weight:700;color:var(--p);display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.cat-browse-link:hover{text-decoration:underline}
+.cat-rfq-btn{padding:6px 12px;border-radius:8px;background:var(--lav);color:var(--p);border:1px solid var(--bd);font-weight:700;cursor:pointer;transition:all .15s}
+.cat-rfq-btn:hover{background:var(--lav2);border-color:var(--p2)}
+
+/* Empty State */
+.empty-box{display:none;text-align:center;padding:60px 20px;background:#fff;border-radius:20px;border:1px dashed var(--bd);margin-top:20px}
+.empty-box.show{display:block}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:6px}
+.empty-desc{font-size:14px;color:var(--mut2);margin-bottom:16px}
+.empty-btn{padding:10px 20px;border-radius:10px;background:var(--p);color:#fff;border:0;font-weight:700;cursor:pointer}
+
+/* Modal RFQ Drawer */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,10,45,.5);backdrop-filter:blur(4px);z-index:90;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal-card{width:100%;max-width:520px;background:#fff;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.25);overflow:hidden;animation:mIn .2s ease-out}
+@keyframes mIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #f0eafc;background:linear-gradient(135deg,#faf9ff,#f3eeff)}
+.modal-head h3{font-size:17px;font-weight:800;color:var(--navy)}
+.modal-close{width:32px;height:32px;border-radius:50%;border:0;background:#fff;color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.modal-body{padding:24px;display:flex;flex-direction:column;gap:14px}
+.fgroup{display:flex;flex-direction:column;gap:6px}
+.fgroup label{font-size:12px;font-weight:700;color:var(--mut)}
+.fgroup input,.fgroup select,.fgroup textarea{width:100%;border-radius:10px;border:1px solid var(--bd);padding:10px 12px;font-size:13px;color:var(--navy);outline:none}
+.fgroup input:focus,.fgroup select:focus,.fgroup textarea:focus{border-color:var(--p);box-shadow:0 0 0 2px rgba(91,33,214,.12)}
+.modal-foot{padding:16px 24px;border-top:1px solid #f0eafc;display:flex;justify-content:flex-end;gap:10px}
+.mbtn-cancel{padding:10px 18px;border-radius:10px;border:1px solid var(--bd);background:#fff;font-size:13px;font-weight:700;color:var(--mut);cursor:pointer}
+.mbtn-submit{padding:10px 22px;border-radius:10px;border:0;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;font-size:13px;font-weight:700;cursor:pointer}
+
+/* Responsive */
+@media (max-width:960px){
+  .vvin{padding:12px 16px}
+  .wrap{padding:20px 16px 60px}
+  .hero-card{padding:28px 24px}
+  .hero-title{font-size:24px}
+  .cats-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- 1. Announcement Ticker -->
+<aside class="ticker" id="ticker" aria-label="Announcements">
+  <div class="tlabel"><span class="tdot"></span><span data-en="NEW" data-hi="नया">NEW</span></div>
+  <div class="tview">
+    <div class="ttrack" id="ttrack">
+      <div class="tg">
+        <span class="ti" data-en="Verified B2B suppliers live in Jaipur, Ajmer, Sikar &amp; Delhi NCR" data-hi="जयपुर, अजमेर, सीकर और दिल्ली NCR में सत्यापित आपूर्तिकर्ता लाइव हैं">Verified B2B suppliers live in Jaipur, Ajmer, Sikar &amp; Delhi NCR</span>
+        <span class="tsep">&#9670;</span>
+        <span class="ti" data-en="Post RFQs and receive direct, transparent quotations within hours" data-hi="RFQ पोस्ट करें और कुछ ही घंटों में पारदर्शी कोटेशन प्राप्त करें">Post RFQs and receive direct, transparent quotations within hours</span>
+        <span class="tsep">&#9670;</span>
+        <span class="ti" data-en="Explore 30+ commercial industries with 150+ specialized categories" data-hi="150+ विशिष्ट श्रेणियों के साथ 30+ वाणिज्यिक उद्योगों का अन्वेषण करें">Explore 30+ commercial industries with 150+ specialized categories</span>
+        <span class="tsep">&#9670;</span>
+        <span class="ti" data-en="Direct mode commercial settlement between verified buyers and suppliers" data-hi="सत्यापित खरीदारों और आपूर्तिकर्ताओं के बीच सीधा वाणिज्यिक भुगतान">Direct mode commercial settlement between verified buyers and suppliers</span>
+      </div>
+      <div class="tg" aria-hidden="true">
+        <span class="ti">Verified B2B suppliers live in Jaipur, Ajmer, Sikar &amp; Delhi NCR</span>
+        <span class="tsep">&#9670;</span>
+        <span class="ti">Post RFQs and receive direct, transparent quotations within hours</span>
+        <span class="tsep">&#9670;</span>
+        <span class="ti">Explore 30+ commercial industries with 150+ specialized categories</span>
+        <span class="tsep">&#9670;</span>
+        <span class="ti">Direct mode commercial settlement between verified buyers and suppliers</span>
+      </div>
+    </div>
+  </div>
+  <button class="tpause" id="tpause" aria-label="Pause ticker">
+    <svg class="pi" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
+    <svg class="pl" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
+  </button>
+</aside>
+
+<!-- 2. Sticky Translucent Navbar -->
+<header class="vvhead" id="vvhead">
+  <div class="vvin">
+    <a class="brand" href="/index.html">
+      <span class="logo">V</span>
+      <span class="bt">
+        <b>VendorVerse</b>
+        <small data-en="Global B2B Marketplace" data-hi="ग्लोबल B2B मार्केटप्लेस">Global B2B Marketplace</small>
+      </span>
+    </a>
+    <nav class="vvnav" aria-label="Main navigation">
+      <a class="vvl" href="/index.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>
+        <span data-en="Home" data-hi="होम">Home</span>
+      </a>
+      <a class="vvl" href="/explore.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>
+        <span data-en="Explore" data-hi="एक्सप्लोर">Explore</span>
+      </a>
+      <a class="vvl on" href="/categories.html" aria-current="page">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span data-en="Categories" data-hi="श्रेणियां">Categories</span>
+      </a>
+      <a class="vvl" href="/activity.html">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>
+        <span data-en="Activity" data-hi="गतिविधि">Activity</span>
+      </a>
+      <a class="vvl" href="/#/messages">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span data-en="Messages" data-hi="संदेश">Messages</span>
+      </a>
+      <a class="vvl" href="/#/c_profile">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span data-en="Profile" data-hi="प्रोफ़ाइल">Profile</span>
+      </a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="nbtn loc" id="locBtn" title="Current location">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Jaipur, RJ</span>
+      </button>
+      <button class="nbtn" id="langToggle">
+        <span id="langText">EN</span>
+      </button>
+      <button class="nbtn ico" aria-label="Notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="nbadge"></span>
+      </button>
+      <button class="signbtn" onclick="openRfqModal('General B2B Requirement')">
+        <span data-en="Post RFQ" data-hi="RFQ पोस्ट करें">Post RFQ</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Categories Catalog -->
+<main class="wrap">
+  <!-- 3. Royal Purple Hero Card -->
+  <section class="hero-card">
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+    <div class="hero-top-pill">
+      <span class="pulse-dot"></span>
+      <span data-en="Verified B2B Industry Taxonomy" data-hi="सत्यापित B2B उद्योग कैटलॉग">Verified B2B Industry Taxonomy</span>
+    </div>
+    <h1 class="hero-title" data-en="All Categories &amp; Industries" data-hi="सभी श्रेणियां और उद्योग">All Categories &amp; Industries</h1>
+    <p class="hero-desc" data-en="Discover verified suppliers, manufacturers, contractors, and specialized B2B services across 30+ commercial sectors in India." data-hi="भारत में 30+ विशिष्ट वाणिज्यिक क्षेत्रों में सत्यापित आपूर्तिकर्ताओं, निर्माताओं, ठेकेदारों और B2B सेवाओं को खोजें।">
+      Discover verified suppliers, manufacturers, contractors, and specialized B2B services across 30+ commercial sectors in India.
+    </p>
+
+    <div class="hero-meta-row">
+      <span class="hero-meta-badge">🏷️ <b data-en="30 Industries" data-hi="30 उद्योग">30 Industries</b></span>
+      <span class="hero-meta-badge">📦 <b data-en="150+ Subcategories" data-hi="150+ उप-श्रेणियां">150+ Subcategories</b></span>
+      <span class="hero-meta-badge">🛡️ <b data-en="100% Verified Vendors" data-hi="100% सत्यापित वेंडर">100% Verified Vendors</b></span>
+      <span class="hero-meta-badge">⚡ <b data-en="Direct Quotations &amp; RFQs" data-hi="सीधे कोटेशन व RFQ">Direct Quotations &amp; RFQs</b></span>
+      <button class="hero-cta" onclick="openRfqModal('Broad Requirement')">
+        <span data-en="Post Custom Requirement" data-hi="कस्टम आवश्यकता पोस्ट करें">Post Custom Requirement</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- 4. Search & Filter Bar -->
+  <section class="toolbar">
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" class="search-input" id="catSearch" placeholder="Search categories, products, services, or subcategories..." autocomplete="off">
+      <button class="search-clear" id="catClear" aria-label="Clear search">&times;</button>
+    </div>
+
+    <div class="filter-row">
+      <div class="type-tabs" id="typeTabs">
+        <button class="type-tab active" data-type="all"><span data-en="All Categories" data-hi="सभी श्रेणियां">All Categories</span> (30)</button>
+        <button class="type-tab" data-type="product"><span data-en="Products &amp; Materials" data-hi="उत्पाद व सामग्री">Products &amp; Materials</span> (14)</button>
+        <button class="type-tab" data-type="service"><span data-en="Services &amp; Contracting" data-hi="व्यावसायिक सेवाएं">Services &amp; Contracting</span> (16)</button>
+      </div>
+
+      <span class="res-count" id="resCount">Showing 30 categories</span>
+    </div>
+
+    <div class="sector-scroll" id="sectorChips">
+      <button class="sec-chip active" data-sec="all" data-en="All Sectors" data-hi="सभी क्षेत्र">All Sectors</button>
+      <button class="sec-chip" data-sec="const" data-en="Construction &amp; Real Estate" data-hi="निर्माण और रियल एस्टेट">Construction &amp; Real Estate</button>
+      <button class="sec-chip" data-sec="mfg" data-en="Manufacturing &amp; Materials" data-hi="मैन्युफैक्चरिंग और सामग्री">Manufacturing &amp; Materials</button>
+      <button class="sec-chip" data-sec="tech" data-en="IT &amp; Digital" data-hi="आईटी और डिजिटल">IT &amp; Digital</button>
+      <button class="sec-chip" data-sec="trade" data-en="Wholesale &amp; Supplies" data-hi="थोक और आपूर्ति">Wholesale &amp; Supplies</button>
+      <button class="sec-chip" data-sec="logistics" data-en="Logistics &amp; Transport" data-hi="लॉजिस्टिक्स और ट्रांसपोर्ट">Logistics &amp; Transport</button>
+      <button class="sec-chip" data-sec="corp" data-en="Professional Services" data-hi="पेशेवर सेवाएं">Professional Services</button>
+      <button class="sec-chip" data-sec="services" data-en="Facility &amp; Environment" data-hi="सुविधा और पर्यावरण">Facility &amp; Environment</button>
+    </div>
+  </section>
+
+  <!-- 5. Categories Grid (30 Categories) -->
+  <section class="cats-grid" id="catsGrid">
+    <!-- Populated dynamically by JS -->
+  </section>
+
+  <!-- Empty State -->
+  <div class="empty-box" id="emptyBox">
+    <div class="empty-icon">🔍</div>
+    <div class="empty-title" data-en="No categories found" data-hi="कोई श्रेणी नहीं मिली">No categories found</div>
+    <div class="empty-desc" data-en="No categories match your search. Try different keywords or clear filters." data-hi="आपकी खोज से मेल खाती कोई श्रेणी नहीं मिली। कृपया दूसरा कीवर्ड खोजें या फ़िल्टर साफ़ करें।">No categories match your search. Try different keywords or clear filters.</div>
+    <button class="empty-btn" onclick="resetFilters()" data-en="Reset All Filters" data-hi="फ़िल्टर साफ़ करें">Reset All Filters</button>
+  </div>
+</main>
+
+<!-- Interactive RFQ Modal -->
+<div class="modal-overlay" id="rfqModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="rfqModalTitle">Request Direct Quotation</h3>
+      <button class="modal-close" onclick="closeRfqModal()">&times;</button>
+    </div>
+    <form class="modal-body" onsubmit="handleRfqSubmit(event)">
+      <div class="fgroup">
+        <label>Category / Industry</label>
+        <input type="text" id="rfqCategory" readonly style="background:#f8f6fc;font-weight:700">
+      </div>
+      <div class="fgroup">
+        <label>Requirement Title &amp; Specification</label>
+        <input type="text" id="rfqTitle" placeholder="e.g. 500 Bags UltraTech Cement 53 Grade / Office HVAC Setup" required>
+      </div>
+      <div class="fgroup">
+        <label>Quantity / Scope &amp; Target Budget (INR)</label>
+        <input type="text" id="rfqScope" placeholder="e.g. 500 Bags · Budget ₹1,80,000" required>
+      </div>
+      <div class="fgroup">
+        <label>Delivery Location &amp; Timeline</label>
+        <input type="text" id="rfqLoc" value="Jaipur, Rajasthan (Within 7 days)" required>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="mbtn-cancel" onclick="closeRfqModal()">Cancel</button>
+        <button type="submit" class="mbtn-submit">Submit RFQ to Verified Vendors</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// 30 Complete B2B Categories Data
+const CATEGORIES_DATA = [
+  { id: 'build', name: 'Construction & Infrastructure', hi: 'निर्माण और बुनियादी ढांचा', type: 'product', sec: 'const', tone: 'linear-gradient(135deg,#f97316,#ea580c)', icon: '🏗️', subs: ['Cement', 'Steel & TMT', 'Bricks & Blocks', 'Plywood', 'Civil Contractors', 'Aggregates', 'Ready Mix Concrete'] },
+  { id: 'manu', name: 'Manufacturing & OEM', hi: 'मैन्युफैक्चरिंग और ओईएम', type: 'product', sec: 'mfg', tone: 'linear-gradient(135deg,#0d9488,#0f766e)', icon: '⚙️', subs: ['Electronics & PCB', 'CNC & Machining', 'Plastics & Moulding', 'Metal Fabrication', 'Auto Components', 'Sheet Metal'] },
+  { id: 'office', name: 'IT, Software & Digital', hi: 'आईटी, सॉफ्टवेयर और डिजिटल', type: 'product', sec: 'tech', tone: 'linear-gradient(135deg,#6366f1,#4f46e5)', icon: '💻', subs: ['Computers & Hardware', 'Printers', 'Web & App Development', 'Cybersecurity', 'Cloud Infrastructure', 'IT AMC Support'] },
+  { id: 'print', name: 'Logistics, Freight & Shipping', hi: 'लॉजिस्टिक्स, माल ढुलाई और शिपिंग', type: 'service', sec: 'logistics', tone: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', icon: '🚚', subs: ['Freight Forwarding', 'Warehousing', 'Courier & Express', 'Packers & Movers', 'Heavy Transport Fleet', 'Customs Clearance'] },
+  { id: 'elec', name: 'Wholesale, Suppliers & Distribution', hi: 'थोक, आपूर्तिकर्ता और वितरण', type: 'product', sec: 'trade', tone: 'linear-gradient(135deg,#f59e0b,#d97706)', icon: '⚡', subs: ['Wires & Cables', 'Switches & Sockets', 'Power Tools', 'Commercial Lighting', 'Corrugated Packaging', 'Industrial Hardware'] },
+  { id: 'staff', name: 'Professional & Business Services', hi: 'पेशेवर और व्यावसायिक सेवाएं', type: 'service', sec: 'corp', tone: 'linear-gradient(135deg,#14b8a6,#0d9488)', icon: '👥', subs: ['Chartered Accountants (CA)', 'Corporate Legal', 'Architects & Design', 'Management Consultants', 'Security Staffing', 'Housekeeping'] },
+  { id: 'home', name: 'Home & Household Services', hi: 'घरेलू और सुविधा सेवाएं', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#0284c7,#0369a1)', icon: '🔧', subs: ['Commercial Electricians', 'Plumbing Contractors', 'Deep Cleaning', 'Sofa & Carpet Sanitization', 'Pest Control', 'Carpentry', 'Painting'] },
+  { id: 'event', name: 'Events & Corporate Entertainment', hi: 'इवेंट और मनोरंजन', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#f43f5e,#e11d48)', icon: '🎪', subs: ['Corporate Events', 'Exhibitions & Stalls', 'Commercial Catering', 'Audiovisual Setup', 'Event Security', 'Photography'] },
+  { id: 'auto', name: 'Automotive & Mobility Fleets', hi: 'ऑटोमोटिव और मोबिलिटी', type: 'service', sec: 'logistics', tone: 'linear-gradient(135deg,#64748b,#475569)', icon: '🚗', subs: ['Commercial Fleet Maintenance', 'Towing Services', 'Heavy Vehicle Hire', 'Driver Manpower', 'EV Fleet Leasing'] },
+  { id: 'clean', name: 'Healthcare, Education & Wellness', hi: 'स्वास्थ्य, शिक्षा और वेलनेस', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#10b981,#059669)', icon: '🩺', subs: ['Workplace Ergonomics', 'Corporate Health Checkups', 'Corporate Tutors', 'First Aid Staffing', 'Industrial Nursing'] },
+  { id: 'agri', name: 'Agriculture, Energy & Environment', hi: 'कृषि, ऊर्जा और पर्यावरण', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#84cc16,#65a30d)', icon: '🌱', subs: ['Commercial Solar Rooftop', 'Agricultural Machinery', 'Industrial Waste Recycling', 'Water Treatment (STP/ETP)', 'Biofuel Supply'] },
+  { id: 'textile', name: 'Textiles, Apparel & Fashion', hi: 'कपड़ा, परिधान और फैशन', type: 'product', sec: 'mfg', tone: 'linear-gradient(135deg,#ec4899,#db2777)', icon: '🧵', subs: ['Garment Manufacturing', 'Industrial Uniforms', 'Fabrics & Yarn', 'Embroidery & Printing', 'Wholesale Sourcing'] },
+  { id: 'chem', name: 'Chemicals, Plastics & Polymers', hi: 'रसायन, प्लास्टिक और सामग्री', type: 'product', sec: 'mfg', tone: 'linear-gradient(135deg,#7c3aed,#6d28d9)', icon: '🧪', subs: ['Industrial Chemicals', 'Plastic Raw Granules', 'Adhesives & Sealants', 'Resins & Composites', 'Paints & Primers'] },
+  { id: 'food', name: 'Food, Beverage & Processing', hi: 'खाद्य, पेय और प्रसंस्करण', type: 'product', sec: 'trade', tone: 'linear-gradient(135deg,#d97706,#b45309)', icon: '🌾', subs: ['Spices & Seasonings', 'Cold Storage Facilities', 'Packaged Food Sourcing', 'Commercial Dairy', 'Bulk Grains & Pulses'] },
+  { id: 'edu', name: 'Education & Training Providers', hi: 'शिक्षा और प्रशिक्षण प्रदाता', type: 'service', sec: 'corp', tone: 'linear-gradient(135deg,#4f46e5,#4338ca)', icon: '🎓', subs: ['Corporate Leadership Training', 'Technical Certification', 'Health & Safety OSHA', 'Language Coaching', 'E-Learning Development'] },
+  { id: 'fin', name: 'Finance, Insurance & Real Estate', hi: 'वित्त, बीमा और रियल एस्टेट', type: 'service', sec: 'corp', tone: 'linear-gradient(135deg,#334155,#1e293b)', icon: '🏛️', subs: ['Commercial Property Leasing', 'Business Asset Insurance', 'Statutory Audit', 'Asset Valuation', 'Project Financing'] },
+  { id: 'media', name: 'Marketing, Media & Printing', hi: 'मार्केटिंग, मीडिया और प्रिंटिंग', type: 'service', sec: 'corp', tone: 'linear-gradient(135deg,#e11d48,#be123c)', icon: '📢', subs: ['Commercial Offset Printing', 'Signboards & Hoardings', 'Corporate Video Production', 'Brand Identity', 'Performance Marketing'] },
+  { id: 'energy', name: 'Power, Utilities & Heavy Electrical', hi: 'ऊर्जा, उपयोगिताएं और विद्युत', type: 'product', sec: 'services', tone: 'linear-gradient(135deg,#eab308,#ca8a04)', icon: '⚡', subs: ['Transformers & Sub-stations', 'Industrial Diesel Generators', 'EV Charging Stations', 'Switchgear Panels', 'HT Cables'] },
+  { id: 'pack', name: 'Packaging & Industrial Printing', hi: 'पैकेजिंग और प्रिंटिंग', type: 'product', sec: 'mfg', tone: 'linear-gradient(135deg,#7e22ce,#6b21a8)', icon: '📦', subs: ['Corrugated Cartons (3/5/7 Ply)', 'Barcode Labels & Ribbons', 'Rigid Luxury Boxes', 'Biodegradable Mailers', 'Wooden Pallets & Crates'] },
+  { id: 'mining', name: 'Mining, Metals & Minerals', hi: 'खनन, धातु और खनिज', type: 'product', sec: 'const', tone: 'linear-gradient(135deg,#c2410c,#9a3412)', icon: '⛏️', subs: ['Alloy Steels & Billets', 'Crushed Stone & Gravel', 'Silica & Industrial Sand', 'Non-Ferrous Metals (Copper/Aluminium)', 'Granite & Marble Slabs'] },
+  { id: 'hosp', name: 'Hospitality, Stays & Tourism', hi: 'आतिथ्य, यात्रा और पर्यटन', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#0284c7,#075985)', icon: '🏨', subs: ['Corporate Hotel Contracts', 'Executive Serviced Apartments', 'Commercial Tour Desks', 'Airport Transfer Fleet', 'Banquet Venues'] },
+  { id: 'real', name: 'Real Estate & Facility Management', hi: 'रियल एस्टेट और संपत्ति सेवाएं', type: 'service', sec: 'const', tone: 'linear-gradient(135deg,#0f766e,#115e59)', icon: '🏢', subs: ['Office Interior Turnkey', 'HVAC Ducting & AHU', 'Building Facade Cleaning', 'Fire Fighting Systems', 'Commercial Property Valuation'] },
+  { id: 'beauty', name: 'Beauty & Personal Care Wholesale', hi: 'सौंदर्य और व्यक्तिगत देखभाल', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#db2777,#be185d)', icon: '✨', subs: ['Salon Equipment Wholesale', 'Commercial Spa Supplies', 'Cosmetics Manufacturing (Third Party)', 'Bulk Aromatherapy Oils'] },
+  { id: 'sport', name: 'Sports, Fitness & Turf Infrastructure', hi: 'खेल और फिटनेस', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#059669,#047857)', icon: '🏋️', subs: ['Commercial Gym Equipment', 'Artificial Turf Installation', 'Badminton Court Flooring', 'Sports Ground Floodlights'] },
+  { id: 'security', name: 'Security, Surveillance & Fire Safety', hi: 'सुरक्षा और संरक्षा सेवाएं', type: 'service', sec: 'corp', tone: 'linear-gradient(135deg,#4338ca,#3730a3)', icon: '🛡️', subs: ['PSARA Licensed Security Guards', 'IP CCTV & Control Rooms', 'Biometric & Turnstiles', 'Automatic Fire Sprinklers', 'Metal Detectors'] },
+  { id: 'telecom', name: 'Telecom, Networking & Leased Lines', hi: 'दूरसंचार और नेटवर्किंग', type: 'service', sec: 'tech', tone: 'linear-gradient(135deg,#6d28d9,#5b21b6)', icon: '📡', subs: ['Optical Fiber Structured Cabling', 'Dedicated Internet Leased Lines', 'IP-PBX & VoIP Phone Systems', 'Server Rack & Data Center Setup'] },
+  { id: 'aero', name: 'Aerospace & Precision Engineering', hi: 'एयरोस्पेस और रक्षा आपूर्तिकर्ता', type: 'product', sec: 'mfg', tone: 'linear-gradient(135deg,#475569,#334155)', icon: '✈️', subs: ['Precision Aerospace Components', 'AS9100 Certified Machining', 'Titanium Fasteners', 'Aviation Maintenance Hardware'] },
+  { id: 'marine', name: 'Marine Equipment & Port Logistics', hi: 'समुद्री और जहाज निर्माण', type: 'service', sec: 'logistics', tone: 'linear-gradient(135deg,#0369a1,#075985)', icon: '⚓', subs: ['Ship Repair & Maintenance', 'Marine Deck Equipment', 'Port Container Drayage', 'Vessel Bunker Fuel Supply'] },
+  { id: 'recycle', name: 'Recycling, Scrap & Waste Management', hi: 'पुनर्चक्रण और चक्रीय अर्थव्यवस्था', type: 'service', sec: 'services', tone: 'linear-gradient(135deg,#65a30d,#4d7c0f)', icon: '♻️', subs: ['Industrial E-Waste Disposal', 'Ferrous & Non-Ferrous Scrap', 'Plastic Granulation Recycling', 'Hazardous Waste Processing'] },
+  { id: 'luxury', name: 'Corporate Gifting & Wholesale Luxury', hi: 'गहने और कॉर्पोरेट उपहार', type: 'product', sec: 'trade', tone: 'linear-gradient(135deg,#b45309,#92400e)', icon: '💎', subs: ['Customized Corporate Gifts', 'Silver & Gold Coins (BIS Hallmarked)', 'Executive Leather Bags', 'Luxury Pens & Stationery'] }
+];
+
+let currentLang = 'en';
+let currentType = 'all';
+let currentSec = 'all';
+let currentSearch = '';
+
+// DOM Elements
+const catsGrid = document.getElementById('catsGrid');
+const emptyBox = document.getElementById('emptyBox');
+const catSearch = document.getElementById('catSearch');
+const catClear = document.getElementById('catClear');
+const resCount = document.getElementById('resCount');
+const typeTabs = document.getElementById('typeTabs');
+const sectorChips = document.getElementById('sectorChips');
+const langToggle = document.getElementById('langToggle');
+const langText = document.getElementById('langText');
+const tickerEl = document.getElementById('ticker');
+const tpause = document.getElementById('tpause');
+const vvhead = document.getElementById('vvhead');
+
+// Ticker Pause/Play
+tpause.addEventListener('click', () => {
+  tickerEl.classList.toggle('paused');
+});
+
+// Sticky header shadow
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 10) vvhead.classList.add('scrolled');
+  else vvhead.classList.remove('scrolled');
+});
+
+// Render Categories
+function renderCategories() {
+  const filtered = CATEGORIES_DATA.filter(c => {
+    // Type match
+    if (currentType !== 'all' && c.type !== currentType) return false;
+    // Sector match
+    if (currentSec !== 'all' && c.sec !== currentSec) return false;
+    // Search query match
+    if (currentSearch.trim()) {
+      const q = currentSearch.toLowerCase();
+      const nameMatch = c.name.toLowerCase().includes(q);
+      const hiMatch = c.hi && c.hi.includes(q);
+      const subMatch = c.subs.some(s => s.toLowerCase().includes(q));
+      if (!nameMatch && !hiMatch && !subMatch) return false;
+    }
+    return true;
+  });
+
+  resCount.textContent = `${filtered.length} categories found`;
+
+  if (filtered.length === 0) {
+    catsGrid.innerHTML = '';
+    emptyBox.classList.add('show');
+    return;
+  }
+
+  emptyBox.classList.remove('show');
+  catsGrid.innerHTML = filtered.map(c => {
+    const isService = c.type === 'service';
+    const typeLabel = isService 
+      ? (currentLang === 'hi' ? 'सेवा' : 'Service')
+      : (currentLang === 'hi' ? 'उत्पाद' : 'Product');
+    const typeClass = isService ? 'serv' : 'prod';
+    const displayName = currentLang === 'hi' ? c.hi : c.name;
+
+    const subChipsHtml = c.subs.map(s => `
+      <span class="sub-chip" onclick="navigateToExplore('${c.id}', '${s}')">${s}</span>
+    `).join('');
+
+    return `
+      <div class="cat-card">
+        <div>
+          <div class="cat-header">
+            <div class="cat-icon-tile" style="background:${c.tone}">${c.icon}</div>
+            <div class="cat-meta">
+              <div class="cat-title-wrap">
+                <span class="cat-title" onclick="navigateToCategory('${c.id}')">${displayName}</span>
+                <span class="type-tag ${typeClass}">${typeLabel}</span>
+              </div>
+              <div class="cat-subline">${c.subs.length} subcategories · Verified suppliers &amp; quotes</div>
+            </div>
+            <button class="cat-arrow" onclick="navigateToCategory('${c.id}')" aria-label="Browse ${displayName}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+
+          <div class="sub-chips">
+            ${subChipsHtml}
+          </div>
+        </div>
+
+        <div class="cat-footer">
+          <span class="cat-browse-link" onclick="navigateToCategory('${c.id}')">
+            ${currentLang === 'hi' ? 'सभी लिस्टिंग देखें' : 'Browse listings & vendors'}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+          <button class="cat-rfq-btn" onclick="openRfqModal('${c.name}')">
+            ${currentLang === 'hi' ? 'कोटेशन मांगें' : 'Request Quote'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Navigation helpers
+function navigateToCategory(catId) {
+  window.location.href = `/explore.html?cat=${catId}`;
+}
+function navigateToExplore(catId, sub) {
+  window.location.href = `/explore.html?cat=${catId}&q=${encodeURIComponent(sub)}`;
+}
+
+// Search interactions
+catSearch.addEventListener('input', (e) => {
+  currentSearch = e.target.value;
+  if (currentSearch.trim()) catClear.classList.add('active');
+  else catClear.classList.remove('active');
+  renderCategories();
+});
+catClear.addEventListener('click', () => {
+  catSearch.value = '';
+  currentSearch = '';
+  catClear.classList.remove('active');
+  renderCategories();
+  catSearch.focus();
+});
+
+// Type filter click
+typeTabs.addEventListener('click', (e) => {
+  const btn = e.target.closest('.type-tab');
+  if (!btn) return;
+  typeTabs.querySelectorAll('.type-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentType = btn.dataset.type;
+  renderCategories();
+});
+
+// Sector chips click
+sectorChips.addEventListener('click', (e) => {
+  const btn = e.target.closest('.sec-chip');
+  if (!btn) return;
+  sectorChips.querySelectorAll('.sec-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSec = btn.dataset.sec;
+  renderCategories();
+});
+
+// Reset filters
+function resetFilters() {
+  currentType = 'all';
+  currentSec = 'all';
+  currentSearch = '';
+  catSearch.value = '';
+  catClear.classList.remove('active');
+  typeTabs.querySelectorAll('.type-tab').forEach(b => b.classList.toggle('active', b.dataset.type === 'all'));
+  sectorChips.querySelectorAll('.sec-chip').forEach(b => b.classList.toggle('active', b.dataset.sec === 'all'));
+  renderCategories();
+}
+
+// Language Toggle
+langToggle.addEventListener('click', () => {
+  currentLang = currentLang === 'en' ? 'hi' : 'en';
+  langText.textContent = currentLang === 'en' ? 'EN' : 'हि';
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = currentLang === 'hi' ? el.getAttribute('data-hi') : el.getAttribute('data-en');
+  });
+  renderCategories();
+});
+
+// RFQ Modal
+const rfqModal = document.getElementById('rfqModal');
+const rfqCategory = document.getElementById('rfqCategory');
+const rfqTitle = document.getElementById('rfqTitle');
+function openRfqModal(categoryName) {
+  rfqCategory.value = categoryName || 'All Categories';
+  rfqTitle.value = '';
+  rfqModal.classList.add('open');
+}
+function closeRfqModal() {
+  rfqModal.classList.remove('open');
+}
+function handleRfqSubmit(e) {
+  e.preventDefault();
+  alert(`RFQ Requirement successfully created for ${rfqCategory.value}! Verified vendors in Jaipur & Delhi NCR will send direct quotations shortly.`);
+  closeRfqModal();
+}
+
+// Initialize
+renderCategories();
+</script>
+</body>
+</html>

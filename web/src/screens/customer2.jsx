@@ -9,7 +9,7 @@ import { P2Badge } from './blocks.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { GEO, findCity } from '../geo.js'
-import { cat, CATS, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
+import { cat, CATS, ALL_CATS, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Rating, Banner, EmptyState, SearchBar,
   PriceBreakdown, KV, fmt, cx, Pill, IconBtn, StatusBadge, Stars, ListRow, Group, Timeline, Avatar, SOFT, Meta, DemoPhonePePayment,
@@ -78,7 +78,7 @@ export function RfqNew({ params = {} }) {
   }
   return (
     <Screen title="Request quotation" subtitle={targetVendor ? `Direct to ${targetVendor.name}` : 'Structured request for eligible vendors'} footer={<Button full size="lg" onClick={submit}>Send RFQ</Button>}>
-      <Select label="Category" value={f.cat} onChange={(e) => setF({ ...f, cat: e.target.value, answers: {} })} options={CATS.map((x) => ({ value: x.id, label: x.name }))} />
+      <Select label="Category" value={f.cat} onChange={(e) => setF({ ...f, cat: e.target.value, answers: {} })} options={(ALL_CATS || CATS).map((x) => ({ value: x.id, label: x.name }))} />
       <Input label="What do you need?" required placeholder="e.g. Complete rewiring for a 3,200 sq ft office" value={f.title} onChange={set('title')} error={errs.title} />
       <Input label="Quantity / scope" required placeholder="e.g. 3,200 sq ft · 200 units" value={f.qty} onChange={set('qty')} error={errs.qty} />
       {qs.length > 0 && <div>
