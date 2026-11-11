@@ -1,90 +1,210 @@
+import React, { useEffect, useRef } from 'react'
+import {
+  Search,
+  FilePlus2,
+  Layers,
+  Briefcase,
+  ArrowRight,
+  ShieldCheck,
+  Scale,
+  ClipboardCheck,
+  Receipt,
+} from 'lucide-react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { TiltCard } from './TiltCard.jsx'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const STEPS = [
+  {
+    num: '01',
+    title: 'Discover',
+    desc: 'Search vendors, bulk suppliers, and regional services across live launch cities.',
+    Icon: Search,
+  },
+  {
+    num: '02',
+    title: 'Request / Book',
+    desc: 'Submit a structured requirement (RFQ) or request a service booking in minutes.',
+    Icon: FilePlus2,
+  },
+  {
+    num: '03',
+    title: 'Compare',
+    desc: 'Review vendor quotations, delivery schedules, and capabilities side by side.',
+    Icon: Layers,
+  },
+  {
+    num: '04',
+    title: 'Proceed',
+    desc: 'Confirm a purchase order or contract terms and work directly on agreed invoices.',
+    Icon: Briefcase,
+  },
+]
+
+const TRUST_POINTS = [
+  {
+    id: 'structured',
+    title: 'Reviewed Onboarding',
+    subtitle: 'Category, service area & requirement alignment',
+    Icon: ShieldCheck,
+  },
+  {
+    id: 'quotes',
+    title: 'Quotations Side-by-Side',
+    subtitle: 'Clear comparison across vendors and lead times',
+    Icon: Scale,
+  },
+  {
+    id: 'tracking',
+    title: 'Unified Activity Flow',
+    subtitle: 'Manage bookings, RFQs, POs & contracts together',
+    Icon: ClipboardCheck,
+  },
+  {
+    id: 'invoice',
+    title: 'Direct Invoice Terms',
+    subtitle: 'Settle directly via agreed offline & invoice workflows',
+    Icon: Receipt,
+  },
+]
+
 export function HowItWorks() {
+  const sectionRef = useRef(null)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (prefersReducedMotion) return
+
+    const scrollerEl = el.closest('.vv-customer-route') || window
+
+    const ctx = gsap.context(() => {
+      gsap.from('.hiw-step-wrap', {
+        y: 22,
+        rotateX: 5,
+        duration: 0.65,
+        stagger: 0.1,
+        ease: 'power3.out',
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: '.hiw-steps-row',
+          scroller: scrollerEl,
+          start: 'top 90%',
+          once: true,
+        },
+      })
+
+      gsap.from('.hiw-arrow-connector', {
+        x: -8,
+        duration: 0.45,
+        stagger: 0.1,
+        ease: 'power2.out',
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: '.hiw-steps-row',
+          scroller: scrollerEl,
+          start: 'top 90%',
+          once: true,
+        },
+      })
+
+      gsap.from('.hiw-trust-card', {
+        y: 16,
+        duration: 0.5,
+        stagger: 0.08,
+        ease: 'power2.out',
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: '.hiw-trust-strip',
+          scroller: scrollerEl,
+          start: 'top 92%',
+          once: true,
+        },
+      })
+    }, el)
+
+    return () => ctx.revert()
+  }, [])
+
   return (
-    <section className="howsec" id="how">
-      <div className="how">
-        {/* Title Block */}
-        <div className="howhead">
-          <h2>How it works</h2>
-          <p>Get from requirement to the right vendor in three simple steps.</p>
+    <section
+      id="how"
+      ref={sectionRef}
+      className="how-it-works-section"
+      aria-labelledby="hiw-heading"
+    >
+      <div className="section-container">
+        <div className="hiw-header-center">
+          <span className="eyebrow-tag">HOW VENDORVERSE WORKS</span>
+          <h2 id="hiw-heading" className="section-heading dark">
+            Get Business Done in <span className="text-gradient">Four Clear Steps</span>
+          </h2>
+          <p className="section-subcopy center">
+            From discovering suppliers across Rajasthan &amp; Delhi NCR to comparing quotes and
+            confirming terms, every step stays organized in one place.
+          </p>
         </div>
 
-        {/* 3 Step Cards */}
-        <ol className="steps">
-          {/* Step 1 */}
-          <li className="step">
-            <span className="sic">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="m20 20-3.5-3.5" />
-              </svg>
-            </span>
-            <div>
-              <h3>1. Find what you need</h3>
-              <p>Search for products, services, or vendors across multiple categories.</p>
-            </div>
-          </li>
+        {/* 4 Dimensional Steps with Animated Sky-Blue Connectors */}
+        <div className="hiw-steps-row">
+          {STEPS.map((step, index) => {
+            const StepIcon = step.Icon
+            return (
+              <React.Fragment key={step.num}>
+                <div className="hiw-step-wrap">
+                  <TiltCard
+                    className="hiw-step-tilt-card"
+                    maxTilt={7}
+                    scale={1.03}
+                    elevation={16}
+                  >
+                    <div className="hiw-step-card">
+                      <span className="step-num-badge">{step.num}</span>
+                      <div className="hiw-icon-circle">
+                        <StepIcon size={25} strokeWidth={2} />
+                      </div>
+                      <h3 className="hiw-step-title">{step.title}</h3>
+                      <p className="hiw-step-desc">{step.desc}</p>
+                    </div>
+                  </TiltCard>
+                </div>
 
-          {/* Step 2 */}
-          <li className="step">
-            <span className="sic">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m12 3 9 5-9 5-9-5z" />
-                <path d="m3 13 9 5 9-5" />
-                <path d="m3 17.5 9 5 9-5" opacity="0.55" />
-              </svg>
-            </span>
-            <div>
-              <h3>2. Compare options</h3>
-              <p>Review verified vendors, check ratings, and compare quotations.</p>
-            </div>
-          </li>
+                {index < STEPS.length - 1 && (
+                  <div className="hiw-arrow-connector" aria-hidden="true">
+                    <span className="hiw-connector-line" />
+                    <ArrowRight size={20} strokeWidth={2.2} />
+                  </div>
+                )}
+              </React.Fragment>
+            )
+          })}
+        </div>
 
-          {/* Step 3 */}
-          <li className="step">
-            <span className="sic">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="8" r="3.5" />
-                <path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
-                <circle cx="17" cy="9" r="2.8" />
-                <path d="M17 14c2.6 0 4.5 1.8 4.5 4.5" />
-              </svg>
-            </span>
-            <div>
-              <h3>3. Connect directly</h3>
-              <p>Reach out to vendors, discuss your requirements, and get the best deal.</p>
-            </div>
-          </li>
-        </ol>
+        {/* Accurate Phase 1 Value Architecture Strip */}
+        <div className="hiw-trust-strip">
+          {TRUST_POINTS.map((tp) => {
+            const Icon = tp.Icon
+            return (
+              <div key={tp.id} className="hiw-trust-card">
+                <div className="hiw-trust-icon">
+                  <Icon size={20} strokeWidth={2.2} />
+                </div>
+                <div className="hiw-trust-text">
+                  <strong>{tp.title}</strong>
+                  <span>{tp.subtitle}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

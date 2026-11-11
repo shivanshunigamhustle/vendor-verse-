@@ -112,7 +112,7 @@ function Phone({ frame, scale, web = false }) {
       {frame && <StatusBar tone={reg.bar} />}
       <div className={cx('relative flex min-h-0 flex-1 flex-col', frame && 'pt-11')}>
         <div className="relative min-h-0 flex-1"><ScreenHost /><Toast /></div>
-        {!web && !['v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && <TabBar />}
+        {!web && !['c_home', 'v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && <TabBar />}
         {frame && <div className="h-5 shrink-0 bg-white" />}
       </div>
       {frame && <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-40 h-1.5 w-32 -translate-x-1/2 rounded-full bg-ink-900/85" />}

@@ -2,511 +2,495 @@ import { useState, useEffect, useRef } from 'react'
 import { useNav } from '../../nav.jsx'
 import { useApp } from '../../store.jsx'
 
-const LOCATIONS = [
-  { city: 'Jaipur', state: 'Rajasthan', country: 'India', label: 'Jaipur, Rajasthan, India' },
-  { city: 'Mumbai', state: 'Maharashtra', country: 'India', label: 'Mumbai, Maharashtra, India' },
-  { city: 'Pune', state: 'Maharashtra', country: 'India', label: 'Pune, Maharashtra, India' },
-  { city: 'Bengaluru', state: 'Karnataka', country: 'India', label: 'Bengaluru, Karnataka, India' },
-]
-
-export function Navbar({ activeTab = 'home', onSelectTab }) {
+export function Navbar({ onOpenAuth, onOpenVendorApply }) {
   const nav = useNav()
-  const { me, setMe, locale, setLocale, lang, setLang } = useApp()
+  const { locale, setLocale, lang, setLang } = useApp()
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [locationOpen, setLocationOpen] = useState(false)
+  const [browseOpen, setBrowseOpen] = useState(false)
+  const [solutionsOpen, setSolutionsOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
+  const [cityOpen, setCityOpen] = useState(false)
+
   const headerRef = useRef(null)
-  const locRef = useRef(null)
-  const locBtnRef = useRef(null)
+  const browseRef = useRef(null)
+  const solutionsRef = useRef(null)
+  const langRef = useRef(null)
+  const cityRef = useRef(null)
 
-  // Scroll listener for sticky soft shadow
   useEffect(() => {
-    const scrollContainer = headerRef.current?.closest('.vv-customer-route')
-    const getScrollTop = () => {
-      if (scrollContainer) {
-        return scrollContainer.scrollTop
-      }
-      return window.scrollY || document.documentElement.scrollTop || 0
-    }
-
     const handleScroll = () => {
-      setIsScrolled(getScrollTop() > 8)
+      const scroller = document.querySelector('.vv-customer-route')
+      const y = (scroller ? scroller.scrollTop : 0) || window.scrollY || 0
+      setIsScrolled(y > 15)
     }
-
     handleScroll()
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
-    }
-    window.addEventListener('scroll', handleScroll, { capture: true, passive: true })
-
-    return () => {
-      if (scrollContainer) {
-        scrollContainer.removeEventListener('scroll', handleScroll)
-      }
-      window.removeEventListener('scroll', handleScroll, { capture: true })
-    }
+    document.addEventListener('scroll', handleScroll, true)
+    return () => document.removeEventListener('scroll', handleScroll, true)
   }, [])
 
-  // Close location dropdown on outside click or Escape
+  // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (locRef.current && !locRef.current.contains(e.target)) {
-        setLocationOpen(false)
-      }
+    const handleClickOutside = (e) => {
+      if (browseRef.current && !browseRef.current.contains(e.target)) setBrowseOpen(false)
+      if (solutionsRef.current && !solutionsRef.current.contains(e.target)) setSolutionsOpen(false)
+      if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false)
+      if (cityRef.current && !cityRef.current.contains(e.target)) setCityOpen(false)
     }
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && locationOpen) {
-        setLocationOpen(false)
-        locBtnRef.current?.focus()
-      }
-    }
-    document.addEventListener('click', handleOutsideClick)
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('click', handleOutsideClick)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [locationOpen])
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
-  const currentLocationLabel = locale?.city
-    ? `${locale.city}, ${locale.state || ''}, ${locale.countryName || 'India'}`
-    : 'Jaipur, Rajasthan, India'
-
-  const handleSelectLocation = (loc) => {
+  const handleCitySelect = (cityName) => {
     setLocale((prev) => ({
       ...prev,
-      city: loc.city,
-      state: loc.state,
-      countryName: loc.country,
+      city: cityName,
+      state: cityName === 'Delhi NCR' ? 'Delhi' : 'Rajasthan',
+      countryName: 'India',
     }))
-    setLocationOpen(false)
-    locBtnRef.current?.focus()
+    setCityOpen(false)
   }
 
-  const handleTabClick = (e, tabId, routeId) => {
-    e.preventDefault()
+  const navigateTo = (route, params = {}) => {
     setMobileMenuOpen(false)
-    if (onSelectTab) {
-      onSelectTab(tabId)
-    }
-    if (routeId) {
-      if (tabId === 'home') {
-        nav.reset('c_home')
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      } else {
-        nav.go(routeId)
-        const sc = document.querySelector('.vv-customer-route')
-        if (sc) sc.scrollTop = 0
-        window.scrollTo({ top: 0, behavior: 'instant' })
-      }
-    }
+    setBrowseOpen(false)
+    setSolutionsOpen(false)
+    nav.go(route, params)
   }
 
   return (
-    <header ref={headerRef} className={`vvhead ${isScrolled ? 'scrolled' : ''}`} id="vvhead">
-      <div className="vvin">
+    <header
+      ref={headerRef}
+      className={`landing-navbar ${isScrolled ? 'scrolled' : ''}`}
+      id="site-nav"
+    >
+      <div className="nav-inner-container">
         {/* Brand Logo */}
         <a
-          className="brand"
           href="#top"
-          onClick={(e) => handleTabClick(e, 'home', 'c_home')}
-          aria-label="VendorVerse home"
+          className="nav-brand-link"
+          onClick={(e) => {
+            e.preventDefault()
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+          aria-label="VendorVerse Home"
         >
-          <span className="logo">V</span>
-          <span className="bt">
-            <b>VendorVerse</b>
-            <small>Global B2B Marketplace</small>
-          </span>
+          <div className="brand-bag-icon" aria-hidden="true">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+              <path d="M3 6h18" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            <span className="brand-v-glyph">V</span>
+          </div>
+          <div className="brand-title-wrap">
+            <span className="brand-name">VendorVerse</span>
+            <span className="brand-tagline">Global B2B Marketplace</span>
+          </div>
         </a>
 
-        {/* Navigation Tray */}
-        <nav
-          className={`vvnav ${mobileMenuOpen ? 'open' : ''}`}
-          id="vvnav"
-          aria-label="Main navigation"
-        >
-          <a
-            className={`vvl ${activeTab === 'home' ? 'on' : ''}`}
-            href="#top"
-            aria-current={activeTab === 'home' ? 'page' : undefined}
-            onClick={(e) => handleTabClick(e, 'home', 'c_home')}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 11 12 3l9 8" />
-              <path d="M5 10v10h14V10" />
-            </svg>
-            Home
-          </a>
-
-          <a
-            className={`vvl ${activeTab === 'explore' ? 'on' : ''}`}
-            href="#categories"
-            aria-current={activeTab === 'explore' ? 'page' : undefined}
-            onClick={(e) => handleTabClick(e, 'explore', 'c_explore')}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="m15.5 8.5-2 5-5 2 2-5z" />
-            </svg>
-            Explore
-          </a>
-
-          <a
-            className={`vvl ${activeTab === 'activity' ? 'on' : ''}`}
-            href="#vendors"
-            aria-current={activeTab === 'activity' ? 'page' : undefined}
-            onClick={(e) => handleTabClick(e, 'activity', 'c_activity')}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 3v18h18" />
-              <path d="m7 15 4-4 3 3 5-6" />
-            </svg>
-            Activity
-          </a>
-
-          <a
-            className={`vvl ${activeTab === 'messages' ? 'on' : ''}`}
-            href="#how"
-            aria-current={activeTab === 'messages' ? 'page' : undefined}
-            onClick={(e) => handleTabClick(e, 'messages', 'messages')}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M21 12a8 8 0 0 1-11.7 7L4 20l1.2-4.6A8 8 0 1 1 21 12z" />
-            </svg>
-            Messages
-          </a>
-
-          <a
-            className={`vvl ${activeTab === 'profile' ? 'on' : ''}`}
-            href="#top"
-            aria-current={activeTab === 'profile' ? 'page' : undefined}
-            onClick={(e) => handleTabClick(e, 'profile', 'c_profile')}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-            </svg>
-            Profile
-          </a>
-        </nav>
-
-        {/* Right Section Controls */}
-        <div className="vvright">
-          {/* Location button & panel */}
-          <div className="locwrap" ref={locRef}>
+        {/* Desktop Navigation Links */}
+        <nav className="desktop-nav-menu" aria-label="Main Navigation">
+          {/* Browse Dropdown */}
+          <div className="nav-dropdown-item" ref={browseRef}>
             <button
-              className="vvloc"
-              id="locbtn"
-              ref={locBtnRef}
               type="button"
+              className={`nav-link-btn ${browseOpen ? 'open' : ''}`}
               onClick={(e) => {
                 e.stopPropagation()
-                setLocationOpen((prev) => !prev)
+                setBrowseOpen((v) => !v)
+                setSolutionsOpen(false)
               }}
-              aria-haspopup="listbox"
-              aria-expanded={locationOpen}
-              aria-controls="locpanel"
-              aria-label={`Location: ${currentLocationLabel}`}
-              title={currentLocationLabel}
+              aria-expanded={browseOpen}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" />
-                <circle cx="12" cy="10" r="2.5" />
-              </svg>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
+              Browse
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
 
-            {locationOpen && (
-              <div
-                className="locpanel"
-                id="locpanel"
-                role="listbox"
-                aria-label="Choose location"
-              >
-                <div className="lochead">Your location</div>
-                {LOCATIONS.slice(0, 1).map((loc) => {
-                  const isSelected = currentLocationLabel.includes(loc.city)
-                  return (
-                    <button
-                      key={loc.city}
-                      type="button"
-                      className={`locopt ${isSelected ? 'sel' : ''}`}
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => handleSelectLocation(loc)}
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" />
-                        <circle cx="12" cy="10" r="2.5" />
-                      </svg>
-                      <span>{loc.label}</span>
-                      <svg
-                        className="chk"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m5 12 5 5 9-10" />
-                      </svg>
-                    </button>
-                  )
-                })}
-
-                <div className="lochead">Other locations</div>
-                {LOCATIONS.slice(1).map((loc) => {
-                  const isSelected = currentLocationLabel.includes(loc.city)
-                  return (
-                    <button
-                      key={loc.city}
-                      type="button"
-                      className={`locopt ${isSelected ? 'sel' : ''}`}
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => handleSelectLocation(loc)}
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" />
-                        <circle cx="12" cy="10" r="2.5" />
-                      </svg>
-                      <span>{loc.label}</span>
-                      <svg
-                        className="chk"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m5 12 5 5 9-10" />
-                      </svg>
-                    </button>
-                  )
-                })}
+            {browseOpen && (
+              <div className="nav-dropdown-panel" role="menu">
+                <a
+                  href="#industries"
+                  className="dropdown-item"
+                  role="menuitem"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setBrowseOpen(false)
+                    document.getElementById('industries')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                >
+                  <span className="dropdown-icon">🏢</span>
+                  <div>
+                    <strong>Phase 1 Live Industries</strong>
+                    <small>Home, Construction, Events, Professional, Wholesale</small>
+                  </div>
+                </a>
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  role="menuitem"
+                  onClick={() => navigateTo('c_categories')}
+                >
+                  <span className="dropdown-icon">📂</span>
+                  <div>
+                    <strong>All Categories Directory</strong>
+                    <small>Complete 30-industry B2B taxonomy</small>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  role="menuitem"
+                  onClick={() => navigateTo('c_explore')}
+                >
+                  <span className="dropdown-icon">🔍</span>
+                  <div>
+                    <strong>Explore Marketplace</strong>
+                    <small>Search, filters & verified vendor listings</small>
+                  </div>
+                </button>
+                <a
+                  href="#markets"
+                  className="dropdown-item"
+                  role="menuitem"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setBrowseOpen(false)
+                    document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                >
+                  <span className="dropdown-icon">📍</span>
+                  <div>
+                    <strong>Launch Cities</strong>
+                    <small>Jaipur, Ajmer, Sikar, Delhi NCR</small>
+                  </div>
+                </a>
               </div>
             )}
           </div>
 
-          {/* Language Toggle */}
-          <button
-            className="vvicon"
-            type="button"
-            onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-            aria-label={`Language: ${lang === 'en' ? 'English' : 'Hindi'}`}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18" />
-            </svg>
-            <span>{lang === 'en' ? 'EN' : 'हि'}</span>
-          </button>
-
-          {/* Notifications with Pulsing Red Dot */}
-          <button
-            className="vvicon bell"
-            type="button"
-            onClick={() => nav.go('notifications')}
-            aria-label="Notifications, new"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z" />
-              <path d="M10 21h4" />
-            </svg>
-            <i className="dot" aria-hidden="true" />
-          </button>
-
-          {/* Outlined "Post requirement" button */}
-          <button
-            className="vvghost"
-            type="button"
-            onClick={() => nav.go('c_rfq_new')}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Post requirement
-          </button>
-
-          {/* Gradient "Sign in" button */}
-          {me?.loggedIn ? (
+          {/* Solutions Dropdown */}
+          <div className="nav-dropdown-item" ref={solutionsRef}>
             <button
-              className="vvbtn"
               type="button"
-              onClick={() => {
-                setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
-                nav.reset('c_home')
+              className={`nav-link-btn ${solutionsOpen ? 'open' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setSolutionsOpen((v) => !v)
+                setBrowseOpen(false)
               }}
-              title="Click to sign out"
+              aria-expanded={solutionsOpen}
             >
-              Sign out
+              Solutions
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </button>
-          ) : (
-            <button
-              className="vvbtn"
-              type="button"
-              onClick={() => nav.go('login')}
-            >
-              Sign in
-            </button>
-          )}
 
-          {/* Hamburger button for mobile */}
-          <button
-            className="burger"
-            id="burger"
-            type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileMenuOpen}
-            aria-controls="vvnav"
+            {solutionsOpen && (
+              <div className="nav-dropdown-panel" role="menu">
+                <a
+                  href="#how"
+                  className="dropdown-item"
+                  role="menuitem"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setSolutionsOpen(false)
+                    document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                >
+                  <span className="dropdown-icon">⚡</span>
+                  <div>
+                    <strong>For Buyers & Businesses</strong>
+                    <small>Discover, compare &amp; request Phase 1 services</small>
+                  </div>
+                </a>
+                <a
+                  href="#rfq-section"
+                  className="dropdown-item"
+                  role="menuitem"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setSolutionsOpen(false)
+                    document.getElementById('rfq-section')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                >
+                  <span className="dropdown-icon">📄</span>
+                  <div>
+                    <strong>Request for Quotation (RFQ)</strong>
+                    <small>Post single requirement, get multiple bids</small>
+                  </div>
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* For Businesses */}
+          <a
+            href="#markets"
+            className="nav-link-btn"
+            onClick={(e) => {
+              e.preventDefault()
+              document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
+            }}
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
+            For Businesses
+          </a>
+
+          {/* Become a Vendor */}
+          <button
+            type="button"
+            className="nav-link-btn"
+            onClick={() => {
+              if (onOpenVendorApply) onOpenVendorApply()
+              else navigateTo('v_home')
+            }}
+          >
+            Become a Vendor
+          </button>
+
+          {/* Help */}
+          <a
+            href="#how"
+            className="nav-link-btn"
+            onClick={(e) => {
+              e.preventDefault()
+              document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
+            }}
+          >
+            Help
+          </a>
+        </nav>
+
+        {/* Right Actions: Lang, Country, Login, Join Now */}
+        <div className="nav-right-actions">
+          {/* Language Selector */}
+          <div className="nav-dropdown-item" ref={langRef}>
+            <button
+              type="button"
+              className="action-icon-pill"
+              onClick={(e) => {
+                e.stopPropagation()
+                setLangOpen((v) => !v)
+              }}
+              title="Change Language"
             >
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span>{lang?.toUpperCase() || 'EN'}</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            {langOpen && (
+              <div className="nav-dropdown-panel small-panel" role="menu">
+                <button
+                  type="button"
+                  className={`dropdown-item ${lang === 'en' ? 'active' : ''}`}
+                  onClick={() => {
+                    setLang('en')
+                    setLangOpen(false)
+                  }}
+                >
+                  English (EN)
+                </button>
+                <button
+                  type="button"
+                  className={`dropdown-item ${lang === 'hi' ? 'active' : ''}`}
+                  onClick={() => {
+                    setLang('hi')
+                    setLangOpen(false)
+                  }}
+                >
+                  हिन्दी (HI)
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Location / India Country Selector */}
+          <div className="nav-dropdown-item" ref={cityRef}>
+            <button
+              type="button"
+              className="action-icon-pill"
+              onClick={(e) => {
+                e.stopPropagation()
+                setCityOpen((v) => !v)
+              }}
+              title="Launch Markets"
+            >
+              <span className="flag-icon">🇮🇳</span>
+              <span>{locale?.city || 'Jaipur'}</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            {cityOpen && (
+              <div className="nav-dropdown-panel small-panel" role="menu">
+                <div className="panel-header-sub">Phase 1 Live Markets</div>
+                {['Jaipur', 'Ajmer', 'Sikar', 'Delhi NCR'].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`dropdown-item ${locale?.city === c ? 'active' : ''}`}
+                    onClick={() => handleCitySelect(c)}
+                  >
+                    📍 {c}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Login Button */}
+          <button
+            type="button"
+            className="nav-login-btn"
+            onClick={() => {
+              if (onOpenAuth) onOpenAuth('login')
+              else navigateTo('auth', { mode: 'login' })
+            }}
+          >
+            Login
+          </button>
+
+          {/* Join Now Button - Electric Violet */}
+          <button
+            type="button"
+            className="nav-join-btn"
+            onClick={() => {
+              if (onOpenAuth) onOpenAuth('signup')
+              else navigateTo('auth', { mode: 'signup' })
+            }}
+          >
+            Join Now
+          </button>
+
+          {/* Mobile Hamburger Toggle */}
+          <button
+            type="button"
+            className="mobile-hamburger-btn"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label={mobileMenuOpen ? 'Close Menu' : 'Open Menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-drawer" role="dialog" aria-modal="true">
+          <div className="mobile-drawer-inner">
+            <a
+              href="#industries"
+              className="mobile-drawer-link"
+              onClick={() => {
+                setMobileMenuOpen(false)
+                document.getElementById('industries')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            >
+              🏢 Industries & Categories
+            </a>
+            <a
+              href="#markets"
+              className="mobile-drawer-link"
+              onClick={() => {
+                setMobileMenuOpen(false)
+                document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            >
+              📍 Launch Markets (Jaipur, Ajmer, Sikar, Delhi NCR)
+            </a>
+            <a
+              href="#how"
+              className="mobile-drawer-link"
+              onClick={() => {
+                setMobileMenuOpen(false)
+                document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            >
+              ⚡ How It Works
+            </a>
+            <a
+              href="#rfq-section"
+              className="mobile-drawer-link"
+              onClick={() => {
+                setMobileMenuOpen(false)
+                document.getElementById('rfq-section')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            >
+              📄 Request for Quotation (RFQ)
+            </a>
+            <button
+              type="button"
+              className="mobile-drawer-link"
+              onClick={() => {
+                setMobileMenuOpen(false)
+                if (onOpenVendorApply) onOpenVendorApply()
+                else navigateTo('v_home')
+              }}
+            >
+              💼 Become a Vendor
+            </button>
+
+            <div className="mobile-drawer-divider" />
+
+            <div className="mobile-drawer-actions">
+              <button
+                type="button"
+                className="nav-login-btn full-width"
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  if (onOpenAuth) onOpenAuth('login')
+                  else navigateTo('auth', { mode: 'login' })
+                }}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className="nav-join-btn full-width"
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  if (onOpenAuth) onOpenAuth('signup')
+                  else navigateTo('auth', { mode: 'signup' })
+                }}
+              >
+                Join Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
