@@ -26,14 +26,14 @@ export function PolicyModal({ type, isOpen, onClose }) {
               <p><strong>Effective Date: November 2026</strong></p>
               <p>
                 VendorVerse is dedicated to protecting the privacy of buyers, suppliers, and service providers.
-                In Phase 1 (Jaipur, Ajmer, Sikar, and Delhi NCR), business registration details, GSTIN, and contact information
-                are verified strictly to prevent fraudulent listings.
+                Across Jaipur, Ajmer, Sikar, and Delhi NCR, business registration details and contact information
+                are handled responsibly to support trustworthy B2B and customer interactions.
               </p>
               <h4>Data Handling Principles</h4>
               <ul>
                 <li>We do not sell contact information to unauthorized 3rd parties.</li>
                 <li>Communications between buyers and service providers occur through marketplace channels.</li>
-                <li>Payment terms and commercial settlements in Phase 1 occur directly between counter-parties.</li>
+                <li>Payment terms and commercial settlements occur directly between participating businesses.</li>
               </ul>
             </div>
           )}
@@ -43,12 +43,12 @@ export function PolicyModal({ type, isOpen, onClose }) {
               <p><strong>Terms of Use — B2B Marketplace Platform</strong></p>
               <p>
                 Welcome to VendorVerse. By accessing this platform, buyers and vendors agree to conduct trade
-                honestly, maintain up-to-date business registrations, and deliver goods and services as quoted.
+                honestly, maintain accurate business information, and deliver goods and services as quoted.
               </p>
-              <h4>Verification Standards</h4>
+              <h4>Marketplace Standards</h4>
               <p>
-                Vendor verification badges reflect documentary review and site verification at the recorded inspection date.
-                Users must independently evaluate quotation terms, delivery timelines, and warranty terms.
+                Businesses are responsible for the accuracy of their service scopes and quotations.
+                Users should independently evaluate quotation terms, delivery timelines, and warranty terms before confirming orders.
               </p>
             </div>
           )}
@@ -57,8 +57,8 @@ export function PolicyModal({ type, isOpen, onClose }) {
             <div>
               <p><strong>Cookie &amp; Local Storage Policy</strong></p>
               <p>
-                VendorVerse utilizes standard session cookies and browser local storage to preserve your launch city preference,
-                selected intent tabs, and active session authentication. No non-essential tracking pixels are installed.
+                VendorVerse utilizes standard session cookies and browser local storage to preserve your selected city preference,
+                active search filters, and session state. No non-essential tracking pixels are installed.
               </p>
             </div>
           )}
@@ -77,8 +77,8 @@ export function PolicyModal({ type, isOpen, onClose }) {
             <div>
               <p><strong>Careers at VendorVerse</strong></p>
               <p>
-                We are building VendorVerse&apos;s Phase 1 operations across Jaipur, Ajmer, Sikar, and Delhi NCR.
-                Roles span regional vendor onboarding, partner success, and product engineering.
+                We are growing VendorVerse&apos;s operations across Jaipur, Ajmer, Sikar, and Delhi NCR.
+                Roles span regional partner onboarding, operations, and product engineering.
               </p>
               <p>Reach out with your background at careers@vendorverse.in.</p>
             </div>
@@ -86,8 +86,8 @@ export function PolicyModal({ type, isOpen, onClose }) {
 
           {type === 'contact' && (
             <div>
-              <p><strong>Contact Support &amp; Launch Markets</strong></p>
-              <p>Phase 1 Launch Operations: Jaipur, Ajmer, Sikar &amp; Delhi NCR</p>
+              <p><strong>Contact Support &amp; Regional Offices</strong></p>
+              <p>Regional Coverage: Jaipur, Ajmer, Sikar &amp; Delhi NCR</p>
               <p>Support Email: support@vendorverse.in</p>
               <p>Hours: Mon &ndash; Sat, 9:00 AM &ndash; 7:00 PM IST</p>
             </div>

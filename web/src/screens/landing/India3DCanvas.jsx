@@ -501,7 +501,7 @@ export function India3DCanvas({ selectedCityId, onSelectCity }) {
   if (hasWebGlError) {
     const svgStates = buildStateSvgPaths()
     return (
-      <div className="india-map-svg-fallback" role="region" aria-label="Interactive India Launch Map">
+      <div className="india-map-svg-fallback" role="region" aria-label="Interactive India Marketplace Map">
         <svg viewBox="0 0 600 620" className="india-svg-element">
           <defs>
             <linearGradient id="skyStateGrad" x1="0" y1="0" x2="1" y2="1">
@@ -571,7 +571,7 @@ export function India3DCanvas({ selectedCityId, onSelectCity }) {
       <div
         ref={containerRef}
         className="india-3d-canvas-host"
-        aria-label="Interactive 3D Map of India Launch Markets"
+        aria-label="Interactive 3D India Marketplace Map"
       />
 
       {/* Synchronized Interactive 2D Projected Labels with Anti-Overlap Offsets */}
@@ -599,16 +599,16 @@ export function India3DCanvas({ selectedCityId, onSelectCity }) {
         })}
       </div>
 
-      {/* Accurate Hover Tooltip (Zero Fabricated Counts) */}
+      {/* Hover City Tooltip */}
       {hoveredCityObj && (
         <div className="map-hover-tooltip">
           <strong>{hoveredCityObj.name}</strong>
-          <span>{hoveredCityObj.state} • {hoveredCityObj.badge}</span>
+          <span>{hoveredCityObj.state} • {hoveredCityObj.tagline}</span>
         </div>
       )}
 
       <div className="map-drag-hint">
-        <span>Drag to rotate • Click any Phase 1 city marker</span>
+        <span>Drag to rotate • Click any highlighted city marker</span>
       </div>
     </div>
   )

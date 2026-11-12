@@ -92,10 +92,10 @@ export function WebsiteHome() {
         {/* 3. Explore Industries Section (3D Tactile Photography Cards) */}
         <IndustriesCarousel />
 
-        {/* 4. Interactive 3D India Map across Launch Cities */}
+        {/* 4. Interactive 3D India Map across Key Cities */}
         <IndiaMapSection />
 
-        {/* 5. How VendorVerse Works (4 Dimensional Steps + Phase 1 Trust Architecture) */}
+        {/* 5. How VendorVerse Works (4 Dimensional Steps + Platform Highlights) */}
         <HowItWorks />
 
         {/* 6. Post a Requirement / RFQ Highlight Section */}

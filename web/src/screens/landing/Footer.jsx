@@ -52,7 +52,7 @@ export function Footer({ onOpenVendorApply }) {
           </div>
 
           <p className="footer-brand-desc">
-            Connect with regional service providers and B2B suppliers across our Phase 1 launch markets.
+            Connect with regional service providers and B2B suppliers across Jaipur, Ajmer, Sikar, and Delhi NCR.
           </p>
 
           {/* Social Icons */}
@@ -273,7 +273,7 @@ export function Footer({ onOpenVendorApply }) {
             {emailError && <p className="subscribe-error-msg">{emailError}</p>}
             {subscribeSuccess && (
               <p className="subscribe-success-msg">
-                Subscribed (Demo Preview) &mdash; Marketplace launch updates are active in demo mode.
+                Thank you for subscribing &mdash; you will receive VendorVerse updates at your inbox.
               </p>
             )}
           </form>

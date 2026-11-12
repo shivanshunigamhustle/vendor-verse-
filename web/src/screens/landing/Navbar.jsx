@@ -132,7 +132,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 >
                   <span className="dropdown-icon">🏢</span>
                   <div>
-                    <strong>Phase 1 Live Industries</strong>
+                    <strong>Core Industries</strong>
                     <small>Home, Construction, Events, Professional, Wholesale</small>
                   </div>
                 </a>
@@ -157,7 +157,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                   <span className="dropdown-icon">🔍</span>
                   <div>
                     <strong>Explore Marketplace</strong>
-                    <small>Search, filters & verified vendor listings</small>
+                    <small>Browse categories, services &amp; supplier profiles</small>
                   </div>
                 </button>
                 <a
@@ -172,7 +172,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 >
                   <span className="dropdown-icon">📍</span>
                   <div>
-                    <strong>Launch Cities</strong>
+                    <strong>Cities &amp; Regions</strong>
                     <small>Jaipur, Ajmer, Sikar, Delhi NCR</small>
                   </div>
                 </a>
@@ -212,8 +212,8 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 >
                   <span className="dropdown-icon">⚡</span>
                   <div>
-                    <strong>For Buyers & Businesses</strong>
-                    <small>Discover, compare &amp; request Phase 1 services</small>
+                    <strong>For Buyers &amp; Businesses</strong>
+                    <small>Discover suppliers, compare quotes &amp; manage orders</small>
                   </div>
                 </a>
                 <a
@@ -332,7 +332,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 e.stopPropagation()
                 setCityOpen((v) => !v)
               }}
-              title="Launch Markets"
+              title="Select City"
             >
               <span className="flag-icon">🇮🇳</span>
               <span>{locale?.city || 'Jaipur'}</span>
@@ -343,7 +343,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
 
             {cityOpen && (
               <div className="nav-dropdown-panel small-panel" role="menu">
-                <div className="panel-header-sub">Phase 1 Live Markets</div>
+                <div className="panel-header-sub">Select City</div>
                 {['Jaipur', 'Ajmer', 'Sikar', 'Delhi NCR'].map((c) => (
                   <button
                     key={c}
@@ -428,7 +428,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
               }}
             >
-              📍 Launch Markets (Jaipur, Ajmer, Sikar, Delhi NCR)
+              📍 Cities (Jaipur, Ajmer, Sikar, Delhi NCR)
             </a>
             <a
               href="#how"

@@ -4,7 +4,7 @@ import {
   FilePlus2,
   Layers,
   Briefcase,
-  ArrowRight,
+  ChevronRight,
   ShieldCheck,
   Scale,
   ClipboardCheck,
@@ -20,7 +20,7 @@ const STEPS = [
   {
     num: '01',
     title: 'Discover',
-    desc: 'Search vendors, bulk suppliers, and regional services across live launch cities.',
+    desc: 'Search service providers, bulk suppliers, and businesses across active cities.',
     Icon: Search,
   },
   {
@@ -46,7 +46,7 @@ const STEPS = [
 const TRUST_POINTS = [
   {
     id: 'structured',
-    title: 'Reviewed Onboarding',
+    title: 'Structured Onboarding',
     subtitle: 'Category, service area & requirement alignment',
     Icon: ShieldCheck,
   },
@@ -88,11 +88,32 @@ export function HowItWorks() {
 
     const ctx = gsap.context(() => {
       gsap.from('.hiw-step-wrap', {
-        y: 22,
-        rotateX: 5,
-        duration: 0.65,
-        stagger: 0.1,
+        y: 24,
+        z: -16,
+        rotateX: 5.5,
+        scale: 0.985,
+        transformPerspective: 1150,
+        duration: 0.68,
+        stagger: 0.11,
         ease: 'power3.out',
+        clearProps: 'transform',
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: '.hiw-steps-row',
+          scroller: scrollerEl,
+          start: 'top 90%',
+          once: true,
+        },
+      })
+
+      gsap.from('.hiw-connector-line', {
+        scaleX: 0,
+        transformOrigin: 'left center',
+        duration: 0.45,
+        stagger: 0.12,
+        delay: 0.12,
+        ease: 'power2.out',
+        clearProps: 'transform',
         immediateRender: false,
         scrollTrigger: {
           trigger: '.hiw-steps-row',
@@ -103,10 +124,11 @@ export function HowItWorks() {
       })
 
       gsap.from('.hiw-arrow-connector', {
-        x: -8,
-        duration: 0.45,
-        stagger: 0.1,
+        x: -10,
+        duration: 0.5,
+        stagger: 0.12,
         ease: 'power2.out',
+        clearProps: 'transform',
         immediateRender: false,
         scrollTrigger: {
           trigger: '.hiw-steps-row',
@@ -117,10 +139,13 @@ export function HowItWorks() {
       })
 
       gsap.from('.hiw-trust-card', {
-        y: 16,
-        duration: 0.5,
-        stagger: 0.08,
+        y: 18,
+        scale: 0.985,
+        transformPerspective: 1000,
+        duration: 0.55,
+        stagger: 0.085,
         ease: 'power2.out',
+        clearProps: 'transform',
         immediateRender: false,
         scrollTrigger: {
           trigger: '.hiw-trust-strip',
@@ -131,7 +156,14 @@ export function HowItWorks() {
       })
     }, el)
 
-    return () => ctx.revert()
+    const rafId = requestAnimationFrame(() => {
+      ScrollTrigger.refresh()
+    })
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      ctx.revert()
+    }
   }, [])
 
   return (
@@ -162,9 +194,9 @@ export function HowItWorks() {
                 <div className="hiw-step-wrap">
                   <TiltCard
                     className="hiw-step-tilt-card"
-                    maxTilt={7}
-                    scale={1.03}
-                    elevation={16}
+                    maxTilt={5.5}
+                    scale={1.025}
+                    elevation={14}
                   >
                     <div className="hiw-step-card">
                       <span className="step-num-badge">{step.num}</span>
@@ -180,7 +212,7 @@ export function HowItWorks() {
                 {index < STEPS.length - 1 && (
                   <div className="hiw-arrow-connector" aria-hidden="true">
                     <span className="hiw-connector-line" />
-                    <ArrowRight size={20} strokeWidth={2.2} />
+                    <ChevronRight size={16} strokeWidth={2.4} className="hiw-connector-head" />
                   </div>
                 )}
               </React.Fragment>
@@ -188,7 +220,7 @@ export function HowItWorks() {
           })}
         </div>
 
-        {/* Accurate Phase 1 Value Architecture Strip */}
+        {/* Value Architecture Strip */}
         <div className="hiw-trust-strip">
           {TRUST_POINTS.map((tp) => {
             const Icon = tp.Icon

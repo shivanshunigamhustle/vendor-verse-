@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VendorVerse - Explore Verified B2B Vendors & Suppliers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#5b21d6;--p2:#7c3aed;--p-dark:#4c1d95;
+  --navy:#1b1b4b;--mut:#46466a;--mut2:#64748b;
+  --lav:#f6f2ff;--lav2:#ede9fe;--lav3:#ddd6fe;
+  --bg:#faf9ff;--card:#ffffff;
+  --bd:#e3dbfa;--bd2:#d8ccf9;
+  --green:#0b6b3a;--green-bg:#dcf7e8;
+  --amber:#8a5200;--amber-bg:#fff3d6;
+  --sh:0 4px 18px rgba(91,33,214,.08);
+  --sh2:0 12px 30px rgba(91,33,214,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  color:var(--navy);
+  background:linear-gradient(180deg,#f2edff 0,#faf9ff 340px) no-repeat,var(--bg);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Ticker */
+.ticker{display:flex;align-items:center;gap:12px;padding:0 12px 0 0;height:38px;background:linear-gradient(90deg,#1b1b4b,#5b21d6);color:#fff;font-size:13px;font-weight:500;overflow:hidden;position:relative;z-index:60}
+.tlabel{display:flex;align-items:center;gap:8px;flex:none;height:100%;padding:0 24px 0 16px;background:#fff;color:var(--p);font-weight:800;font-size:12px;letter-spacing:.06em;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.tdot{width:8px;height:8px;border-radius:50%;background:#e5322d;animation:tb 1.2s ease-in-out infinite}
+@keyframes tb{50%{opacity:.25}}
+.tview{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent)}
+.ttrack{display:flex;width:max-content;animation:tk 48s linear infinite}
+.tg{display:flex;align-items:center;flex:none}
+.ti{padding:0 18px;white-space:nowrap}.ti:hover{text-decoration:underline}
+.tsep{font-size:8px;opacity:.7}
+@keyframes tk{to{transform:translateX(-50%)}}
+.tview:hover .ttrack,.ticker.paused .ttrack{animation-play-state:paused}
+.tpause{flex:none;width:28px;height:28px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tpause:hover{background:rgba(255,255,255,.3)}
+.tpause .pl{display:none}.ticker.paused .pl{display:block}.ticker.paused .pi{display:none}
+
+/* Navbar */
+.vvhead{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid #eeeaf8;transition:box-shadow .25s}
+.vvhead.scrolled{box-shadow:0 8px 28px rgba(40,20,100,.12)}
+.vvin{max-width:1360px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 32px}
+.brand{display:flex;align-items:center;gap:11px;flex:none}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#5b21d6 60%,#3b0fa3);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;box-shadow:0 6px 16px rgba(91,33,214,.35)}
+.bt{display:flex;flex-direction:column;line-height:1.15}.bt b{font-size:18px;letter-spacing:-.01em}.bt small{font-size:11px;color:var(--mut2)}
+.vvnav{display:flex;align-items:center;gap:4px;margin-left:14px;padding:4px;border-radius:14px;background:var(--lav);border:1px solid var(--bd)}
+.vvl{position:relative;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;font-weight:600;font-size:13.5px;color:#2d2d5c;transition:background .2s,color .2s;white-space:nowrap}
+.vvl:hover{background:#fff;color:var(--p)}
+.vvl.on{background:#fff;color:var(--p);font-weight:700;box-shadow:0 2px 10px rgba(91,33,214,.14)}
+.vvright{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.locwrap{position:relative}
+.vvloc{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--bd);border-radius:12px;background:#faf8ff;color:var(--navy);cursor:pointer;white-space:nowrap;font-size:13px;font-weight:600}
+.vvloc svg:first-child{color:var(--p)}.vvloc:hover{border-color:#b9a2f5;background:#fff}
+.vvloc[aria-expanded=true]{border-color:var(--p);background:var(--lav2)}
+.vvloc[aria-expanded=true] svg:last-child{transform:rotate(180deg)}
+.locpanel{position:absolute;right:0;top:calc(100% + 8px);z-index:70;width:min(320px,90vw);padding:8px;border-radius:16px;background:#fff;border:1px solid #eeeaf8;box-shadow:0 20px 45px rgba(40,20,100,.18)}
+.locpanel[hidden]{display:none}
+.lochead{padding:8px 10px 4px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mut2)}
+.locopt{display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;border:0;border-radius:10px;background:none;font:600 13px 'Plus Jakarta Sans',sans-serif;color:var(--navy);text-align:left;cursor:pointer}
+.locopt span{flex:1}.locopt .chk{visibility:hidden;color:var(--p)}
+.locopt:hover{background:var(--lav)}.locopt.sel{background:var(--lav2);color:var(--p);font-weight:700}.locopt.sel .chk{visibility:visible}
+.locopt small{font-size:11px;color:var(--mut2);display:block;margin-top:1px}
+.vvicon{position:relative;display:flex;align-items:center;justify-content:center;gap:5px;min-width:40px;height:40px;padding:0 8px;border:0;border-radius:12px;background:none;font:600 13px 'Plus Jakarta Sans',sans-serif;color:var(--navy);cursor:pointer;white-space:nowrap}
+.vvicon:hover{background:var(--lav2);color:var(--p)}
+.dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#e5322d;border:2px solid #fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--p2),var(--p));color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;box-shadow:0 6px 18px rgba(91,33,214,.28);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(91,33,214,.38)}
+.btn.sm{padding:7px 13px;font-size:12.5px;border-radius:10px}
+.btn-o{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border:1.5px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.btn-o:hover{background:var(--lav);color:var(--p)}
+.btn-o.sm{padding:7px 12px;font-size:12.5px;border-radius:10px}
+.burger{display:none;width:40px;height:40px;border:1px solid var(--bd);border-radius:12px;background:#fff;color:var(--navy);cursor:pointer;align-items:center;justify-content:center}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#5b21d6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;flex:none}
+
+/* Main Layout */
+.wrap{max-width:1360px;margin:0 auto;padding:24px 32px 64px}
+.phead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.phead h1{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.phead p{margin-top:4px;font-size:14px;color:var(--mut)}
+.pbadge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--lav);border:1px solid var(--bd);color:var(--p);font-size:11.5px;font-weight:700}
+
+/* What + Where Search Form */
+.xbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 10px;border-radius:20px;background:#fff;border:1.5px solid var(--bd2);box-shadow:0 8px 24px rgba(91,33,214,.10);transition:border-color .2s,box-shadow .2s}
+.xbar:focus-within{border-color:var(--p);box-shadow:0 10px 28px rgba(91,33,214,.16)}
+.xfield{display:flex;align-items:center;gap:10px;padding:0 8px;min-width:0}
+.xfield.what{flex:2 1 280px}
+.xfield.where{flex:1.4 1 200px}
+.xfield svg{color:var(--p);flex:none}
+.xfield input,.xfield select{width:100%;height:44px;border:0;outline:0;background:none;font-size:14px;font-weight:600;color:var(--navy)}
+.xfield input::placeholder{color:var(--mut2);font-weight:500}
+.xfield select{cursor:pointer}
+.xdiv{width:1px;height:30px;background:var(--bd);flex:none}
+.xbtn-sub{padding:12px 24px;border-radius:14px;font-size:14px}
+
+/* Filter Bar */
+.filter-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--bd);border-radius:999px;background:#fff;color:var(--navy);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--p);color:var(--p);background:var(--lav)}
+.chip.on{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 4px 12px rgba(91,33,214,.24)}
+.chip small{opacity:.75;font-weight:700}
+.chip.pending{border-style:dashed}
+
+/* Secondary Filters & Sort */
+.subfilters{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;background:#fff;border:1px solid var(--bd);margin-bottom:18px;font-size:13px}
+.sf-group{display:flex;align-items:center;gap:8px}
+.sf-label{font-weight:700;color:var(--mut2);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.sf-select{padding:6px 10px;border-radius:9px;border:1px solid var(--bd);background:#faf8ff;font-size:12.5px;font-weight:600;color:var(--navy);outline:none;cursor:pointer}
+.sf-select:focus{border-color:var(--p)}
+.sf-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;color:var(--navy);user-select:none}
+.sf-toggle input{accent-color:var(--p)}
+.sf-reset{margin-left:auto;border:0;background:none;color:var(--p);font-weight:700;cursor:pointer;padding:4px 8px;border-radius:6px;font-size:12.5px}
+.sf-reset:hover{text-decoration:underline}
+
+/* Market Notice / Banner */
+.market-notice{padding:14px 18px;border-radius:14px;background:var(--lav);border:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;font-size:13px}
+.market-notice.unavail{background:#fff8eb;border-color:#f6d8a7;color:#7a4400}
+.market-notice b{color:var(--navy)}
+.market-notice.unavail b{color:#7a4400}
+
+/* Results Count & Sort Header */
+.rbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 16px}
+.rbar p{font-size:14.5px;color:var(--mut)}.rbar b{color:var(--navy);font-size:16px}
+.rbar .sel{padding:7px 12px;border:1px solid var(--bd);border-radius:10px;background:#fff;font-size:13px;font-weight:600;color:var(--navy);outline:none;cursor:pointer}
+
+/* Cards Grid */
+.cards{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.card{background:#fff;border:1px solid #eeeaf8;border-radius:18px;box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
+.vthumb{position:relative;height:120px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.9)}
+.vthumb-icon{filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
+.vbadge{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:rgba(27,27,75,.88);color:#fff;font-size:11px;font-weight:700;backdrop-filter:blur(4px)}
+.vbadge svg{color:#4ade80}
+.vbadge.pending{background:rgba(120,53,15,.9)}
+.vbadge.pending svg{color:#fbbf24}
+.spon-tag{position:absolute;left:10px;top:10px;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.95);color:var(--p);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.heart{position:absolute;right:10px;top:10px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.95);color:var(--mut);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:color .15s}
+.heart:hover{color:#d92d20}
+.heart[aria-pressed=true]{color:#d92d20}.heart[aria-pressed=true] svg{fill:#d92d20}
+.vbody{padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+.vtitle-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.vbody h3{font-size:16px;font-weight:800;line-height:1.25}
+.vkind{display:inline-block;padding:2px 7px;border-radius:6px;background:var(--lav);color:var(--p);font-size:11px;font-weight:700;white-space:nowrap}
+.meta-line{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut)}
+.meta-line svg{color:var(--mut2);flex:none}
+.why-matched{padding:7px 10px;border-radius:9px;background:var(--lav);border-left:3px solid var(--p);font-size:11.5px;color:var(--navy);line-height:1.4}
+.why-matched b{color:var(--p);font-weight:700}
+.trade-specs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px 10px;border-radius:10px;background:#faf8ff;border:1px solid #eeeaf8;font-size:11.5px}
+.trade-specs span{color:var(--mut2);display:block}
+.trade-specs b{color:var(--navy);font-weight:700}
+.vact{display:flex;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid #f0ebfb}
+.vact .btn{flex:1}
+.vact .btn-o{flex:1}
+
+/* Empty State */
+.empty{grid-column:1/-1;padding:56px 24px;text-align:center;color:var(--mut);background:#fff;border-radius:20px;border:1px solid var(--bd)}
+.empty .ei{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:var(--lav2);color:var(--p);display:flex;align-items:center;justify-content:center}
+.empty h3{color:var(--navy);font-size:19px;margin-bottom:6px}
+.empty p{font-size:14px;max-width:440px;margin:0 auto 18px;line-height:1.5}
+
+/* Dialog & Drawer */
+dialog{width:min(560px,calc(100% - 24px));max-height:calc(100vh - 24px);padding:0;border:0;border-radius:22px;box-shadow:0 30px 80px rgba(27,27,75,.4);color:var(--navy);font-family:inherit}
+dialog::backdrop{background:rgba(27,27,75,.55);backdrop-filter:blur(3px)}
+.dh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:22px 24px 8px}
+.dh h2{font-size:20px}.dh p{font-size:13px;color:var(--mut);margin-top:4px}
+.db{padding:12px 24px 24px;display:grid;gap:14px}
+.xbtn{width:36px;height:36px;border:0;border-radius:50%;background:var(--lav);color:var(--navy);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
+.xbtn:hover{background:var(--lav3)}
+.inp,.sel,.ta{width:100%;padding:10px 12px;border:1.5px solid var(--bd2);border-radius:12px;background:#fff;color:var(--navy);font-size:13.5px;font-weight:500}
+.ta{min-height:90px;resize:vertical}
+.inp:focus,.sel:focus,.ta:focus{border-color:var(--p);outline:0;box-shadow:0 0 0 3px rgba(91,33,214,.15)}
+label.fl{display:block;font-size:12.5px;font-weight:700;margin-bottom:5px;color:var(--navy)}
+.demo-pill{display:inline-block;padding:3px 8px;border-radius:6px;background:var(--lav2);color:var(--p);font-size:11px;font-weight:700}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:28px;z-index:100;transform:translate(-50%,30px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:14px;background:var(--navy);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 16px 40px rgba(27,27,75,.4);transition:opacity .25s,transform .25s;max-width:calc(100% - 24px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast svg{color:#4ade80}
+
+/* Footer */
+.foot{border-top:1px solid #eeeaf8;background:#fff;padding:22px 32px;text-align:center;font-size:13px;color:var(--mut2)}
+.foot b{color:var(--navy)}
+
+@media (max-width:1020px){
+  .burger{display:flex}
+  .vvnav{display:none;position:absolute;top:100%;left:0;right:0;margin:0;flex-direction:column;align-items:stretch;gap:2px;padding:10px 20px 16px;border-radius:0 0 18px 18px;background:#fff;box-shadow:0 20px 30px rgba(40,20,100,.14)}
+  .vvnav.open{display:flex}
+  .vvin{padding:12px 20px}.wrap{padding:20px 16px 48px}
+}
+@media (max-width:640px){
+  .bt small,.hideM{display:none}
+  .xbar{flex-direction:column;align-items:stretch;gap:6px}
+  .xdiv{display:none}
+  .xfield.what,.xfield.where{flex:1 1 auto}
+  .xbtn-sub{width:100%}
+  .cards{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Announcement Ticker -->
+<div class="ticker" id="ticker" role="region" aria-label="Announcements">
+  <span class="tlabel"><i class="tdot"></i>NEW</span>
+  <div class="tview"><div class="ttrack" id="ttrack"></div></div>
+  <button class="tpause" id="tpause" type="button" aria-label="Pause announcements" aria-pressed="false">
+    <svg class="pi" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    <svg class="pl" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+  </button>
+</div>
+
+<!-- Navbar -->
+<header class="vvhead" id="vvhead">
+  <div class="vvin" id="vvin"></div>
+</header>
+
+<!-- Main Explore Content -->
+<main class="wrap">
+  <div class="phead">
+    <div>
+      <h1 id="page-title">Explore Verified Vendors & Suppliers</h1>
+      <p id="page-sub">Find verified B2B partners across live P1 launch markets: Jaipur, Ajmer, Sikar, and Delhi NCR.</p>
+    </div>
+    <span class="pbadge">P1 Launch Scope &middot; Direct B2B Quotes &middot; INR Only</span>
+  </div>
+
+  <!-- Search Form: What + Where -->
+  <form class="xbar" id="xform" role="search" aria-label="Search vendors and suppliers">
+    <label class="xfield what">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="sr">What do you need?</span>
+      <input id="q" type="search" placeholder="What do you need? (e.g. electrical cables, cement, CA, catering, logistics)" autocomplete="off">
+    </label>
+    <span class="xdiv"></span>
+    <label class="xfield where">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <span class="sr">Where do you need it?</span>
+      <select id="loc" aria-label="Select location"></select>
+    </label>
+    <button class="btn xbtn-sub" type="submit" id="btn-search">Search</button>
+  </form>
+
+  <!-- P1 Category Chips -->
+  <div class="filter-row">
+    <div class="chips" id="chips" role="group" aria-label="Categories"></div>
+  </div>
+
+  <!-- Secondary Discovery Filters -->
+  <div class="subfilters" id="subfilters">
+    <div class="sf-group">
+      <span class="sf-label">Vendor Type:</span>
+      <select class="sf-select" id="f-type">
+        <option value="All">All Types</option>
+        <option value="Supplier">Suppliers & Distributors</option>
+        <option value="Contractor">Contractors & Builders</option>
+        <option value="Service">Service Providers</option>
+        <option value="Manufacturer">Manufacturers</option>
+      </select>
+    </div>
+    <div class="sf-group">
+      <span class="sf-label">Coverage:</span>
+      <select class="sf-select" id="f-cov">
+        <option value="All">All Coverage</option>
+        <option value="Local">City / Local Only</option>
+        <option value="Regional">Regional (Statewide)</option>
+        <option value="Nationwide">Nationwide Delivery</option>
+      </select>
+    </div>
+    <div class="sf-group">
+      <label class="sf-toggle">
+        <input type="checkbox" id="f-verified">
+        <span>Verified only (L1/L2)</span>
+      </label>
+    </div>
+    <button type="button" class="sf-reset" id="f-reset">Reset filters</button>
+  </div>
+
+  <!-- Unavailable Market Alert (Appears when an unlaunched city is selected) -->
+  <div id="market-alert" style="display:none"></div>
+
+  <!-- Results Count & Sorting Bar -->
+  <div class="rbar">
+    <p aria-live="polite"><b id="count">0</b> <span id="count-label">vendors found</span></p>
+    <div>
+      <label class="sr" for="sort">Sort by</label>
+      <select class="sel" id="sort">
+        <option value="rating">Top rated</option>
+        <option value="reviews">Most reviewed</option>
+        <option value="lead">Fastest response / lead time</option>
+        <option value="name">Name A to Z</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Vendor Cards Grid -->
+  <div class="cards" id="cards"></div>
+</main>
+
+<!-- Footer -->
+<footer class="foot">
+  <p><b>VendorVerse</b> &middot; Global B2B Marketplace &middot; P1 Launch Cities: Jaipur, Ajmer, Sikar & Delhi NCR.</p>
+  <p style="margin-top:4px;font-size:12px;color:var(--mut2)">All data shown is realistic launch sample data. Direct B2B transactions only &middot; No platform commission or cart checkout in Phase 1.</p>
+</footer>
+
+<!-- Quote Request Dialog -->
+<dialog id="qd" aria-labelledby="qdt">
+  <form id="qform" method="dialog">
+    <div class="dh">
+      <div>
+        <h2 id="qdt">Request a Quotation (RFQ)</h2>
+        <p id="qdsub">Send a direct B2B requirement to verified vendors.</p>
+      </div>
+      <button class="xbtn" type="button" id="qclose" aria-label="Close">×</button>
+    </div>
+    <div class="db">
+      <div>
+        <label class="fl" for="qv">Send quotation to</label>
+        <select class="sel" id="qv" name="v"></select>
+      </div>
+      <div>
+        <label class="fl" for="qt">What do you need?</label>
+        <input class="inp" id="qt" name="t" required placeholder="e.g. 500 meters of 4-core copper cable or 40 tons TMT steel">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="fl" for="qqty">Quantity / Scope</label>
+          <input class="inp" id="qqty" name="qty" required placeholder="e.g. 500 units / 3,000 sq ft">
+        </div>
+        <div>
+          <label class="fl" for="qdate">Needed by date</label>
+          <input class="inp" id="qdate" name="d" type="date">
+        </div>
+      </div>
+      <div>
+        <label class="fl" for="qloc">Delivery / Service Location</label>
+        <select class="sel" id="qloc" name="loc">
+          <option>Jaipur, Rajasthan</option>
+          <option>Delhi NCR</option>
+          <option>Ajmer, Rajasthan</option>
+          <option>Sikar, Rajasthan</option>
+        </select>
+      </div>
+      <div>
+        <label class="fl" for="qn">Specifications & Notes</label>
+        <textarea class="ta" id="qn" name="n" placeholder="Grade, brand preference, GST invoice requirements, or scope details..."></textarea>
+      </div>
+      <div style="padding:10px;border-radius:10px;background:var(--lav);font-size:12px;color:var(--mut)">
+        <span class="demo-pill">P1 Demo RFQ</span> Vendors will reply with itemized quotations. Payment is settled directly with the vendor upon agreed terms.
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+        <button type="button" class="btn-o" id="qcancel">Cancel</button>
+        <button class="btn" type="submit">Submit RFQ</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Vendor Details Modal -->
+<dialog id="vd" aria-labelledby="vdt">
+  <div class="dh">
+    <div>
+      <h2 id="vdt">Vendor Profile & Verification</h2>
+      <p id="vdsub">Evidence-based credentials & declared service area.</p>
+    </div>
+    <button class="xbtn" type="button" id="vclose" aria-label="Close">×</button>
+  </div>
+  <div class="db" id="vdb"></div>
+</dialog>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+
+/* SVG Icons dictionary */
+var P={
+  home:'<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+  chart:'<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.7 7L4 20l1.2-4.6A8 8 0 1 1 21 12z"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+  pin:'<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  down:'<path d="m6 9 6 6 6-6"/>',
+  bell:'<path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  heart:'<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/>',
+  check:'<path d="m5 12 5 5 9-10"/>',
+  build:'<path d="M3 21h18M6 21V8l6-4 6 4v13"/><path d="M10 21v-6h4v6"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  utensils:'<path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v14a3 3 0 0 1-3 3H9"/><path d="M6 2v20"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  truck:'<path d="M2 6h11v10H2zM13 9h4l4 4v3h-8z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  box:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'
+};
+function ic(n,s){s=s||18;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[n]||P.search)+'</svg>'}
+var star='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3 6.5 7 .9-5.1 4.9 1.3 7L12 17.8 5.8 21.3l1.3-7L2 9.4l7-.9z" fill="#f5a623"/></svg>';
+var tick=function(s){return '<svg width="'+(s||14)+'" height="'+(s||14)+'" viewBox="0 0 24 24" role="img" aria-label="Verified"><circle cx="12" cy="12" r="10" fill="#5b21d6"/><path d="m8 12 3 3 5-6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'};
+
+/* Localization Strings Dictionary (EN & HI) */
+var currentLang = 'en';
+var I18N = {
+  en: {
+    title: 'Explore Verified Vendors & Suppliers',
+    subtitle: 'Find verified B2B partners across live P1 launch markets: Jaipur, Ajmer, Sikar, and Delhi NCR.',
+    searchPlaceholder: 'What do you need? (e.g. electrical cables, cement, CA, catering, logistics)',
+    allCategories: 'All Categories',
+    allLocations: 'All Live Markets (Jaipur, Ajmer, Sikar, Delhi NCR)',
+    postReq: 'Post requirement',
+    requestQuote: 'Request a quote',
+    viewDetails: 'View details',
+    whyMatched: 'Why this matched:',
+    verified: 'Verified',
+    unavailTitle: 'Market not yet live',
+    unavailBody: 'VendorVerse is currently live in Jaipur, Ajmer, Sikar, and Delhi NCR. {city} is scheduled for subsequent rollout. No local vendors are active here yet.',
+    joinWaitlist: 'Join waitlist for {city}',
+    switchLive: 'Switch to Jaipur (Live Market)',
+    noResultsTitle: 'No matching vendors found',
+    noResultsBody: 'No vendors match your filters. Try clearing your filters or post an open RFQ to receive custom bids.',
+    clearFilters: 'Clear all filters'
+  },
+  hi: {
+    title: 'सत्यापित वेंडर और आपूर्तिकर्ता खोजें',
+    subtitle: 'जयपुर, अजमेर, सीकर और दिल्ली एनसीआर में सत्यापित B2B साझेदार खोजें।',
+    searchPlaceholder: 'आपको क्या चाहिए? (उदा. केबल्स, सीमेंट, सीए, कैटरिंग, ट्रांसपोर्ट)',
+    allCategories: 'सभी श्रेणियां',
+    allLocations: 'सभी सक्रिय बाजार (जयपुर, अजमेर, सीकर, दिल्ली NCR)',
+    postReq: 'आवश्यकता पोस्ट करें',
+    requestQuote: 'कोटेशन मांगें',
+    viewDetails: 'विवरण देखें',
+    whyMatched: 'यह मिलान क्यों हुआ:',
+    verified: 'सत्यापित',
+    unavailTitle: 'यह शहर अभी सक्रिय नहीं है',
+    unavailBody: 'VendorVerse वर्तमान में केवल जयपुर, अजमेर, सीकर और दिल्ली NCR में लाइव है। {city} में सेवाएं जल्द शुरू होंगी।',
+    joinWaitlist: '{city} के लिए प्रतीक्षा सूची में शामिल हों',
+    switchLive: 'जयपुर (सक्रिय बाजार) चुनें',
+    noResultsTitle: 'कोई वेंडर नहीं मिला',
+    noResultsBody: 'आपके फ़िल्टर के अनुसार कोई वेंडर नहीं मिला। फ़िल्टर बदलें या नई आवश्यकता पोस्ट करें।',
+    clearFilters: 'फ़िल्टर हटाएं'
+  }
+};
+function t(k){ return (I18N[currentLang] && I18N[currentLang][k]) || I18N.en[k] || k; }
+
+/* P1 Live Launch Categories (Strictly 5 live categories + Manufacturing O-10 note) */
+var CATS = [
+  {id:'home',n:'Home & household services',i:'wrench',g:'linear-gradient(135deg,#38bdf8,#0284c7 60%,#0369a1)'},
+  {id:'build',n:'Construction & infrastructure',i:'build',g:'linear-gradient(135deg,#fb923c,#ea580c 60%,#c2410c)'},
+  {id:'event',n:'Events & entertainment',i:'utensils',g:'linear-gradient(135deg,#fb7185,#e11d48 60%,#be123c)'},
+  {id:'staff',n:'Professional & business services',i:'users',g:'linear-gradient(135deg,#818cf8,#6366f1 60%,#4338ca)'},
+  {id:'elec',n:'Wholesale, suppliers & distribution',i:'box',g:'linear-gradient(135deg,#fbbf24,#d97706 60%,#b45309)'},
+  {id:'manu',n:'Manufacturing & OEM',i:'gear',g:'linear-gradient(135deg,#94a3b8,#64748b 60%,#475569)',pending:true}
+];
+
+/* P1 Launch Markets (Strictly Jaipur, Ajmer, Sikar, Delhi NCR) */
+var LIVE_MARKETS = ['Jaipur', 'Ajmer', 'Sikar', 'Delhi NCR'];
+var LOCS_NAV = [
+  {name:'Jaipur, Rajasthan, India',city:'Jaipur',live:true},
+  {name:'Delhi NCR, India',city:'Delhi NCR',live:true},
+  {name:'Ajmer, Rajasthan, India',city:'Ajmer',live:true},
+  {name:'Sikar, Rajasthan, India',city:'Sikar',live:true},
+  {name:'Mumbai, Maharashtra, India',city:'Mumbai',live:false},
+  {name:'Pune, Maharashtra, India',city:'Pune',live:false},
+  {name:'Bengaluru, Karnataka, India',city:'Bengaluru',live:false}
+];
+var CURRENT_LOC = LOCS_NAV[0].city;
+
+/* Realistic P1 compliant vendor data in Jaipur, Delhi NCR, Ajmer, Sikar */
+var VENDORS = [
+  {
+    id:1,
+    n:'BuildWell Infrastructure Pvt Ltd',
+    kind:'Contractor',
+    c:'Construction & infrastructure',
+    catId:'build',
+    city:'Jaipur',
+    coverage:'Regional',
+    serviceArea:'Jaipur, Sikar, Ajmer (150 km radius)',
+    rating:4.8,
+    reviews:142,
+    verifiedLevel:'L2 Business Verified',
+    verifiedDocs:['GSTIN (08AABCB1234F1Z1)','Shop & Establishment','PAN Card'],
+    verifiedDate:'Jan 2026',
+    moq:'Project basis (Min ₹50,000)',
+    leadTime:'2–3 days for site visit',
+    why:'Matched Construction contractor operating in Jaipur and regional areas.',
+    desc:'Turnkey civil construction, TMT steel framework, and structural concrete contracting.',
+    sponsored:false
+  },
+  {
+    id:2,
+    n:'Sharma Electricals & Wholesale Hardware',
+    kind:'Supplier',
+    c:'Wholesale, suppliers & distribution',
+    catId:'elec',
+    city:'Jaipur',
+    coverage:'Regional',
+    serviceArea:'Jaipur, Ajmer, Sikar & Rajasthan',
+    rating:4.6,
+    reviews:128,
+    verifiedLevel:'L2 Business Verified',
+    verifiedDocs:['GSTIN (08ABCPS1234F1Z5)','Bank Account Proof'],
+    verifiedDate:'Feb 2026',
+    moq:'100 units / ₹10,000 min order',
+    leadTime:'1–2 business days',
+    why:'Matched Wholesale electrical supplies distributor with verified stock in Jaipur.',
+    desc:'Authorized wholesale distributor of industrial wires, modular switches, power tools and switchgear.',
+    sponsored:true
+  },
+  {
+    id:3,
+    n:'Capital Freight & Logistics Hub',
+    kind:'Supplier',
+    c:'Wholesale, suppliers & distribution',
+    catId:'elec',
+    city:'Delhi NCR',
+    coverage:'Nationwide',
+    serviceArea:'Delhi NCR & Nationwide freight corridors',
+    rating:4.7,
+    reviews:89,
+    verifiedLevel:'L2 Business Verified',
+    verifiedDocs:['GSTIN (07AAECF9012M1Z8)','Fleet Commercial Permits'],
+    verifiedDate:'Dec 2025',
+    moq:'Full/Part truckload (LTL/FTL)',
+    leadTime:'Same-day dispatch',
+    why:'Matched B2B freight and logistics provider with declared coverage in Delhi NCR.',
+    desc:'B2B freight forwarding, industrial warehousing, and bulk cargo distribution across North India.',
+    sponsored:false
+  },
+  {
+    id:4,
+    n:'Apex Legal & Chartered Advisory',
+    kind:'Service',
+    c:'Professional & business services',
+    catId:'staff',
+    city:'Delhi NCR',
+    coverage:'Regional',
+    serviceArea:'Delhi NCR & Jaipur',
+    rating:4.9,
+    reviews:187,
+    verifiedLevel:'L2 Business Verified',
+    verifiedDocs:['ICAI Membership','Bar Council Registration','GSTIN'],
+    verifiedDate:'Mar 2026',
+    moq:'Hourly / Retainer (Min 1 month)',
+    leadTime:'Immediate consults',
+    why:'Matched Professional services with accredited CA and corporate legal advisors.',
+    desc:'Corporate taxation, GST filings, company incorporation, and commercial contract drafting.',
+    sponsored:false
+  },
+  {
+    id:5,
+    n:'BrightSpark Facility & Home Maintenance',
+    kind:'Service',
+    c:'Home & household services',
+    catId:'home',
+    city:'Jaipur',
+    coverage:'Local',
+    serviceArea:'Jaipur City (All zones)',
+    rating:4.8,
+    reviews:342,
+    verifiedLevel:'L1 Contact & Aadhaar Verified',
+    verifiedDocs:['Aadhaar KYC','Police Verification on file'],
+    verifiedDate:'Jan 2026',
+    moq:'Single service booking',
+    leadTime:'Within 4 hours',
+    why:'Matched Home & facility service provider locally based in Jaipur.',
+    desc:'Certified electricians, commercial plumbing teams, HVAC servicing, and deep sanitation.',
+    sponsored:false
+  },
+  {
+    id:6,
+    n:'Royal Heritage Events & Corporate Catering',
+    kind:'Service',
+    c:'Events & entertainment',
+    catId:'event',
+    city:'Ajmer',
+    coverage:'Regional',
+    serviceArea:'Ajmer, Pushkar & Jaipur',
+    rating:4.7,
+    reviews:64,
+    verifiedLevel:'L2 Business Verified',
+    verifiedDocs:['FSSAI Licence (12221026000142)','GSTIN (08AAECR5521N1Z3)'],
+    verifiedDate:'Feb 2026',
+    moq:'Min 50 guests / attendees',
+    leadTime:'Advance notice 5 days',
+    why:'Matched Event management and FSSAI-certified commercial catering in Ajmer.',
+    desc:'Corporate summits, trade show stalls, venue setup, and large-scale industrial catering.',
+    sponsored:false
+  },
+  {
+    id:7,
+    n:'Sikar Agro-Tech & Solar Solutions',
+    kind:'Supplier',
+    c:'Wholesale, suppliers & distribution',
+    catId:'elec',
+    city:'Sikar',
+    coverage:'Regional',
+    serviceArea:'Sikar, Jhunjhunu & Churu district',
+    rating:4.5,
+    reviews:41,
+    verifiedLevel:'L2 Business Verified',
+    verifiedDocs:['MNRE Empanelment','GSTIN (08AAYPS6612P1Z0)'],
+    verifiedDate:'Feb 2026',
+    moq:'3 kW installation / 5 units',
+    leadTime:'3–5 days',
+    why:'Matched Solar & electrical power supplies supplier operating in Sikar.',
+    desc:'Solar inverters, agricultural water pump electrification, and industrial solar rooftop setups.',
+    sponsored:false
+  },
+  {
+    id:8,
+    n:'UrbanBuild Aggregates & Cement Traders',
+    kind:'Supplier',
+    c:'Construction & infrastructure',
+    catId:'build',
+    city:'Jaipur',
+    coverage:'Regional',
+    serviceArea:'Jaipur, Dausa & Tonk',
+    rating:4.4,
+    reviews:53,
+    verifiedLevel:'L2 Business Verified',
+    verifiedDocs:['GSTIN (08AAECU4411Q1Z9)','Weight-bridge Calibration Proof'],
+    verifiedDate:'Jan 2026',
+    moq:'50 bags cement / 1 truckload aggregates',
+    leadTime:'Next-day delivery',
+    why:'Matched Construction supplies distributor with regional transport in Jaipur.',
+    desc:'Bulk supply of Grade 43/53 cement, crushed stone aggregates, fly-ash bricks, and sand.',
+    sponsored:false
+  },
+  {
+    id:9,
+    n:'Jaipur Precision Components (Decision O-10)',
+    kind:'Manufacturer',
+    c:'Manufacturing & OEM',
+    catId:'manu',
+    city:'Jaipur',
+    coverage:'Nationwide',
+    serviceArea:'Jaipur (VKIA) & Nationwide shipping',
+    rating:null, // Demonstrates honest: no rating fabricated for new vendor!
+    reviews:0,
+    verifiedLevel:'L2 Business Verified (P1 Decision O-10 Pending Confirmation)',
+    verifiedDocs:['Udyam MSME Registration','GSTIN'],
+    verifiedDate:'March 2026',
+    moq:'500 pcs batch',
+    leadTime:'15–20 days tooling & run',
+    why:'Matched Manufacturing & OEM supplier (Category status pending P1 confirmation).',
+    desc:'CNC machining, sheet metal enclosures, and automotive stamping parts for OEM assemblers.',
+    sponsored:false
+  }
+];
+
+var saved = {1:true, 2:true};
+var F = {
+  q: '',
+  cat: 'All',
+  loc: 'All',
+  type: 'All',
+  cov: 'All',
+  verifiedOnly: false,
+  sort: 'rating'
+};
+
+/* Toast Notification helper */
+function toast(m){
+  var t=$('#toast');
+  t.innerHTML=ic('check',18)+esc(m);
+  t.classList.add('show');
+  clearTimeout(toast.h);
+  toast.h=setTimeout(function(){t.classList.remove('show')},2800);
+}
+
+/* Announcements & Navbar Setup */
+var MSG = [
+  'P1 Launch Scope: Now live in Jaipur, Ajmer, Sikar, and Delhi NCR',
+  'Connect directly and securely with verified B2B vendors',
+  'Compare quotations side by side before issuing a work order',
+  'Transparent verification: Evidence-based GSTIN and business checks',
+  'Sample preview data &middot; Direct vendor payments (INR only &middot; No cart checkout)'
+];
+var NAV = [
+  ['home','Home','customer-panel.html#/home'],
+  ['compass','Explore','#'],
+  ['chart','Activity','customer-panel.html#/activity'],
+  ['chat','Messages','customer-panel.html#/messages'],
+  ['user','Profile','customer-panel.html#/profile']
+];
+
+function setupNav(){
+  var g=function(h){return '<div class="tg"'+(h?' aria-hidden="true"':'')+'>'+MSG.map(function(m){return '<span class="ti">'+m+'</span><span class="tsep" aria-hidden="true">&#9670;</span>'}).join('')+'</div>'};
+  $('#ttrack').innerHTML=g(0)+g(1);
+
+  $('#vvin').innerHTML=
+    '<a class="brand" href="customer-panel.html#/home" aria-label="VendorVerse home">'
+    +'<span class="logo">V</span><span class="bt"><b>VendorVerse</b><small>Global B2B Marketplace</small></span></a>'
+    +'<nav class="vvnav" id="vvnav" aria-label="Main">'
+    +NAV.map(function(n){var on=n[1]==='Explore';return '<a class="vvl'+(on?' on':'')+'"'+(on?' aria-current="page"':'')+' href="'+n[2]+'">'+ic(n[0])+n[1]+'</a>'}).join('')
+    +'</nav>'
+    +'<div class="vvright">'
+    +'<div class="locwrap">'
+    +'<button class="vvloc" id="locbtn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="locpanel" aria-label="Location" title="'+CURRENT_LOC+'">'+ic('pin',16)+'<span>'+CURRENT_LOC+'</span>'+ic('down',14)+'</button>'
+    +'<div class="locpanel" id="locpanel" role="listbox" aria-label="Choose location" hidden>'
+    +'<div class="lochead">P1 Live Launch Markets</div>'
+    +LOCS_NAV.filter(function(l){return l.live}).map(function(l){
+      return '<button type="button" class="locopt'+(l.city===CURRENT_LOC?' sel':'')+'" role="option" aria-selected="'+(l.city===CURRENT_LOC)+'" data-city="'+l.city+'">'+ic('pin',16)+'<span><b>'+l.city+'</b><small>Live P1 Market</small></span><span class="chk">'+ic('check',16)+'</span></button>';
+    }).join('')
+    +'<div class="lochead" style="margin-top:6px">Coming Soon (Waitlist)</div>'
+    +LOCS_NAV.filter(function(l){return !l.live}).map(function(l){
+      return '<button type="button" class="locopt" role="option" aria-selected="false" data-city="'+l.city+'" data-unavail="true">'+ic('pin',16)+'<span><b>'+l.city+'</b><small>Subsequent Phase</small></span><span class="chk">'+ic('check',16)+'</span></button>';
+    }).join('')
+    +'</div></div>'
+    +'<button class="vvicon lang" id="langbtn" type="button" aria-label="Switch language">'+ic('globe')+'<span>'+(currentLang==='en'?'EN':'हि')+'</span></button>'
+    +'<a class="vvicon" href="customer-panel.html#/messages" aria-label="Notifications">'+ic('bell',20)+'<i class="dot"></i></a>'
+    +'<button class="btn-o hideM" type="button" data-act="quote" data-id="0">'+ic('plus',16)+t('postReq')+'</button>'
+    +'<a class="avatar" href="customer-panel.html#/profile" aria-label="My profile">A</a>'
+    +'<button class="burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="vvnav">'+ic('menu',22)+'</button>'
+    +'</div>';
+
+  var h=$('#vvhead'),b=$('#burger'),n=$('#vvnav'),lb=$('#locbtn'),lp=$('#locpanel'),tbar=$('#ticker'),tp=$('#tpause'),lg=$('#langbtn');
+
+  function sc(){h.classList.toggle('scrolled',window.scrollY>8)}
+  sc();
+  window.addEventListener('scroll',sc,{passive:true});
+
+  b.addEventListener('click',function(){
+    var o=n.classList.toggle('open');
+    b.setAttribute('aria-expanded',o);
+    b.setAttribute('aria-label',o?'Close menu':'Open menu');
+  });
+
+  function setL(o){
+    lb.setAttribute('aria-expanded',o);
+    lp.hidden=!o;
+  }
+  lb.addEventListener('click',function(e){e.stopPropagation();setL(lp.hidden)});
+
+  lp.addEventListener('click',function(e){
+    var opt=e.target.closest('.locopt');
+    if(!opt)return;
+    var city=opt.dataset.city;
+    var unavail=opt.dataset.unavail==='true';
+    setL(false);
+
+    if(unavail){
+      CURRENT_LOC=city;
+      F.loc=city;
+      $('#loc').value=city;
+      render();
+      toast(city+' is scheduled for subsequent phases. Waitlist available.');
+    } else {
+      CURRENT_LOC=city;
+      F.loc=city;
+      $('#loc').value=city;
+      render();
+      toast('Location set to '+city+' (Live P1 Market)');
+    }
+    // Update button text
+    $('.vvloc span',lb).textContent=city;
+  });
+
+  document.addEventListener('click',function(e){
+    if(!lp.hidden&&!lp.contains(e.target)&&!e.target.closest('#locbtn'))setL(false);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&!lp.hidden){setL(false);lb.focus()}
+  });
+
+  tp.addEventListener('click',function(){
+    var p=tbar.classList.toggle('paused');
+    tp.setAttribute('aria-pressed',p);
+    tp.setAttribute('aria-label',p?'Play announcements':'Pause announcements');
+  });
+
+  lg.addEventListener('click',function(){
+    currentLang = currentLang === 'en' ? 'hi' : 'en';
+    setupNav();
+    updateText();
+    render();
+    toast('Language changed to '+(currentLang==='en'?'English':'Hindi'));
+  });
+}
+
+function updateText(){
+  $('#page-title').textContent = t('title');
+  $('#page-sub').textContent = t('subtitle');
+  $('#q').placeholder = t('searchPlaceholder');
+  $('#btn-search').textContent = currentLang === 'en' ? 'Search' : 'खोजें';
+  $('#f-reset').textContent = t('clearFilters');
+}
+
+/* Category Chips Generation */
+function renderChips(){
+  var html = '<button type="button" class="chip'+(F.cat==='All'?' on':'')+'" data-act="cat" data-c="All" aria-pressed="'+(F.cat==='All')+'">'+t('allCategories')+'</button>';
+  html += CATS.map(function(c){
+    var on = F.cat === c.n;
+    var pendingTag = c.pending ? ' <small>(O-10)</small>' : '';
+    return '<button type="button" class="chip'+(on?' on':'')+(c.pending?' pending':'')+'" data-act="cat" data-c="'+c.n+'" aria-pressed="'+on+'" title="'+(c.pending?'Pending P1 Confirmation':'Live P1 Category')+'">'
+      +ic(c.i,15)+'<span>'+c.n+pendingTag+'</span></button>';
+  }).join('');
+  $('#chips').innerHTML = html;
+}
+
+/* Location Select Generation */
+function renderLocationSelect(){
+  var html = '<option value="All">'+t('allLocations')+'</option>';
+  html += '<optgroup label="Live P1 Launch Markets">';
+  LIVE_MARKETS.forEach(function(m){ html += '<option value="'+m+'">'+m+'</option>'; });
+  html += '</optgroup>';
+  html += '<optgroup label="Upcoming Phases (Waitlist)">';
+  ['Mumbai', 'Pune', 'Bengaluru'].forEach(function(m){ html += '<option value="'+m+'">'+m+' (Coming soon)</option>'; });
+  html += '</optgroup>';
+  $('#loc').innerHTML = html;
+  $('#loc').value = F.loc;
+}
+
+/* Vendor Card Template */
+function renderCard(v){
+  var sv = !!saved[v.id];
+  var catObj = CATS.filter(function(c){return c.n===v.c})[0] || CATS[0];
+  var isPendingCat = catObj.pending;
+
+  var ratingDisplay = v.rating
+    ? '<span class="meta-line">'+star+'<b>'+v.rating.toFixed(1)+'</b> ('+v.reviews+' verified reviews)</span>'
+    : '<span class="meta-line" style="color:var(--mut2)"><i>New supplier &middot; Verification on file</i></span>';
+
+  return '<article class="card fade">'
+    +'<div class="vthumb" style="background:'+catObj.g+'">'
+    +'<div class="vthumb-icon">'+ic(catObj.i,48)+'</div>'
+    +(v.sponsored ? '<span class="spon-tag">Sponsored</span>' : '')
+    +'<span class="vbadge'+(isPendingCat?' pending':'')+'">'
+    +tick(13)+'<span>'+v.verifiedLevel+'</span>'
+    +'</span>'
+    +'<button class="heart" type="button" data-act="save" data-id="'+v.id+'" aria-pressed="'+sv+'" aria-label="Save '+esc(v.n)+'">'
+    +ic('heart',18)
+    +'</button>'
+    +'</div>'
+    +'<div class="vbody">'
+    +'<div class="vtitle-row">'
+    +'<h3>'+esc(v.n)+'</h3>'
+    +'<span class="vkind">'+v.kind+'</span>'
+    +'</div>'
+    +'<span class="meta-line">'+ic('pin',14)+esc(v.city)+', India &middot; <small>'+v.coverage+'</small></span>'
+    +ratingDisplay
+    +'<div class="why-matched">'
+    +'<b>'+t('whyMatched')+'</b> '+v.why
+    +'</div>'
+    +'<div class="trade-specs">'
+    +'<div><span>Min Order (MOQ)</span><b>'+esc(v.moq)+'</b></div>'
+    +'<div><span>Response / Lead</span><b>'+esc(v.leadTime)+'</b></div>'
+    +'</div>'
+    +'<div class="vact">'
+    +'<button class="btn-o sm" type="button" data-act="details" data-id="'+v.id+'">'+t('viewDetails')+'</button>'
+    +'<button class="btn sm" type="button" data-act="quote" data-id="'+v.id+'">'+t('requestQuote')+'</button>'
+    +'</div>'
+    +'</div>'
+    +'</article>';
+}
+
+/* Render Main Results List */
+function render(){
+  renderChips();
+
+  // Check if an unlaunched market was chosen
+  var isUnavail = !LIVE_MARKETS.includes(F.loc) && F.loc !== 'All';
+  var alertBox = $('#market-alert');
+  if(isUnavail){
+    alertBox.style.display = 'block';
+    alertBox.className = 'market-notice unavail';
+    alertBox.innerHTML = '<div><b>'+t('unavailTitle')+': '+F.loc+'</b>'
+      +'<p style="margin-top:3px;font-size:12.5px">'+t('unavailBody').replace('{city}', F.loc)+'</p></div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;flex:none">'
+      +'<button class="btn sm" type="button" data-act="waitlist" data-city="'+F.loc+'">'+t('joinWaitlist').replace('{city}', F.loc)+'</button>'
+      +'<button class="btn-o sm" type="button" data-act="switchlive">'+t('switchLive')+'</button>'
+      +'</div>';
+  } else {
+    alertBox.style.display = 'none';
+  }
+
+  // Filter vendors
+  var list = VENDORS.filter(function(v){
+    // Category filter
+    if(F.cat !== 'All' && v.c !== F.cat) return false;
+
+    // Location filter
+    if(F.loc !== 'All'){
+      if(isUnavail){
+        // Out of market: show honest zero local vendors
+        return false;
+      }
+      if(v.city !== F.loc && v.coverage !== 'Nationwide') return false;
+    }
+
+    // Vendor Type filter
+    if(F.type !== 'All' && v.kind !== F.type) return false;
+
+    // Coverage filter
+    if(F.cov !== 'All' && v.coverage !== F.cov) return false;
+
+    // Verified only filter
+    if(F.verifiedOnly && (!v.verifiedLevel || v.verifiedLevel.includes('Pending'))) return false;
+
+    // Query filter
+    if(F.q){
+      var haystack = (v.n + ' ' + v.c + ' ' + v.city + ' ' + v.desc + ' ' + v.serviceArea + ' ' + v.kind).toLowerCase();
+      if(haystack.indexOf(F.q.toLowerCase()) === -1) return false;
+    }
+
+    return true;
+  });
+
+  // Sorting
+  list.sort(function(a, b){
+    if(F.sort === 'name') return a.n.localeCompare(b.n);
+    if(F.sort === 'reviews') return b.reviews - a.reviews;
+    if(F.sort === 'lead') return a.leadTime.localeCompare(b.leadTime);
+    return (b.rating || 0) - (a.rating || 0);
+  });
+
+  // Count text
+  $('#count').textContent = list.length;
+  $('#count-label').textContent = currentLang==='en' ? 'verified vendors found' : 'सत्यापित वेंडर मिले';
+
+  // Render cards or empty state
+  if(list.length > 0){
+    $('#cards').innerHTML = list.map(renderCard).join('');
+  } else if(isUnavail){
+    $('#cards').innerHTML = '<div class="empty">'
+      +'<div class="ei">'+ic('pin',28)+'</div>'
+      +'<h3>'+t('unavailTitle')+': '+F.loc+'</h3>'
+      +'<p>No local vendors are licensed in '+F.loc+' yet during Phase 1. Switch to a live market or sign up for notifications when we expand.</p>'
+      +'<button class="btn" type="button" data-act="switchlive">'+t('switchLive')+'</button>'
+      +'</div>';
+  } else {
+    $('#cards').innerHTML = '<div class="empty">'
+      +'<div class="ei">'+ic('search',28)+'</div>'
+      +'<h3>'+t('noResultsTitle')+'</h3>'
+      +'<p>'+t('noResultsBody')+'</p>'
+      +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      +'<button class="btn-o" type="button" data-act="reset">'+t('clearFilters')+'</button>'
+      +'<button class="btn" type="button" data-act="quote" data-id="0">'+t('postReq')+'</button>'
+      +'</div>'
+      +'</div>';
+  }
+}
+
+/* Populate RFQ vendor select */
+function populateQuoteSelect(){
+  var html = '<option value="0">Any eligible verified vendor in category</option>';
+  VENDORS.forEach(function(v){
+    html += '<option value="'+v.id+'">'+esc(v.n)+' ('+v.c+' &middot; '+v.city+')</option>';
+  });
+  $('#qv').innerHTML = html;
+}
+
+/* Modals Management */
+var qd = $('#qd');
+var vd = $('#vd');
+
+function openQuote(id){
+  populateQuoteSelect();
+  $('#qv').value = id || 0;
+  var target = VENDORS.filter(function(v){return v.id == id})[0];
+  $('#qdsub').textContent = target
+    ? 'Direct requirement for ' + target.n + ' (' + target.city + ')'
+    : 'Broadcast requirement to all eligible verified suppliers';
+  qd.showModal();
+  $('#qt').focus();
+}
+
+function openVendorDetails(id){
+  var v = VENDORS.filter(function(x){return x.id == id})[0];
+  if(!v) return;
+
+  var docList = v.verifiedDocs.map(function(d){
+    return '<li style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--navy);margin-bottom:4px">'
+      +ic('shield',14)+'<span>'+d+'</span></li>';
+  }).join('');
+
+  $('#vdt').textContent = v.n;
+  $('#vdsub').textContent = v.kind + ' &middot; ' + v.c + ' &middot; ' + v.city;
+
+  $('#vdb').innerHTML =
+    '<div style="padding:12px;border-radius:12px;background:var(--lav);border-left:4px solid var(--p)">'
+    +'<b style="font-size:13px;color:var(--p)">'+v.verifiedLevel+' &middot; Checked '+v.verifiedDate+'</b>'
+    +'<p style="font-size:12px;color:var(--mut);margin-top:2px">Credentials verified by VendorVerse admin review team.</p>'
+    +'<ul style="list-style:none;padding:0;margin:8px 0 0">'+docList+'</ul>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12.5px">'
+    +'<div><span style="color:var(--mut2)">Declared Coverage</span><br><b>'+v.serviceArea+'</b></div>'
+    +'<div><span style="color:var(--mut2)">Customer Ratings</span><br><b>'+(v.rating ? v.rating.toFixed(1) + ' ★ (' + v.reviews + ' reviews)' : 'New supplier')+'</b></div>'
+    +'<div><span style="color:var(--mut2)">Minimum Order (MOQ)</span><br><b>'+v.moq+'</b></div>'
+    +'<div><span style="color:var(--mut2)">Standard Turnaround</span><br><b>'+v.leadTime+'</b></div>'
+    +'</div>'
+    +'<div><span style="color:var(--mut2);font-size:12px">About Vendor</span>'
+    +'<p style="font-size:13px;color:var(--navy);margin-top:4px;line-height:1.5">'+v.desc+'</p></div>'
+    +'<div style="padding:10px;border-radius:10px;background:#fff8eb;border:1px solid #f6d8a7;font-size:12px;color:#7a4400">'
+    +'<b>P1 Direct B2B Terms:</b> In Phase 1, quotes are settled directly between buyer and vendor via bank transfer or invoice terms. VendorVerse charges no buyer checkout fees.'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;justify-content:flex-end">'
+    +'<button type="button" class="btn-o" id="vdclose-btn">Close</button>'
+    +'<button type="button" class="btn" id="vdquote-btn" data-act="quote" data-id="'+v.id+'">Request quotation</button>'
+    +'</div>';
+
+  vd.showModal();
+  $('#vdclose-btn').addEventListener('click',function(){vd.close()});
+  $('#vdquote-btn').addEventListener('click',function(){vd.close();openQuote(v.id)});
+}
+
+/* Event Delegations */
+document.addEventListener('click',function(e){
+  var a = e.target.closest('[data-act]');
+  if(!a) return;
+  var act = a.dataset.act;
+  var id = a.dataset.id;
+  var city = a.dataset.city;
+
+  if(act === 'save'){
+    saved[id] = !saved[id];
+    a.setAttribute('aria-pressed', !!saved[id]);
+    toast(saved[id] ? 'Vendor saved to profile' : 'Removed from saved vendors');
+  } else if(act === 'quote'){
+    openQuote(id);
+  } else if(act === 'details'){
+    openVendorDetails(id);
+  } else if(act === 'cat'){
+    F.cat = a.dataset.c;
+    render();
+  } else if(act === 'reset'){
+    F = { q:'', cat:'All', loc:'All', type:'All', cov:'All', verifiedOnly:false, sort:F.sort };
+    $('#q').value = '';
+    $('#loc').value = 'All';
+    $('#f-type').value = 'All';
+    $('#f-cov').value = 'All';
+    $('#f-verified').checked = false;
+    render();
+    toast('Search and filters reset');
+  } else if(act === 'waitlist'){
+    toast('Added to waitlist for ' + city + '! You will be notified when live.');
+  } else if(act === 'switchlive'){
+    CURRENT_LOC = 'Jaipur';
+    F.loc = 'Jaipur';
+    $('#loc').value = 'Jaipur';
+    $('.vvloc span', $('#locbtn')).textContent = 'Jaipur';
+    render();
+    toast('Switched to Jaipur (Live P1 Market)');
+  }
+});
+
+/* Inputs & Form Event Handlers */
+$('#q').addEventListener('input',function(e){
+  F.q = e.target.value.trim();
+  render();
+});
+
+$('#loc').addEventListener('change',function(e){
+  F.loc = e.target.value;
+  CURRENT_LOC = F.loc === 'All' ? 'Jaipur' : F.loc;
+  $('.vvloc span', $('#locbtn')).textContent = CURRENT_LOC;
+  render();
+});
+
+$('#f-type').addEventListener('change',function(e){
+  F.type = e.target.value;
+  render();
+});
+
+$('#f-cov').addEventListener('change',function(e){
+  F.cov = e.target.value;
+  render();
+});
+
+$('#f-verified').addEventListener('change',function(e){
+  F.verifiedOnly = e.target.checked;
+  render();
+});
+
+$('#f-reset').addEventListener('click',function(){
+  F = { q:'', cat:'All', loc:F.loc, type:'All', cov:'All', verifiedOnly:false, sort:F.sort };
+  $('#q').value = '';
+  $('#f-type').value = 'All';
+  $('#f-cov').value = 'All';
+  $('#f-verified').checked = false;
+  render();
+  toast('Filters cleared');
+});
+
+$('#sort').addEventListener('change',function(e){
+  F.sort = e.target.value;
+  render();
+});
+
+$('#xform').addEventListener('submit',function(e){
+  e.preventDefault();
+  $('#cards').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+/* RFQ Form Submission */
+$('#qform').addEventListener('submit',function(e){
+  e.preventDefault();
+  var f = e.target;
+  var vid = +f.v.value;
+  var target = vid ? VENDORS.filter(function(x){return x.id===vid})[0] : null;
+  qd.close();
+  var title = f.t.value;
+  f.reset();
+  toast(target
+    ? 'Demo RFQ sent to ' + target.n + ' for "' + title + '"'
+    : 'Broadcast RFQ posted for "' + title + '" (Demo)');
+});
+
+$('#qclose').addEventListener('click',function(){qd.close()});
+$('#qcancel').addEventListener('click',function(){qd.close()});
+$('#vclose').addEventListener('click',function(){vd.close()});
+
+qd.addEventListener('click',function(e){if(e.target===qd)qd.close()});
+vd.addEventListener('click',function(e){if(e.target===vd)vd.close()});
+
+/* Initialize */
+setupNav();
+renderLocationSelect();
+renderChips();
+populateQuoteSelect();
+
+// Support URL parameters (e.g. ?q=cement&cat=Construction)
+var qs = new URLSearchParams(location.search);
+if(qs.get('q')){ F.q = qs.get('q'); $('#q').value = F.q; }
+if(qs.get('cat')){ F.cat = qs.get('cat'); }
+if(qs.get('loc')){ F.loc = qs.get('loc'); $('#loc').value = F.loc; }
+
+render();
+})();
+</script>
+</body>
+</html>

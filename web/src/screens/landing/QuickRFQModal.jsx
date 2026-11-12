@@ -127,7 +127,7 @@ export function QuickRFQModal({ isOpen, onClose }) {
             </p>
             <div className="rfq-notice-box">
               <small>
-                ℹ️ Frontend Demo Mode: This RFQ has been staged in your session. You can review and compare demo quotations in your Activity Hub.
+                Your requirement has been added to your Activity Hub, where you can track progress and compare quotations as they arrive.
               </small>
             </div>
             <div className="success-actions">

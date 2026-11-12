@@ -16,7 +16,7 @@ const INTENT_TABS = [
   {
     id: 'businesses',
     label: 'Businesses',
-    placeholder: 'Search registered businesses and partners in launch cities...',
+    placeholder: 'Search businesses and partners across Jaipur, Ajmer, Sikar, and Delhi NCR...',
   },
 ]
 
@@ -31,8 +31,8 @@ const POPULAR_SEARCHES = [
 
 const TRUST_BADGES = [
   {
-    id: 'verified',
-    label: 'Reviewed Onboarding',
+    id: 'onboarding',
+    label: 'Structured Onboarding',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
@@ -73,7 +73,7 @@ const TRUST_BADGES = [
   },
   {
     id: 'industries',
-    label: '5 Launch Industries',
+    label: '5 Core Industries',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -85,7 +85,7 @@ const TRUST_BADGES = [
   },
   {
     id: 'network',
-    label: '4 Launch Cities',
+    label: '4 Key Cities',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="9" />
@@ -95,7 +95,7 @@ const TRUST_BADGES = [
   },
 ]
 
-const LIVE_MARKET_OPTIONS = ['Jaipur', 'Ajmer', 'Sikar', 'Delhi NCR', 'All Launch Markets']
+const MARKET_OPTIONS = ['Jaipur', 'Ajmer', 'Sikar', 'Delhi NCR', 'All Cities']
 
 export function Hero({ onOpenVendorApply }) {
   const nav = useNav()
@@ -103,21 +103,16 @@ export function Hero({ onOpenVendorApply }) {
   const [activeIntent, setActiveIntent] = useState('services')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCity, setSelectedCity] = useState(locale?.city || 'Jaipur')
-  const [waitlistCityNote, setWaitlistCityNote] = useState(false)
 
   const currentTab = INTENT_TABS.find((t) => t.id === activeIntent) || INTENT_TABS[0]
 
   const resolveCityParam = () => {
-    if (selectedCity === 'All Launch Markets' || selectedCity === 'Other Market') return undefined
+    if (selectedCity === 'All Cities') return undefined
     return selectedCity
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (selectedCity === 'Other Market') {
-      setWaitlistCityNote(true)
-      return
-    }
     nav.go('c_explore', {
       q: searchTerm.trim() || undefined,
       location: resolveCityParam(),
@@ -155,11 +150,11 @@ export function Hero({ onOpenVendorApply }) {
       {/* Foreground Content rendered cleanly directly over open video */}
       <div className="hero-inner-container">
         <div className="hero-content-stage">
-          {/* Launch Pill Badge */}
+          {/* Regional Coverage Pill */}
           <div className="hero-badge-pill hero-entrance-item" role="status">
-            <span className="live-pulsing-dot" aria-hidden="true" />
+            <span className="hero-status-dot" aria-hidden="true" />
             <span className="badge-text">
-              India Launch &bull; Jaipur, Ajmer, Sikar &amp; Delhi NCR
+              Jaipur &bull; Ajmer &bull; Sikar &bull; Delhi NCR
             </span>
           </div>
 
@@ -172,8 +167,8 @@ export function Hero({ onOpenVendorApply }) {
 
           {/* Subtitle */}
           <p className="hero-subtitle hero-entrance-item">
-            Discover regional service providers, bulk suppliers, and B2B businesses across
-            our launch cities. Compare quotations, request services, and coordinate
+            Connect with regional service providers, bulk suppliers, and B2B businesses across
+            Jaipur, Ajmer, Sikar, and Delhi NCR. Compare quotations, request services, and coordinate
             directly&mdash;all in one place.
           </p>
 
@@ -303,8 +298,7 @@ export function Hero({ onOpenVendorApply }) {
                 onChange={(e) => {
                   const val = e.target.value
                   setSelectedCity(val)
-                  setWaitlistCityNote(val === 'Other Market')
-                  if (LIVE_MARKET_OPTIONS.includes(val) && val !== 'All Launch Markets') {
+                  if (MARKET_OPTIONS.includes(val) && val !== 'All Cities') {
                     setLocale((prev) => ({ ...prev, city: val }))
                   }
                 }}
@@ -314,8 +308,7 @@ export function Hero({ onOpenVendorApply }) {
                 <option value="Ajmer">Ajmer, Rajasthan</option>
                 <option value="Sikar">Sikar, Rajasthan</option>
                 <option value="Delhi NCR">Delhi NCR</option>
-                <option value="All Launch Markets">All Launch Markets</option>
-                <option value="Other Market">Other City (Outside Phase 1)</option>
+                <option value="All Cities">All Cities</option>
               </select>
             </div>
           </div>
@@ -338,25 +331,6 @@ export function Hero({ onOpenVendorApply }) {
             </svg>
           </button>
         </form>
-
-        {/* Honest market expansion notice if user selects an unlisted city */}
-        {waitlistCityNote && (
-          <div className="hero-market-notice" role="status">
-            <span>
-              Phase 1 is currently live only in Jaipur, Ajmer, Sikar, and Delhi NCR.{' '}
-              <button
-                type="button"
-                className="market-notice-link"
-                onClick={() => {
-                  setSelectedCity('Jaipur')
-                  setWaitlistCityNote(false)
-                }}
-              >
-                Switch to a live launch market
-              </button>
-            </span>
-          </div>
-        )}
 
         {/* Popular Search Suggestions */}
         <div className="hero-search-suggestions hero-entrance-item">
