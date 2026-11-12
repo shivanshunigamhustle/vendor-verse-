@@ -20,7 +20,7 @@ const STEPS = [
   {
     num: '01',
     title: 'Discover',
-    desc: 'Search service providers, bulk suppliers, and businesses across active cities.',
+    desc: 'Search service providers, bulk suppliers, and businesses across active markets.',
     Icon: Search,
   },
   {
@@ -180,8 +180,8 @@ export function HowItWorks() {
             Get Business Done in <span className="text-gradient">Four Clear Steps</span>
           </h2>
           <p className="section-subcopy center">
-            From discovering suppliers across Rajasthan &amp; Delhi NCR to comparing quotes and
-            confirming terms, every step stays organized in one place.
+            From discovering global suppliers to comparing quotes and confirming terms, every step
+            stays organized in one place.
           </p>
         </div>
 

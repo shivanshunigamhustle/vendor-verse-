@@ -4,39 +4,39 @@ import { useApp } from '../../store.jsx'
 
 const INTENT_TABS = [
   {
-    id: 'services',
-    label: 'Services',
-    placeholder: 'Search contractors, interior fitouts, event planners, IT services...',
-  },
-  {
     id: 'products',
     label: 'Products & Suppliers',
-    placeholder: 'Search steel, cement, electrical wholesale, packaging supplies...',
+    placeholder: 'What are you looking for?',
+  },
+  {
+    id: 'services',
+    label: 'Services',
+    placeholder: 'What are you looking for?',
   },
   {
     id: 'businesses',
     label: 'Businesses',
-    placeholder: 'Search businesses and partners across Jaipur, Ajmer, Sikar, and Delhi NCR...',
+    placeholder: 'What are you looking for?',
   },
 ]
 
 const POPULAR_SEARCHES = [
-  'Interior Fitouts',
-  'TMT Steel',
-  'Industrial Fabrication',
-  'Deep Cleaning',
-  'Logistics Fleet',
-  'Civil Contractors',
+  'Industrial Machinery',
+  'Construction Materials',
+  'Commercial Interiors',
+  'Packaging Supplies',
+  'Corporate Events',
+  'Business Consulting',
 ]
 
 const TRUST_BADGES = [
   {
-    id: 'onboarding',
-    label: 'Structured Onboarding',
+    id: 'network',
+    label: 'Global Marketplace Network',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
-        <path d="m9 12 2 2 4-4" />
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18" />
       </svg>
     ),
   },
@@ -63,7 +63,7 @@ const TRUST_BADGES = [
   },
   {
     id: 'contracts',
-    label: 'Manage Contracts',
+    label: 'Manage Orders & RFQs',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -84,38 +84,49 @@ const TRUST_BADGES = [
     ),
   },
   {
-    id: 'network',
-    label: '4 Key Cities',
+    id: 'onboarding',
+    label: 'Structured Onboarding',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18" />
+        <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
+        <path d="m9 12 2 2 4-4" />
       </svg>
     ),
   },
 ]
 
-const MARKET_OPTIONS = ['Jaipur', 'Ajmer', 'Sikar', 'Delhi NCR', 'All Cities']
+const LOCATION_OPTIONS = [
+  'India',
+  'United States',
+  'United Arab Emirates',
+  'United Kingdom',
+  'Singapore',
+  'Germany',
+  'Jaipur',
+  'Ajmer',
+  'Sikar',
+  'Delhi NCR',
+]
 
 export function Hero({ onOpenVendorApply }) {
   const nav = useNav()
   const { locale, setLocale } = useApp()
-  const [activeIntent, setActiveIntent] = useState('services')
+  const [activeIntent, setActiveIntent] = useState('products')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCity, setSelectedCity] = useState(locale?.city || 'Jaipur')
+  const [selectedLocation, setSelectedLocation] = useState(locale?.countryName || '')
 
   const currentTab = INTENT_TABS.find((t) => t.id === activeIntent) || INTENT_TABS[0]
 
-  const resolveCityParam = () => {
-    if (selectedCity === 'All Cities') return undefined
-    return selectedCity
+  const resolveLocationParam = () => {
+    if (!selectedLocation) return undefined
+    return selectedLocation
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
     nav.go('c_explore', {
       q: searchTerm.trim() || undefined,
-      location: resolveCityParam(),
+      location: resolveLocationParam(),
       type: activeIntent,
     })
   }
@@ -124,14 +135,14 @@ export function Hero({ onOpenVendorApply }) {
     setSearchTerm(query)
     nav.go('c_explore', {
       q: query,
-      location: resolveCityParam(),
+      location: resolveLocationParam(),
       type: activeIntent,
     })
   }
 
   return (
-    <section className="hero-section" aria-label="VendorVerse Marketplace Hero">
-      {/* Original MP4 Video played full-frame at natural brightness */}
+    <section className="hero-section" aria-label="VendorVerse Global Marketplace Hero">
+      {/* Exact Original Industrial MP4 played full-bleed cleanly */}
       <div className="hero-media-layer" aria-hidden="true">
         <video
           className="hero-bg-video"
@@ -147,29 +158,26 @@ export function Hero({ onOpenVendorApply }) {
         <div className="hero-video-contrast-overlay" />
       </div>
 
-      {/* Foreground Content rendered cleanly directly over open video */}
+      {/* Foreground Content without opaque blocking box */}
       <div className="hero-inner-container">
         <div className="hero-content-stage">
-          {/* Regional Coverage Pill */}
+          {/* Global Eyebrow Pill */}
           <div className="hero-badge-pill hero-entrance-item" role="status">
             <span className="hero-status-dot" aria-hidden="true" />
-            <span className="badge-text">
-              Jaipur &bull; Ajmer &bull; Sikar &bull; Delhi NCR
-            </span>
+            <span className="badge-text">YOUR GLOBAL BUSINESS MARKETPLACE</span>
           </div>
 
           {/* Display Headline */}
           <h1 className="hero-main-title hero-entrance-item">
-            Find the Right <span className="hero-title-accent">Partner.</span>
+            One World. <span className="hero-title-accent">Infinite</span>
             <br />
-            Build. Source. Grow.
+            Business Opportunities.
           </h1>
 
           {/* Subtitle */}
           <p className="hero-subtitle hero-entrance-item">
-            Connect with regional service providers, bulk suppliers, and B2B businesses across
-            Jaipur, Ajmer, Sikar, and Delhi NCR. Compare quotations, request services, and coordinate
-            directly&mdash;all in one place.
+            Connect with suppliers, manufacturers and service providers across the globe. Discover
+            opportunities, source smarter and build meaningful business partnerships.
           </p>
 
           {/* Dual CTAs */}
@@ -227,7 +235,7 @@ export function Hero({ onOpenVendorApply }) {
           })}
         </div>
 
-        {/* Unified Floating Sky-Blue Search Bar */}
+        {/* Light Sky-Blue Unified Search Bar */}
         <form
           className="hero-search-dock hero-entrance-item"
           onSubmit={handleSubmit}
@@ -235,7 +243,7 @@ export function Hero({ onOpenVendorApply }) {
         >
           {/* Search Input */}
           <div className="search-field search-what-col">
-            <span className="search-field-label">What are you looking for?</span>
+            <span className="search-field-label">Search Marketplace</span>
             <div className="search-field-input-row">
               <svg
                 width="18"
@@ -257,7 +265,7 @@ export function Hero({ onOpenVendorApply }) {
                 placeholder={currentTab.placeholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                aria-label="Search query"
+                aria-label="What are you looking for?"
               />
               {searchTerm && (
                 <button
@@ -274,9 +282,9 @@ export function Hero({ onOpenVendorApply }) {
 
           <div className="search-vertical-divider" aria-hidden="true" />
 
-          {/* Location Selector */}
+          {/* Country / Location Selector */}
           <div className="search-field search-location-col">
-            <span className="search-field-label">Where do you need it?</span>
+            <span className="search-field-label">Location</span>
             <div className="search-field-input-row">
               <svg
                 width="18"
@@ -294,27 +302,28 @@ export function Hero({ onOpenVendorApply }) {
               </svg>
               <select
                 className="search-location-select"
-                value={selectedCity}
+                value={selectedLocation}
                 onChange={(e) => {
                   const val = e.target.value
-                  setSelectedCity(val)
-                  if (MARKET_OPTIONS.includes(val) && val !== 'All Cities') {
-                    setLocale((prev) => ({ ...prev, city: val }))
+                  setSelectedLocation(val)
+                  if (val) {
+                    setLocale((prev) => ({ ...prev, countryName: val, city: val }))
                   }
                 }}
-                aria-label="Location selector"
+                aria-label="Select country or location"
               >
-                <option value="Jaipur">Jaipur, Rajasthan</option>
-                <option value="Ajmer">Ajmer, Rajasthan</option>
-                <option value="Sikar">Sikar, Rajasthan</option>
-                <option value="Delhi NCR">Delhi NCR</option>
-                <option value="All Cities">All Cities</option>
+                <option value="">Select country or location</option>
+                {LOCATION_OPTIONS.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
           {/* Submit Search Button */}
-          <button type="submit" className="search-submit-btn" aria-label="Submit search">
+          <button type="submit" className="search-submit-btn" aria-label="Search">
             Search
             <svg
               width="18"
@@ -349,7 +358,7 @@ export function Hero({ onOpenVendorApply }) {
           </div>
         </div>
 
-        {/* Trust Strip */}
+        {/* Capabilities Strip */}
         <div className="hero-trust-strip" role="list" aria-label="Key marketplace highlights">
           {TRUST_BADGES.map((b) => (
             <div key={b.id} className="trust-badge-item" role="listitem">

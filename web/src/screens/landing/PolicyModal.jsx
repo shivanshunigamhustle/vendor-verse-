@@ -26,29 +26,29 @@ export function PolicyModal({ type, isOpen, onClose }) {
               <p><strong>Effective Date: November 2026</strong></p>
               <p>
                 VendorVerse is dedicated to protecting the privacy of buyers, suppliers, and service providers.
-                Across Jaipur, Ajmer, Sikar, and Delhi NCR, business registration details and contact information
-                are handled responsibly to support trustworthy B2B and customer interactions.
+                Business registration details and contact information are handled responsibly to support
+                transparent B2B and customer interactions across markets.
               </p>
               <h4>Data Handling Principles</h4>
               <ul>
-                <li>We do not sell contact information to unauthorized 3rd parties.</li>
+                <li>We do not sell contact information to unauthorized third parties.</li>
                 <li>Communications between buyers and service providers occur through marketplace channels.</li>
-                <li>Payment terms and commercial settlements occur directly between participating businesses.</li>
+                <li>Commercial terms and invoicing agreements occur directly between participating businesses.</li>
               </ul>
             </div>
           )}
 
           {type === 'terms' && (
             <div>
-              <p><strong>Terms of Use — B2B Marketplace Platform</strong></p>
+              <p><strong>Terms of Use — B2B &amp; B2C Marketplace Platform</strong></p>
               <p>
-                Welcome to VendorVerse. By accessing this platform, buyers and vendors agree to conduct trade
-                honestly, maintain accurate business information, and deliver goods and services as quoted.
+                Welcome to VendorVerse. By accessing this platform, buyers and vendors agree to conduct business
+                transparently, maintain accurate profile details, and fulfill confirmed scopes as agreed.
               </p>
               <h4>Marketplace Standards</h4>
               <p>
-                Businesses are responsible for the accuracy of their service scopes and quotations.
-                Users should independently evaluate quotation terms, delivery timelines, and warranty terms before confirming orders.
+                Participants are responsible for the accuracy of their service scopes and quotations.
+                Users should independently review quotation terms, delivery schedules, and contract clauses before confirming orders.
               </p>
             </div>
           )}
@@ -57,7 +57,7 @@ export function PolicyModal({ type, isOpen, onClose }) {
             <div>
               <p><strong>Cookie &amp; Local Storage Policy</strong></p>
               <p>
-                VendorVerse utilizes standard session cookies and browser local storage to preserve your selected city preference,
+                VendorVerse utilizes standard session cookies and browser local storage to preserve your selected location preference,
                 active search filters, and session state. No non-essential tracking pixels are installed.
               </p>
             </div>
@@ -67,8 +67,8 @@ export function PolicyModal({ type, isOpen, onClose }) {
             <div>
               <p><strong>About VendorVerse</strong></p>
               <p>
-                VendorVerse is India's B2B + B2C multi-vendor marketplace connecting service providers,
-                manufacturers, wholesale distributors, and businesses across Jaipur, Ajmer, Sikar, and Delhi NCR.
+                VendorVerse is a global B2B + B2C marketplace platform designed to connect buyers,
+                suppliers, manufacturers, and service providers across structured procurement workflows.
               </p>
             </div>
           )}
@@ -77,8 +77,8 @@ export function PolicyModal({ type, isOpen, onClose }) {
             <div>
               <p><strong>Careers at VendorVerse</strong></p>
               <p>
-                We are growing VendorVerse&apos;s operations across Jaipur, Ajmer, Sikar, and Delhi NCR.
-                Roles span regional partner onboarding, operations, and product engineering.
+                We are building VendorVerse&apos;s marketplace platform across product engineering, design,
+                and partner operations.
               </p>
               <p>Reach out with your background at careers@vendorverse.in.</p>
             </div>
@@ -86,8 +86,8 @@ export function PolicyModal({ type, isOpen, onClose }) {
 
           {type === 'contact' && (
             <div>
-              <p><strong>Contact Support &amp; Regional Offices</strong></p>
-              <p>Regional Coverage: Jaipur, Ajmer, Sikar &amp; Delhi NCR</p>
+              <p><strong>Contact Support</strong></p>
+              <p>Marketplace Support: Available via Help &amp; Inquiries</p>
               <p>Support Email: support@vendorverse.in</p>
               <p>Hours: Mon &ndash; Sat, 9:00 AM &ndash; 7:00 PM IST</p>
             </div>

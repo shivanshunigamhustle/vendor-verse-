@@ -52,7 +52,7 @@ export function Footer({ onOpenVendorApply }) {
           </div>
 
           <p className="footer-brand-desc">
-            Connect with regional service providers and B2B suppliers across Jaipur, Ajmer, Sikar, and Delhi NCR.
+            Connect with suppliers, manufacturers, and service providers across global business markets.
           </p>
 
           {/* Social Icons */}

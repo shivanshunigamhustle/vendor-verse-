@@ -36,8 +36,14 @@ const CORE_INDUSTRIES = [
   },
 ]
 
-function getSlotClass(index, activeIndex) {
-  const offset = index - activeIndex
+function getCircularOffset(idx, activeIdx, total) {
+  let offset = idx - activeIdx
+  if (offset > total / 2) offset -= total
+  if (offset < -total / 2) offset += total
+  return offset
+}
+
+function getSlotClass(offset) {
   if (offset === 0) return 'slot-active'
   if (offset === -1) return 'slot-prev'
   if (offset === 1) return 'slot-next'
@@ -46,107 +52,184 @@ function getSlotClass(index, activeIndex) {
 
 export function IndustriesCarousel() {
   const nav = useNav()
-  const trackRef = useRef(null)
-  const slotRefs = useRef([])
-  const rafScrollRef = useRef(null)
-  const manualNavTimeoutRef = useRef(null)
-  const isArrowScrollRef = useRef(false)
+  const stageRef = useRef(null)
+  const regionRef = useRef(null)
+  const dragStateRef = useRef({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    deltaX: 0,
+    hasMoved: false,
+  })
 
-  const [activeIndex, setActiveIndex] = useState(0)
+  // Start centered on Construction (index 1) so left/center/right 3D depth is visible immediately
+  const [activeIndex, setActiveIndex] = useState(1)
+  const [dragOffsetPx, setDragOffsetPx] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [isInView, setIsInView] = useState(true)
+  const [isCompactStage, setIsCompactStage] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
-  const prefersReducedMotion =
-    typeof window !== 'undefined' &&
-    window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  const syncIndexFromScroll = useCallback(() => {
-    const track = trackRef.current
-    const firstSlot = slotRefs.current[0]
-    if (!track || !firstSlot || isArrowScrollRef.current) return
-
-    const maxScroll = track.scrollWidth - track.clientWidth
-    if (maxScroll <= 4) return
-
-    const firstLeft = firstSlot.offsetLeft
-    let closestIdx = 0
-    let smallestDelta = Infinity
-
-    slotRefs.current.forEach((slot, idx) => {
-      if (!slot) return
-      const slotOffset = slot.offsetLeft - firstLeft
-      const delta = Math.abs(slotOffset - track.scrollLeft)
-      if (delta < smallestDelta) {
-        smallestDelta = delta
-        closestIdx = idx
-      }
-    })
-
-    setActiveIndex((prev) => (prev === closestIdx ? prev : closestIdx))
-  }, [])
-
-  const handleTrackScroll = useCallback(() => {
-    if (rafScrollRef.current) cancelAnimationFrame(rafScrollRef.current)
-    rafScrollRef.current = requestAnimationFrame(syncIndexFromScroll)
-  }, [syncIndexFromScroll])
-
-  const releaseArrowLock = useCallback(() => {
-    if (manualNavTimeoutRef.current) clearTimeout(manualNavTimeoutRef.current)
-    isArrowScrollRef.current = false
-  }, [])
+  const total = CORE_INDUSTRIES.length
+  const prevOffsetsRef = useRef(CORE_INDUSTRIES.map((_, idx) => getCircularOffset(idx, 1, total)))
 
   useEffect(() => {
-    const track = trackRef.current
-    if (!track) return
-    const handleScrollEnd = () => {
-      if (isArrowScrollRef.current) {
-        if (manualNavTimeoutRef.current) clearTimeout(manualNavTimeoutRef.current)
-        manualNavTimeoutRef.current = setTimeout(() => {
-          isArrowScrollRef.current = false
-        }, 50)
+    const updateEnv = () => {
+      if (typeof window !== 'undefined') {
+        setIsCompactStage(window.innerWidth <= 640)
+        setPrefersReducedMotion(
+          Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
+        )
       }
     }
-    track.addEventListener('scrollend', handleScrollEnd)
-    return () => {
-      track.removeEventListener('scrollend', handleScrollEnd)
-      if (rafScrollRef.current) cancelAnimationFrame(rafScrollRef.current)
-      if (manualNavTimeoutRef.current) clearTimeout(manualNavTimeoutRef.current)
-    }
+    updateEnv()
+    window.addEventListener('resize', updateEnv)
+    return () => window.removeEventListener('resize', updateEnv)
   }, [])
 
-  const scrollToIndex = (targetIdx) => {
-    const clamped = Math.max(0, Math.min(CORE_INDUSTRIES.length - 1, targetIdx))
-    setActiveIndex(clamped)
+  // Pause auto-loop when carousel is offscreen
+  useEffect(() => {
+    const el = regionRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]) setIsInView(entries[0].isIntersecting)
+      },
+      { threshold: 0.2 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
-    const track = trackRef.current
-    const firstSlot = slotRefs.current[0]
-    const targetSlot = slotRefs.current[clamped]
-    if (!track || !firstSlot || !targetSlot) return
+  // Keep previous circular offsets updated after each committed activeIndex change
+  useEffect(() => {
+    prevOffsetsRef.current = CORE_INDUSTRIES.map((_, idx) =>
+      getCircularOffset(idx, activeIndex, total),
+    )
+  }, [activeIndex, total])
 
-    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth)
-    const exactCardOffset = targetSlot.offsetLeft - firstSlot.offsetLeft
-    const desiredLeft = Math.min(maxScroll, Math.max(0, exactCardOffset))
+  const goToIndex = useCallback(
+    (targetIdx) => {
+      const wrapped = ((targetIdx % total) + total) % total
+      setActiveIndex(wrapped)
+    },
+    [total],
+  )
 
-    isArrowScrollRef.current = true
-    if (manualNavTimeoutRef.current) clearTimeout(manualNavTimeoutRef.current)
-    manualNavTimeoutRef.current = setTimeout(() => {
-      isArrowScrollRef.current = false
-    }, 950)
+  const scrollTrack = useCallback(
+    (direction) => {
+      const delta = direction === 'next' ? 1 : -1
+      setActiveIndex((prev) => (((prev + delta) % total) + total) % total)
+    },
+    [total],
+  )
 
-    track.scrollTo({
-      left: desiredLeft,
-      behavior: prefersReducedMotion ? 'auto' : 'smooth',
-    })
-  }
+  // Continuous seamless 3D sliding loop while visible and idle
+  useEffect(() => {
+    if (prefersReducedMotion || isPaused || isDragging || !isInView) return undefined
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % total)
+    }, 3200)
+    return () => window.clearInterval(timer)
+  }, [prefersReducedMotion, isPaused, isDragging, isInView, total])
 
-  const scrollTrack = (direction) => {
-    const delta = direction === 'next' ? 1 : -1
-    scrollToIndex(activeIndex + delta)
-  }
-
-  const handleCardClick = (industry) => {
+  const handleCardActivate = (industry, idx) => {
+    // Prevent accidental click right after dragging
+    if (dragStateRef.current.hasMoved) return
+    if (idx !== activeIndex) {
+      goToIndex(idx)
+      return
+    }
     nav.go('c_explore', {
       category: industry.title,
     })
+  }
+
+  const handlePointerDown = (e) => {
+    if (e.button && e.button !== 0) return
+    // Do not hijack direct button clicks on controls
+    if (e.target.closest('.carousel-arrow-btn') || e.target.closest('.carousel-dot-btn')) return
+    dragStateRef.current = {
+      active: true,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      deltaX: 0,
+      hasMoved: false,
+    }
+    setIsDragging(true)
+    setDragOffsetPx(0)
+  }
+
+  const handlePointerMove = (e) => {
+    const d = dragStateRef.current
+    if (!d.active) return
+    const dx = e.clientX - d.startX
+    const dy = e.clientY - d.startY
+    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 0.85) {
+      d.hasMoved = true
+      d.deltaX = dx
+      setDragOffsetPx(Math.max(-180, Math.min(180, dx)))
+    }
+  }
+
+  const handlePointerEnd = () => {
+    const d = dragStateRef.current
+    if (!d.active) return
+    const finalDelta = d.deltaX
+    d.active = false
+    setIsDragging(false)
+    setDragOffsetPx(0)
+
+    if (Math.abs(finalDelta) >= 44) {
+      if (finalDelta < 0) scrollTrack('next')
+      else scrollTrack('prev')
+    }
+
+    // Clear drag flag right after browser synthetic click tick
+    setTimeout(() => {
+      dragStateRef.current.hasMoved = false
+    }, 60)
+  }
+
+  const handleStageKeyDown = (e) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      scrollTrack('next')
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      scrollTrack('prev')
+    }
+  }
+
+  const computeCard3DTransform = (offset, prevOffset) => {
+    const dragNorm = Math.max(-0.85, Math.min(0.85, dragOffsetPx / 220))
+    const eff = offset + dragNorm
+    const absEff = Math.abs(eff)
+    const isWrapping = Math.abs(offset - prevOffset) > 2
+
+    const xSpread = isCompactStage ? 186 : 236
+    const tx = Math.sign(eff) * (Math.min(absEff, 1) * xSpread + Math.max(0, absEff - 1) * (isCompactStage ? 132 : 178))
+    const tz = Math.max(-210, 74 - absEff * 136)
+    const ty = Math.min(20, absEff * 6.5)
+    const rotY = Math.max(-40, Math.min(40, -eff * 23))
+    const rotX = Math.min(5, absEff * 2.2)
+    const scale = Math.max(0.7, 1.04 - absEff * 0.145)
+    const opacity = Math.max(0.32, 1 - Math.max(0, absEff - 0.5) * 0.34)
+    const zIndex = isWrapping ? 4 : Math.round(40 - absEff * 10)
+
+    return {
+      transform: `translate(-50%, -50%) translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, ${tz.toFixed(1)}px) rotateY(${rotY.toFixed(2)}deg) rotateX(${rotX.toFixed(2)}deg) scale3d(${scale.toFixed(3)}, ${scale.toFixed(3)}, 1)`,
+      opacity: opacity.toFixed(2),
+      zIndex,
+      transition: isDragging
+        ? 'none'
+        : isWrapping
+          ? 'opacity 0.28s ease'
+          : 'transform 0.64s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease',
+    }
   }
 
   return (
@@ -164,8 +247,8 @@ export function IndustriesCarousel() {
               Industries on <span className="text-gradient">VendorVerse</span>
             </h2>
             <p className="section-subcopy">
-              Browse five core industries connecting buyers with service providers and bulk
-              suppliers across Jaipur, Ajmer, Sikar, and Delhi NCR.
+              Browse five core industries connecting buyers, service providers, and bulk suppliers
+              across global business markets.
             </p>
             <div className="industries-cta-wrap">
               <button
@@ -179,87 +262,128 @@ export function IndustriesCarousel() {
             </div>
           </div>
 
-          {/* RIGHT INTERACTIVE 3D CAROUSEL COLUMN */}
-          <div className="industries-right-carousel">
+          {/* RIGHT INTERACTIVE 3D PERSPECTIVE CAROUSEL STAGE */}
+          <div
+            ref={regionRef}
+            className="industries-right-carousel"
+            onKeyDown={handleStageKeyDown}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onFocus={() => setIsPaused(true)}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                setIsPaused(false)
+              }
+            }}
+            tabIndex={0}
+            role="region"
+            aria-roledescription="3D industry carousel"
+            aria-label="Industries 3D Carousel — use arrow keys or drag to rotate"
+          >
             <div
-              className="carousel-track-container"
-              ref={trackRef}
-              onScroll={handleTrackScroll}
-              onWheel={releaseArrowLock}
-              onTouchStart={releaseArrowLock}
-              onPointerDown={releaseArrowLock}
+              ref={stageRef}
+              className={`carousel-3d-stage ${isDragging ? 'is-dragging' : ''}`}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerEnd}
+              onPointerCancel={handlePointerEnd}
+              onPointerLeave={handlePointerEnd}
             >
-              {CORE_INDUSTRIES.map((industry, idx) => (
-                <div
-                  key={industry.id}
-                  ref={(el) => {
-                    slotRefs.current[idx] = el
-                  }}
-                  className={`industry-slide-slot ${getSlotClass(idx, activeIndex)}`}
-                  onMouseEnter={() => {
-                    if (!isArrowScrollRef.current) setActiveIndex(idx)
-                  }}
-                >
-                  <TiltCard
-                    className="industry-card-tilt-wrap"
-                    maxTilt={6.5}
-                    scale={1.03}
-                    elevation={18}
-                  >
-                    <article
-                      className="industry-card"
-                      onClick={() => handleCardClick(industry)}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Browse ${industry.title}`}
-                      onFocus={() => scrollToIndex(idx)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleCardClick(industry)
-                        }
-                      }}
-                    >
-                      <div className="industry-card-media">
-                        <img
-                          src={industry.image}
-                          alt={industry.title}
-                          loading="eager"
-                          className="industry-card-img"
-                        />
-                      </div>
+              {CORE_INDUSTRIES.map((industry, idx) => {
+                const offset = getCircularOffset(idx, activeIndex, total)
+                const prevOffset = prevOffsetsRef.current[idx] ?? offset
+                const isActive = offset === 0
+                const slotStyle = computeCard3DTransform(offset, prevOffset)
 
-                      <div className="industry-card-caption">
-                        <h3 className="industry-card-title">{industry.title}</h3>
-                        <p className="industry-card-sub">{industry.subtitle}</p>
-                        <span className="industry-card-link">
-                          Browse category <ArrowRight size={14} strokeWidth={2.3} />
-                        </span>
-                      </div>
-                    </article>
-                  </TiltCard>
-                </div>
-              ))}
+                return (
+                  <div
+                    key={industry.id}
+                    className={`industry-slide-slot ${getSlotClass(offset)}`}
+                    style={slotStyle}
+                  >
+                    <TiltCard
+                      className="industry-card-tilt-wrap"
+                      maxTilt={isActive ? 9.5 : 5}
+                      scale={isActive ? 1.03 : 1.01}
+                      elevation={isActive ? 22 : 10}
+                    >
+                      <article
+                        className="industry-card"
+                        onClick={() => handleCardActivate(industry, idx)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={
+                          isActive
+                            ? `Browse ${industry.title}`
+                            : `Focus ${industry.title} in carousel`
+                        }
+                        onFocus={() => goToIndex(idx)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleCardActivate(industry, idx)
+                          }
+                        }}
+                      >
+                        <div className="industry-card-media">
+                          <img
+                            src={industry.image}
+                            alt={industry.title}
+                            loading="eager"
+                            draggable={false}
+                            className="industry-card-img"
+                          />
+                          <div className="industry-card-sheen" aria-hidden="true" />
+                        </div>
+
+                        <div className="industry-card-caption">
+                          <div>
+                            <h3 className="industry-card-title">{industry.title}</h3>
+                            <p className="industry-card-sub">{industry.subtitle}</p>
+                          </div>
+                          <span className="industry-card-link">
+                            Browse category <ArrowRight size={14} strokeWidth={2.3} />
+                          </span>
+                        </div>
+                      </article>
+                    </TiltCard>
+                  </div>
+                )
+              })}
+
+              {/* 3D Side Navigation Arrows (continuous circular loop) */}
+              <button
+                type="button"
+                className="carousel-arrow-btn prev"
+                onClick={() => scrollTrack('prev')}
+                aria-label="Rotate previous industry card"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                className="carousel-arrow-btn next"
+                onClick={() => scrollTrack('next')}
+                aria-label="Rotate next industry card"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
 
-            <button
-              type="button"
-              className="carousel-arrow-btn prev"
-              onClick={() => scrollTrack('prev')}
-              disabled={activeIndex === 0}
-              aria-label="Scroll left through industries"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              type="button"
-              className="carousel-arrow-btn next"
-              onClick={() => scrollTrack('next')}
-              disabled={activeIndex === CORE_INDUSTRIES.length - 1}
-              aria-label="Scroll right through industries"
-            >
-              <ChevronRight size={20} />
-            </button>
+            {/* Carousel Depth Position Indicator Pills */}
+            <div className="carousel-dots-row" role="tablist" aria-label="Select featured industry">
+              {CORE_INDUSTRIES.map((ind, idx) => (
+                <button
+                  key={ind.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === activeIndex}
+                  aria-label={ind.title}
+                  className={`carousel-dot-btn ${idx === activeIndex ? 'active' : ''}`}
+                  onClick={() => goToIndex(idx)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

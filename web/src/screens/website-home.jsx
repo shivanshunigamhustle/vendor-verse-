@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { Navbar } from './landing/Navbar.jsx'
 import { Hero } from './landing/Hero.jsx'
 import { IndustriesCarousel } from './landing/IndustriesCarousel.jsx'
-import { IndiaMapSection } from './landing/IndiaMapSection.jsx'
+import { GlobalGlobeSection } from './landing/GlobalGlobeSection.jsx'
 import { HowItWorks } from './landing/HowItWorks.jsx'
 import { RFQBanner } from './landing/RFQBanner.jsx'
 import { Footer } from './landing/Footer.jsx'
@@ -81,28 +81,28 @@ export function WebsiteHome() {
 
   return (
     <div ref={shellRef} className="website-home-shell">
-      {/* 1. Transparent Sky-Glass Navbar */}
+      {/* 1. Light Sky-Glass Navbar */}
       <Navbar onOpenAuth={handleOpenAuth} onOpenVendorApply={handleOpenVendorApply} />
 
       {/* Main Page Sections */}
       <main id="main-content">
-        {/* 2. Hero Section over Bright Full-Bleed MP4 Video */}
+        {/* 2. Hero Section over Original Industrial MP4 Video */}
         <Hero onOpenVendorApply={handleOpenVendorApply} />
 
         {/* 3. Explore Industries Section (3D Tactile Photography Cards) */}
         <IndustriesCarousel />
 
-        {/* 4. Interactive 3D India Map across Key Cities */}
-        <IndiaMapSection />
+        {/* 4. Interactive 3D Global Globe across Markets & Cities */}
+        <GlobalGlobeSection />
 
         {/* 5. How VendorVerse Works (4 Dimensional Steps + Platform Highlights) */}
         <HowItWorks />
 
-        {/* 6. Post a Requirement / RFQ Highlight Section */}
+        {/* 6. Light Sky-Blue Dimensional RFQ Section */}
         <RFQBanner />
       </main>
 
-      {/* 7. Comprehensive Midnight Navy Footer */}
+      {/* 7. Clean Deep-Blue Contrast Footer */}
       <Footer onOpenVendorApply={handleOpenVendorApply} />
     </div>
   )

@@ -41,12 +41,22 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
 
-  const handleCitySelect = (cityName) => {
+  const handleCitySelect = (locationName) => {
+    const mapRegion = {
+      Global: { state: 'Global Network', countryName: 'Global' },
+      India: { state: 'Rajasthan & Delhi NCR', countryName: 'India' },
+      'United States': { state: 'North America', countryName: 'United States' },
+      'United Arab Emirates': { state: 'Middle East', countryName: 'United Arab Emirates' },
+      'United Kingdom': { state: 'Europe', countryName: 'United Kingdom' },
+      Singapore: { state: 'Southeast Asia', countryName: 'Singapore' },
+      Germany: { state: 'Europe', countryName: 'Germany' },
+    }
+    const meta = mapRegion[locationName] || { state: 'Global Network', countryName: locationName }
     setLocale((prev) => ({
       ...prev,
-      city: cityName,
-      state: cityName === 'Delhi NCR' ? 'Delhi' : 'Rajasthan',
-      countryName: 'India',
+      city: locationName,
+      state: meta.state,
+      countryName: meta.countryName,
     }))
     setCityOpen(false)
   }
@@ -172,8 +182,8 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 >
                   <span className="dropdown-icon">📍</span>
                   <div>
-                    <strong>Cities &amp; Regions</strong>
-                    <small>Jaipur, Ajmer, Sikar, Delhi NCR</small>
+                    <strong>Global Markets</strong>
+                    <small>India, USA, UAE, UK, Singapore, Germany</small>
                   </div>
                 </a>
               </div>
@@ -323,7 +333,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
             )}
           </div>
 
-          {/* Location / India Country Selector */}
+          {/* Location / Global Market Selector */}
           <div className="nav-dropdown-item" ref={cityRef}>
             <button
               type="button"
@@ -332,10 +342,10 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 e.stopPropagation()
                 setCityOpen((v) => !v)
               }}
-              title="Select City"
+              title="Select Country or Location"
             >
-              <span className="flag-icon">🇮🇳</span>
-              <span>{locale?.city || 'Jaipur'}</span>
+              <span className="flag-icon" aria-hidden="true">🌐</span>
+              <span>{locale?.countryName || locale?.city || 'Global'}</span>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="m6 9 6 6 6-6" />
               </svg>
@@ -343,15 +353,15 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
 
             {cityOpen && (
               <div className="nav-dropdown-panel small-panel" role="menu">
-                <div className="panel-header-sub">Select City</div>
-                {['Jaipur', 'Ajmer', 'Sikar', 'Delhi NCR'].map((c) => (
+                <div className="panel-header-sub">Select Location</div>
+                {['Global', 'India', 'United States', 'United Arab Emirates', 'United Kingdom', 'Singapore', 'Germany'].map((loc) => (
                   <button
-                    key={c}
+                    key={loc}
                     type="button"
-                    className={`dropdown-item ${locale?.city === c ? 'active' : ''}`}
-                    onClick={() => handleCitySelect(c)}
+                    className={`dropdown-item ${(locale?.countryName || locale?.city) === loc ? 'active' : ''}`}
+                    onClick={() => handleCitySelect(loc)}
                   >
-                    📍 {c}
+                    📍 {loc}
                   </button>
                 ))}
               </div>
@@ -370,7 +380,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
             Login
           </button>
 
-          {/* Join Now Button - Electric Violet */}
+          {/* Join Now Button - Sky Blue Primary CTA */}
           <button
             type="button"
             className="nav-join-btn"
@@ -428,7 +438,7 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
               }}
             >
-              📍 Cities (Jaipur, Ajmer, Sikar, Delhi NCR)
+              🌍 Global Markets &amp; Hubs
             </a>
             <a
               href="#how"

@@ -45,7 +45,7 @@ export function QuickRFQModal({ isOpen, onClose }) {
               Request Quotations (RFQ)
             </h3>
             <p className="rfq-form-subtext">
-              Reach registered suppliers and service providers in Jaipur, Ajmer, Sikar, and Delhi NCR. Compare quotes side-by-side.
+              Reach suppliers and service providers across global business hubs. Compare quotations side-by-side.
             </p>
 
             <div className="form-group">
@@ -64,12 +64,17 @@ export function QuickRFQModal({ isOpen, onClose }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="rfq-city">Delivery / Service City</label>
+              <label htmlFor="rfq-city">Delivery / Service Location</label>
               <select id="rfq-city" value={city} onChange={(e) => setCity(e.target.value)}>
-                <option value="Jaipur">Jaipur, Rajasthan</option>
-                <option value="Ajmer">Ajmer, Rajasthan</option>
-                <option value="Sikar">Sikar, Rajasthan</option>
-                <option value="Delhi NCR">Delhi NCR</option>
+                <option value="Jaipur">India &mdash; Jaipur, Rajasthan</option>
+                <option value="Ajmer">India &mdash; Ajmer, Rajasthan</option>
+                <option value="Sikar">India &mdash; Sikar, Rajasthan</option>
+                <option value="Delhi NCR">India &mdash; Delhi NCR</option>
+                <option value="United States">United States</option>
+                <option value="United Arab Emirates">United Arab Emirates</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Germany">Germany</option>
               </select>
             </div>
 
