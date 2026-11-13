@@ -79,7 +79,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 | F-VND-10 | Vendor dashboard | P1 | Listing states, subscription and lead usage, request inbox, RFQ opportunities, quotes, bookings, contracts, reviews, performance. | §26.8 |
 | F-VND-11 | Profile completeness score | OPEN | PRS requires it; absent from both mockups. Decision O-09. | §26.4.2 |
 | F-VND-12 | Field visibility classes (public / counterparty / private) | OPEN | PRS requires server-enforced classes; not in either mockup. Decision O-09. | §26.4 |
-| F-VND-13 | Workspace color theme presets | P1 | Persistent appearance-only selector for Light, Dark, Midnight, Ocean, Emerald and Sunset across Vendor, Agent and Business workspaces on web and mobile (D-018). Must not alter role data, permissions, routes or workflows. | Owner request 2026-11-10; D-018 |
+| F-VND-13 | Workspace color mode | P1 | Persistent appearance-only Light/Dark toggle across Vendor, Agent and Business workspaces (D-019). Additional palette choices are removed. Must not alter role data, permissions, routes or workflows. |
 | F-VND-14 | Vendor analytics presentation presets | OPEN | Optional appearance selector for existing vendor charts only; must not change analytics data or calculations. Do not implement until O-17 is decided. | Owner request 2026-11-10 |
 
 ## 5. Discovery (DSC)
@@ -295,6 +295,7 @@ Every PRS chapter maps to at least one feature, or to a documented non-goal.
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-11-13 15:36 | Abhishek Samadhiya | Modified: F-VND-13 workspace color mode | Supersede the six-preset selector with a single Light/Dark toggle per owner direction D-019. |
 | 2026-11-11 16:51 | Abhishek Samadhiya | Modified: D-017 and D-018 references | Keep the industry-browsing and workspace-theme decisions distinct after reconciling the branch histories. |
 | 2026-11-11 13:02 | Amit | Modified: F-TAX-01 subcategory visibility | Industry subcategory examples are now shown directly in the browse list on both platforms. |
 | 2026-11-11 12:34 | Amit | Modified: F-TAX-01, F-TAX-05, F-TAX-06 and F-TAX-07 | D-017 moves the full documented industry browser into Phase 1 while preserving current listing workflow scope. |

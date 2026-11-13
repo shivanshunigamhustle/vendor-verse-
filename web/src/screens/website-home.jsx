@@ -92,15 +92,15 @@ export function WebsiteHome() {
     <div className="vv-c-home h-full overflow-y-auto">
       <section className="vv-market-hero relative overflow-hidden text-white">
         <div className="vv-hero-waves"><div><svg viewBox="0 0 2400 60" preserveAspectRatio="none"><path d="M0 30C150 0 350 60 600 30S1050 0 1200 30C1350 0 1550 60 1800 30S2250 0 2400 30V60H0z" fill="rgba(255,255,255,.5)" /></svg></div><div><svg viewBox="0 0 2400 60" preserveAspectRatio="none"><path d="M0 38C200 10 400 60 600 38S1000 10 1200 38C1400 10 1600 60 1800 38S2200 10 2400 38V60H0z" fill="rgba(255,255,255,.55)" /></svg></div></div>
-        <div className="absolute -right-28 -top-32 size-[28rem] rounded-full bg-brand-500/20 blur-3xl" />
-        <div className="absolute -bottom-40 left-[35%] size-[26rem] rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="vv-hero-decoration vv-hero-decoration-primary absolute -right-28 -top-32 size-[28rem] rounded-full bg-brand-500/20 blur-3xl" />
+        <div className="vv-hero-decoration vv-hero-decoration-secondary absolute -bottom-40 left-[35%] size-[26rem] rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="vv-market-hero-inner relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 py-14 sm:px-10 lg:px-16">
           <div className="max-w-2xl">
             <span className="vv-hero-tag"><Sparkles size={14} /> {t('marketplaceTag')}</span>
             <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-[58px]">{t('heroTitle')}</h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">{t('heroBody')}</p>
             <form onSubmit={search} className="vv-market-search mt-8 flex max-w-2xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl shadow-black/20 sm:flex-row">
-              <div className="flex min-w-0 flex-1 items-center gap-3 px-3"><Search size={20} className="shrink-0 text-ink-400" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Try ‘electrical supplies’ or ‘home cleaning’" className="h-12 min-w-0 flex-1 bg-transparent text-sm text-ink-900 outline-none placeholder:text-ink-400" /></div>
+              <div className="flex min-w-0 flex-1 items-center gap-3 px-3"><Search size={20} className="shrink-0 text-ink-400" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search products or services" className="h-12 min-w-0 flex-1 bg-transparent text-sm text-ink-900 outline-none placeholder:text-ink-400" /></div>
               <Button type="submit" className="h-12 rounded-xl px-6">{t('searchMarketplace')} <ArrowRight size={17} /></Button>
             </form>
             <div className="vv-market-facts mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-white/65"><span className="inline-flex items-center gap-1.5"><MapPin size={14} /> {locale.city || 'Jaipur'}, {locale.state || 'Rajasthan'}, {locale.countryName || 'India'}</span><span>Evidence-based verification</span><span>Direct conversations</span></div>

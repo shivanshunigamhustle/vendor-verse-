@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Users, Phone, MessageSquare, MapPin, Plus, CalendarClock, ChevronRight, Check, Store, User, Wallet, ShieldCheck, Lock, FileText, Clock,
   TrendingUp, LogOut, Globe, Bell, Flag, Upload, Target, BadgeCheck, AlertTriangle, Search, ArrowDown, ArrowRight, List, Columns3, Trash2,
@@ -7,8 +7,8 @@ import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { STAGES, STAGE_TONE, cat, CATS } from '../data.jsx'
 import {
-  Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Badge, Banner, EmptyState, Stat, KV, fmt, cx,
-  Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar, DocTile, Stepper, HBar, Checkbox, SearchBar, SOFT,
+  Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Badge, Banner, EmptyState, KV, fmt, cx,
+  Pill, IconBtn, StatusBadge, ListRow, Group, Timeline, Avatar, DocTile, Stepper, Checkbox, SearchBar, SOFT,
 } from '../ui.jsx'
 import { NotifBell } from './shared.jsx'
 
@@ -50,7 +50,6 @@ function LeadCard({ l, onClick }) {
 /* ================= PIPELINE VISUALS ================= */
 const MAIN = STAGES.slice(0, 6)
 const SHORT = ['New', 'Contacted', 'Interested', 'Reg. started', 'Submitted', 'Converted']
-const FUNNEL = ['from-sky-500 to-sky-400', 'from-violet-500 to-violet-400', 'from-amber-500 to-amber-400', 'from-orange-500 to-orange-400', 'from-brand-600 to-brand-500', 'from-emerald-600 to-emerald-500']
 
 export function PipelineFunnel({ leads, onPick }) {
   const cum = MAIN.map((_, i) => leads.filter((l) => MAIN.indexOf(l.stage) >= i).length)
@@ -75,8 +74,8 @@ export function PipelineFunnel({ leads, onPick }) {
             )}
             <button onClick={() => onPick(s)} className="grid w-full grid-cols-[minmax(58px,76px)_minmax(0,1fr)_minmax(38px,46px)] items-center gap-2 text-left active:opacity-70">
               <span className="text-[12px] font-bold text-ink-700">{SHORT[i]}</span>
-              <span className="flex justify-center">
-                <span className={cx('flex h-9 items-center justify-center rounded-lg bg-gradient-to-r text-sm font-extrabold text-white shadow-sm transition-all', FUNNEL[i])} style={{ width: `${Math.max((cum[i] / base) * 100, 16)}%` }}>{cum[i]}</span>
+              <span className="flex min-w-0 justify-center">
+                <span className="vv-agent-funnel-bar flex h-9 items-center justify-center rounded-lg text-sm font-extrabold transition-all" style={{ width: `${Math.max((cum[i] / base) * 100, 16)}%` }}>{cum[i]}</span>
               </span>
               <span className="text-right text-[11px] font-semibold text-ink-500">{cur[i]} now</span>
             </button>
@@ -108,6 +107,103 @@ export function StageTracker({ stage }) {
           </div>
         ))}
       </div>
+    </Card>
+  )
+}
+
+function AgentMetric({ label, value, icon: Icon, note, formatter, onClick }) {
+  const [shown, setShown] = useState(0)
+  useEffect(() => {
+    const target = Number(value) || 0
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      setShown(target)
+      return undefined
+    }
+
+    let frame = 0
+    const started = performance.now()
+    const duration = 520
+    const update = (now) => {
+      const progress = Math.min((now - started) / duration, 1)
+      setShown(Math.round(target * (1 - (1 - progress) ** 3)))
+      if (progress < 1) frame = requestAnimationFrame(update)
+    }
+    frame = requestAnimationFrame(update)
+    return () => cancelAnimationFrame(frame)
+  }, [value])
+
+  const content = (
+    <>
+      <span className="vv-agent-metric-icon"><Icon size={18} /></span>
+      <span className="vv-agent-metric-copy">
+        <span className="vv-agent-metric-label">{label}</span>
+        <span className="vv-agent-metric-value" aria-label={`${label}: ${formatter ? formatter(value) : new Intl.NumberFormat().format(value)}`}>{formatter ? formatter(shown) : new Intl.NumberFormat().format(shown)}</span>
+        <span className="vv-agent-metric-note">{note}</span>
+      </span>
+    </>
+  )
+
+  return onClick
+    ? <button type="button" className="vv-agent-metric-card" onClick={onClick}>{content}</button>
+    : <div className="vv-agent-metric-card">{content}</div>
+}
+
+export function AgentPipelineChart({ leads }) {
+  const counts = MAIN.map((stage, index) => leads.filter((lead) => MAIN.indexOf(lead.stage) >= index).length)
+  const maximum = Math.max(counts[0] || 0, 1)
+  const points = counts.map((count, index) => ({
+    x: 34 + (index * 612) / Math.max(counts.length - 1, 1),
+    y: 142 - (count / maximum) * 112,
+    count,
+    label: SHORT[index],
+  }))
+  const line = points.reduce((path, point, index) => {
+    if (!index) return `M ${point.x} ${point.y}`
+    const previous = points[index - 1]
+    const middle = (previous.x + point.x) / 2
+    return `${path} Q ${previous.x} ${previous.y} ${middle} ${(previous.y + point.y) / 2}`
+  }, '')
+  const last = points[points.length - 1]
+  const linePath = `${line} Q ${points[points.length - 2].x} ${points[points.length - 2].y} ${last.x} ${last.y}`
+  const areaPath = `${linePath} L ${last.x} 154 L ${points[0].x} 154 Z`
+  const id = 'agent-pipeline-area'
+
+  return (
+    <Card className="vv-agent-chart-card">
+      <div className="vv-agent-analytics-heading">
+        <div><p className="text-sm font-bold">Pipeline progression</p><p className="text-xs text-ink-500">Assigned leads reaching each stage</p></div>
+        <span className="vv-agent-analytics-total">{leads.length} total</span>
+      </div>
+      {leads.length ? (
+        <div className="vv-agent-chart-wrap">
+          <svg className="vv-agent-pipeline-chart" viewBox="0 0 680 204" role="group" aria-label="Assigned lead counts through each pipeline stage">
+            <defs>
+              <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#2563eb" stopOpacity=".2" />
+                <stop offset="100%" stopColor="#2563eb" stopOpacity=".015" />
+              </linearGradient>
+            </defs>
+            {[30, 86, 142].map((y) => (
+              <g key={y}>
+                <line x1="34" x2="646" y1={y} y2={y} className="vv-agent-chart-gridline" />
+              </g>
+            ))}
+            <path d={areaPath} fill={`url(#${id})`} className="vv-agent-chart-area" />
+            <path d={linePath} className="vv-agent-chart-line" />
+            {points.map((point) => (
+              <g key={point.label}>
+                <circle cx={point.x} cy={point.y} r="5" role="img" tabIndex="0" aria-label={`${point.label}: ${point.count} assigned leads`} className="vv-agent-chart-point">
+                  <title>{`${point.label}: ${point.count} assigned leads`}</title>
+                </circle>
+              </g>
+            ))}
+          </svg>
+          <div className="vv-agent-chart-legend">
+            {points.map((point) => <div key={point.label}><b>{point.count}</b><span>{point.label}</span></div>)}
+          </div>
+        </div>
+      ) : <p className="vv-agent-analytics-empty">Pipeline analytics will appear when leads are assigned.</p>}
     </Card>
   )
 }
@@ -170,20 +266,27 @@ export function AgentHome() {
   const nav = useNav()
   const { leads, commissions, me, t } = useApp()
   const today = leads.filter((l) => dueKind(l.next?.date) === 'today' || dueKind(l.next?.date) === 'overdue')
-  const active = leads.filter((l) => !['Lost', 'Inactive', 'Approved/Converted'].includes(l.stage))
+  const fresh = leads.filter((l) => l.stage === 'New').length
   const conv = leads.filter((l) => l.stage === 'Approved/Converted').length
-  const pend = commissions.filter((c) => ['pending', 'awaiting', 'approved'].includes(c.status)).reduce((s, c) => s + c.amount, 0)
+  const commissionDue = commissions.filter((c) => ['pending', 'awaiting', 'approved'].includes(c.status)).reduce((sum, commission) => sum + commission.amount, 0)
   return (
     <Screen headerless pad={false}>
-      <div className="vv-agent-hero bg-gradient-to-b from-brand-700 to-brand-600 px-4 pb-14 pt-3 text-white">
-        <div className="flex items-center justify-between"><div><p className="text-sm text-white/75">{t('hello')},</p><h1 className="text-xl font-extrabold">{(me.name || 'Neha Verma').split(' ')[0]} 👋</h1></div><div className="[&_button]:text-white [&_button:hover]:bg-white/15 [&_span]:ring-brand-700"><NotifBell role="agent" /></div></div>
+      <div className="vv-agent-hero px-4 py-5">
+        <div className="flex items-center justify-between gap-4"><div><p className="text-sm text-ink-500">{t('hello')},</p><h1 className="text-xl font-extrabold">{(me.name || 'Neha Verma').split(' ')[0]}</h1><p className="mt-1 text-sm text-ink-500">Your assigned-lead overview</p></div><div className="vv-agent-hero-notifications"><NotifBell role="agent" /></div></div>
       </div>
       <div className="vv-agent-dashboard-content space-y-4 px-4 pb-6">
-        <div className="vv-agent-kpi-grid grid grid-cols-2 gap-3"><Stat label="Active leads" value={active.length} icon={Users} tone="sky" onClick={() => nav.go('a_leads')} /><Stat label="Follow-ups due" value={today.length} icon={CalendarClock} tone="amber" onClick={() => nav.go('a_followups')} /><Stat label="Converted" value={conv} icon={BadgeCheck} tone="emerald" /><Stat label="Commission due" value={fmt(pend)} icon={Wallet} tone="violet" onClick={() => nav.go('a_earnings')} /></div>
-        <Button full size="lg" icon={Plus} onClick={() => nav.go('a_lead_new')}>Add new lead</Button>
+        <div className="vv-agent-kpi-grid">
+          <AgentMetric label="Total leads" value={leads.length} icon={Users} note="Current assignment" onClick={() => nav.go('a_leads')} />
+          <AgentMetric label="New leads" value={fresh} icon={Plus} note="Stage: New" onClick={() => nav.go('a_leads', { stage: 'New' })} />
+          <AgentMetric label="Converted" value={conv} icon={BadgeCheck} note="Approved or converted" onClick={() => nav.go('a_perf')} />
+          <AgentMetric label="Follow-ups due" value={today.length} icon={CalendarClock} note="Overdue or due today" onClick={() => nav.go('a_followups')} />
+          <AgentMetric label="Commission due" value={commissionDue} icon={Wallet} note="Sample records · O-03 open" formatter={fmt} onClick={() => nav.go('a_earnings')} />
+        </div>
+        <div className="vv-agent-dashboard-actions"><Button icon={Plus} onClick={() => nav.go('a_lead_new')}>Add new lead</Button></div>
         <Section title="Pipeline" action="Board" onAction={() => nav.go('a_leads')}>
           <PipelineFunnel leads={leads} onPick={(s) => nav.go('a_leads', { stage: s })} />
         </Section>
+        <AgentPipelineChart leads={leads} />
         <AgentLeadAnalytics leads={leads} />
         <Section title="Today’s follow-ups" action="All" onAction={() => nav.go('a_followups')}>
           <div className="space-y-2.5">{today.slice(0, 3).map((l) => <LeadCard key={l.id} l={l} onClick={() => nav.go('a_lead', { id: l.id })} />)}{today.length === 0 && <Card className="text-center text-sm text-ink-500">Nothing due — great job! 🎉</Card>}</div>
@@ -445,7 +548,7 @@ export function AgentEarnings() {
   const label = { pending: 'Pending approval', awaiting: 'Awaiting vendor approval', approved: 'Approved', paid: 'Paid', rejected: 'Rejected' }
   return (
     <Screen title="Commissions" back={false}>
-      <Card className="bg-gradient-to-br from-brand-600 to-brand-800 !text-white"><p className="text-xs text-white/75">Total earned</p><p className="text-3xl font-extrabold">{fmt(sum(['paid']))}</p><div className="mt-3 flex gap-6 border-t border-white/20 pt-3 text-xs"><div><p className="text-white/70">Approved</p><p className="text-sm font-bold">{fmt(sum(['approved']))}</p></div><div><p className="text-white/70">Pending</p><p className="text-sm font-bold">{fmt(sum(['pending', 'awaiting']))}</p></div></div></Card>
+      <Card className="vv-agent-earnings-summary"><p className="text-xs text-ink-500">Total earned</p><p className="text-3xl font-extrabold">{fmt(sum(['paid']))}</p><div className="mt-3 flex flex-wrap gap-6 border-t border-ink-200 pt-3 text-xs"><div><p className="text-ink-500">Approved</p><p className="text-sm font-bold">{fmt(sum(['approved']))}</p></div><div><p className="text-ink-500">Pending</p><p className="text-sm font-bold">{fmt(sum(['pending', 'awaiting']))}</p></div></div></Card>
       <Banner tone="blue" title="How commissions work">Attribution is recorded at lead creation, approved by Super Admin, then paid out. You cannot approve vendors you onboarded. The commission rate, payer and payout method are not decided yet (O-03); amounts below are sample records.</Banner>
       <Group>{commissions.map((c, i) => <ListRow key={c.id} last={i === commissions.length - 1} icon={Wallet} tone={tone[c.status]} title={`${c.lead}`} subtitle={`${c.kind} · ${c.date}`} right={<div className="text-right"><p className="text-sm font-extrabold">{fmt(c.amount)}</p><Badge tone={tone[c.status]}>{label[c.status]}</Badge></div>} />)}</Group>
     </Screen>
@@ -456,14 +559,16 @@ export function AgentProfile() {
   const nav = useNav()
   const { me, setMe, lang, setLang, toast, leads } = useApp()
   const conv = leads.filter((l) => l.stage === 'Approved/Converted').length
+  const active = leads.filter((l) => !['Lost', 'Inactive', 'Approved/Converted'].includes(l.stage)).length
+  const rate = leads.length ? `${Math.round((conv / leads.length) * 100)}%` : '0%'
   const [deleteOpen, setDeleteOpen] = useState(false)
   const deleteAccount = () => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '', accountState: 'deleted' }); setDeleteOpen(false); toast('Sales-agent account deletion recorded'); nav.reset('welcome') }
   return (
     <Screen title="Profile" back={false} pad={false} overlay={<Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete sales-agent account?" actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={deleteAccount}>Delete account</Button></>}><p>This signs you out and records the deletion request in this browser demo. Assigned leads remain with the marketplace.</p></Dialog>}>
       <div className="space-y-4 p-4">
         <Card className="!p-4"><div className="flex items-center gap-3.5"><Avatar name={me.name || 'Neha Verma'} size={60} /><div><p className="text-lg font-extrabold">{me.name || 'Neha Verma'}</p><p className="text-sm text-ink-500">Sales Agent · Jaipur North</p><Badge tone="teal" className="mt-1.5">ID SA-0142</Badge></div></div></Card>
-        <div className="grid grid-cols-3 gap-2">{[['Leads', leads.length], ['Converted', conv], ['Rate', `${Math.round((conv / leads.length) * 100)}%`]].map(([a, b]) => <Card key={a} className="!p-3 text-center"><p className="text-lg font-extrabold">{b}</p><p className="text-[11px] text-ink-500">{a}</p></Card>)}</div>
-        <Card><p className="mb-2 text-sm font-bold">Monthly target</p><HBar label="Vendors onboarded" value={2} max={5} right="2 / 5" /><div className="mt-3"><HBar label="Customers registered" value={1} max={4} right="1 / 4" color="bg-sky-500" /></div></Card>
+        <div className="vv-agent-profile-stats">{[['Leads', leads.length], ['Converted', conv], ['Rate', rate]].map(([a, b]) => <Card key={a} className="!p-3 text-center"><p className="text-lg font-extrabold">{b}</p><p className="text-[11px] text-ink-500">{a}</p></Card>)}</div>
+        <Card className="vv-agent-profile-pipeline"><p className="mb-3 text-sm font-bold">Current pipeline</p><div className="space-y-3"><div><div className="mb-1 flex justify-between gap-3 text-xs"><span>Active leads</span><b>{active} / {leads.length}</b></div><div className="vv-agent-profile-track"><span style={{ width: `${leads.length ? (active / leads.length) * 100 : 0}%` }} /></div></div><div><div className="mb-1 flex justify-between gap-3 text-xs"><span>Converted leads</span><b>{conv} / {leads.length}</b></div><div className="vv-agent-profile-track"><span style={{ width: `${leads.length ? (conv / leads.length) * 100 : 0}%` }} /></div></div><p className="text-xs text-ink-500">Conversion rate: {rate}</p></div></Card>
         <Group>
           <ListRow icon={Globe} tone="sky" title="Language" subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} />
           <ListRow icon={Bell} tone="orange" title="Notifications" onClick={() => nav.go('notifications')} />

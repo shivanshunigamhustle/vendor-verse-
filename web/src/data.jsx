@@ -258,9 +258,11 @@ export const THREADS0 = {
     { id: 'tb2', name: 'BrightSpark Home Services', bizId: 'biz1', ctx: 'Vendor enquiry', unread: 0, msgs: [{ f: 'them', t: 'Looking for a trade credit arrangement for wiring supplies.', at: 'Yesterday' }, { f: 'me', t: 'Happy to discuss. Please share your GST details.', at: 'Yesterday' }] },
   ],
   vendor: [
-    { id: 't1', name: 'Aarav Mehta', ctx: 'Enquiry · Havells copper wire', listingId: 'l1', unread: 2, msgs: [{ f: 'them', t: 'Hi, is this wire in stock? I need 3 coils by Thursday.', at: '10:02 AM' }, { f: 'me', t: 'Yes sir, we can deliver by Wednesday.', at: '10:20 AM' }, { f: 'them', t: 'Great, please share the best price for 3 coils.', at: '10:41 AM' }] },
-    { id: 't2', name: 'Nova Logistics Pvt Ltd', ctx: 'RFQ-315', unread: 0, msgs: [{ f: 'them', t: 'Can you visit the warehouse for a survey?', at: 'Yesterday' }, { f: 'me', t: 'Sure, Thursday 11 AM works.', at: 'Yesterday' }] },
-    { id: 't3', name: 'Priya Singh', ctx: 'Enquiry · Anchor switches', listingId: 'l2', unread: 0, msgs: [{ f: 'them', t: 'Is bulk discount available on 50 sets?', at: '2 days ago' }] },
+    { id: 't1', name: 'Aarav Mehta', ctx: 'Enquiry · Havells copper wire', listingId: 'l1', unread: 2, online: true, msgs: [{ f: 'them', t: 'Hi, is this wire in stock? I need 3 coils by Thursday.', at: '10:02 AM' }, { f: 'me', t: 'Yes sir, we can deliver by Wednesday.', at: '10:20 AM' }, { f: 'them', t: 'Great, please share the best price for 3 coils.', at: '10:41 AM' }] },
+    { id: 't2', name: 'Nova Logistics Pvt Ltd', ctx: 'RFQ-315', unread: 0, online: false, msgs: [{ f: 'them', t: 'Can you visit the warehouse for a survey?', at: 'Yesterday' }, { f: 'me', t: 'Sure, Thursday 11 AM works.', at: 'Yesterday' }] },
+    { id: 't3', name: 'Priya Singh', ctx: 'Enquiry · Anchor switches', listingId: 'l2', unread: 0, online: true, msgs: [{ f: 'them', t: 'Is bulk discount available on 50 sets?', at: '2 days ago' }] },
+    { id: 't4', name: 'Meera Kapoor', ctx: 'Enquiry · Switchgear supply', listingId: 'l3', unread: 1, online: true, msgs: [{ f: 'them', t: 'Could you share availability for the switchgear range?', at: '11:32 AM' }] },
+    { id: 't5', name: 'Kunal Bansal', ctx: 'RFQ-328', unread: 0, online: false, msgs: [{ f: 'me', t: 'Thanks for your request. I will review the quantities and reply shortly.', at: 'Yesterday' }] },
   ],
 }
 
