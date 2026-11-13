@@ -33,6 +33,8 @@ Maps every feature in [01-feature-spec.md](01-feature-spec.md) to the screens th
 
 **Sales Agent web presentation update (2026-11-13).** `a_home` now presents lead-record KPIs and a responsive pipeline-stage area chart derived from assigned leads. `a_perf` includes the same current-stage visualization alongside its existing registration, approval and subscription metrics. Profile pipeline bars now reflect assigned lead records rather than fixed monthly quotas. No weekly/monthly trends or targets are fabricated because the available Agent data has no corresponding time-series or target values. Routes, filters, permissions, theme choices and business workflows are unchanged; mobile was not edited and visual parity remains outstanding.
 
+**Sales Agent standalone layout update (2026-11-13).** `a_perf`, `a_followups`, `a_leads` and `a_profile` now use the full-height workspace with persistent sidebar navigation. At narrow widths the sidebar becomes a compact, tappable icon rail; the global header and bottom tab bar no longer take space on these screens. Light/Dark mode remains available from the sidebar, with high-contrast white/blue Light surfaces and navy/blue Dark surfaces; lead-stage badges use readable theme-aware colors and wrap long labels. Routes, data, permissions and workflows are unchanged; mobile was not edited.
+
 | ID | Web screens | Web | Mobile screens | Mobile | Sync action |
 |---|---|---|---|---|---|
 | F-ACC-01 | `splash` `welcome` `login` `otp` `register` | Done | `splash` `welcome` `login` `otp` `register` | Done | Web 2026-10-30: one demo OTP 123456 for every role; admin signs in with the OTP once (owner request), which differs from mobile's admin second step; role picker kept (O-11). Web and mobile 2026-11-05: when VITE_API_BASE_URL is set, OTP request and verify, sessions, refresh, logout and the signed-in role (from GET /me) use the backend auth API; with it unset the in-memory mock is used. Sales Agent and Super Admin sign-in is blocked by the backend until MFA exists (503). Web: remove the role picker and the per-role OTPs; use one login, one demo OTP and an admin second step, as mobile does. |
@@ -217,7 +219,10 @@ These are mockup behaviours that differ between the apps and must be made the sa
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-11-13 17:36 | Abhishek Samadhiya | Modified: F-AGT-01 and F-AGT-05 sync documentation | Preserve the Sales Agent workspace notes and reconcile the matrix with the updated PR branch. |
 | 2026-11-13 16:59 | Abhishek Samadhiya | Modified: F-VND-13 decision reference | Preserve the Light/Dark theme decision as D-027 while keeping upstream D-019 for vendor-role rules. |
+| 2026-11-13 16:29 | Abhishek Samadhiya | Modified: F-AGT-01 and F-AGT-05 standalone contrast and responsive badges | Keep Agent stage labels and primary actions legible in Dark mode and prevent long labels from clipping on narrow screens. |
+| 2026-11-13 16:23 | Abhishek Samadhiya | Modified: F-AGT-01 and F-AGT-05 Sales Agent full-screen workspace | Keep the requested Agent pages full-height with visible sidebar navigation and readable theme-aware colours across screen sizes. |
 | 2026-11-13 15:38 | Abhishek Samadhiya | Modified: F-VND-10 mobile sidebar padding | Align the drawer to the phone viewport and standardize its inner spacing. |
 | 2026-11-13 15:36 | Abhishek Samadhiya | Modified: F-VND-13 workspace theme control | Remove the extra palette selector, retain Light/Dark, and record mobile parity as outstanding per D-027. |
 | 2026-11-13 15:25 | Abhishek Samadhiya | Modified: F-VND-10 mobile sidebar surface | Use a fully opaque theme-matched sidebar on phones so dashboard content does not show through. |

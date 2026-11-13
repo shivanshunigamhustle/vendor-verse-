@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
+import { useTheme } from '../hooks/useTheme.jsx'
 import { STAGES, STAGE_TONE, cat, CATS } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Badge, Banner, EmptyState, KV, fmt, cx,
@@ -25,10 +26,20 @@ const isoToLabel = (iso) => { const [y, m, d] = iso.split('-'); return `${d} ${M
 const ICON = { call: Phone, message: MessageSquare, visit: MapPin }
 const PRIORITY = { High: 'bg-red-500', Medium: 'bg-amber-500', Low: 'bg-ink-300' }
 
-function StageBadge({ s }) {
+function StageBadge({ s, style }) {
+  const { theme } = useTheme()
   const tone = STAGE_TONE[s]
   const map = { blue: 'bg-sky-50 text-sky-700 ring-sky-200', purple: 'bg-violet-50 text-violet-700 ring-violet-200', amber: 'bg-amber-50 text-amber-700 ring-amber-200', teal: 'bg-brand-50 text-brand-700 ring-brand-200', green: 'bg-emerald-50 text-emerald-700 ring-emerald-200', red: 'bg-red-50 text-red-700 ring-red-200', gray: 'bg-ink-100 text-ink-600 ring-ink-200' }
-  return <span className={cx('inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset', map[tone])}>{s}</span>
+  const darkMap = {
+    blue: 'bg-[#172a45] text-[#bfdbfe] ring-[#60a5fa]',
+    purple: 'bg-[#292342] text-[#ddd6fe] ring-[#a78bfa]',
+    amber: 'bg-[#3a2f1e] text-[#fde68a] ring-[#f59e0b]',
+    teal: 'bg-[#143b36] text-[#99f6e4] ring-[#2dd4bf]',
+    green: 'bg-[#15352a] text-[#bbf7d0] ring-[#4ade80]',
+    red: 'bg-[#3b1d25] text-[#fecaca] ring-[#fb7185]',
+    gray: 'bg-[#253047] text-[#cbd5e1] ring-[#94a3b8]',
+  }
+  return <span style={style} className={cx('inline-flex max-w-full min-w-0 whitespace-normal break-words rounded-full px-2 py-0.5 text-center text-[11px] font-semibold leading-tight ring-1 ring-inset', theme === 'dark' ? (darkMap[tone] || darkMap.gray) : map[tone])}>{s}</span>
 }
 
 function LeadCard({ l, onClick }) {
@@ -38,7 +49,7 @@ function LeadCard({ l, onClick }) {
       <div className="flex items-start gap-3">
         <div className="relative"><Thumb tone={cat(l.cat).tone} icon={l.type === 'vendor' ? Store : User} size={46} round="rounded-xl" /><span className={cx('absolute -right-0.5 -top-0.5 size-3 rounded-full ring-2 ring-white', PRIORITY[l.priority])} /></div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-bold">{l.name}</p><StageBadge s={l.stage} /></div>
+          <div className="flex min-w-0 items-center justify-between gap-2"><p className="min-w-0 flex-1 truncate text-sm font-bold">{l.name}</p><StageBadge s={l.stage} style={{ flex: '0 1 46%', maxWidth: '46%', overflowWrap: 'anywhere' }} /></div>
           <p className="mt-0.5 truncate text-xs text-ink-500">{l.type === 'vendor' ? 'Vendor' : 'Customer'} · {cat(l.cat).name} · {l.city}</p>
           {l.next?.date && <p className={cx('mt-1.5 flex items-center gap-1 text-xs font-semibold', k === 'overdue' ? 'text-red-600' : k === 'today' ? 'text-amber-600' : 'text-ink-500')}><CalendarClock size={12} />{k === 'today' ? 'Today' : l.next.date} · {l.next.action}</p>}
         </div>
@@ -320,7 +331,7 @@ export function Leads({ params = {} }) {
       </div>
       {view === 'list' ? (
         <>
-          <Chips value={stage} onChange={setStage} options={['All', ...STAGES]} />
+          <Chips value={stage} onChange={setStage} options={['All', ...STAGES]} className="!mr-[-14px]" />
           <p className="text-xs text-ink-500">{list.length} leads · only leads assigned to you are shown</p>
           <div className="space-y-2.5">{list.map((l) => <LeadCard key={l.id} l={l} onClick={() => nav.go('a_lead', { id: l.id })} />)}</div>
           {!list.length && <EmptyState icon={Users} title="No leads match" body="Try another stage or add a new lead." action={<Button size="sm" onClick={() => nav.go('a_lead_new')}>Add lead</Button>} />}
