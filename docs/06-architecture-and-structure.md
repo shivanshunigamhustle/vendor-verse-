@@ -67,8 +67,10 @@ vendor-verse-/
 
 The NestJS bootstrap and active modules are in `backend/src/`. The implemented
 feature slices include auth/accounts, geography, taxonomy, vendor onboarding,
-listings/availability, files, notifications and vendor verification. The
-architecture folders under `backend/modules/` remain planned module boundaries.
+listings/availability, files, notifications, vendor verification, vendor roles
+and RFQs/quotes. Booking, contract and purchase-order API modules remain
+unimplemented; the architecture folders under `backend/modules/` remain planned
+module boundaries.
 
 ## 3. Backend modules and the features they own
 
@@ -83,12 +85,12 @@ Each folder under `backend/modules/` is one module. Phase is read from the spec,
 | taxonomy | Industries, categories, schemas, versions, suggestions | F-TAX-01 to F-TAX-05, F-TAX-08 |
 | vendors | Vendor types, onboarding, public profile, dashboard data | F-VND-01, F-VND-02, F-VND-09, F-VND-10 |
 | verification | Levels L0 to L3, evidence, expiry, reviewer queue, appeals | F-VND-03 |
-| business | Business accounts, eligibility, admin verification, network | F-BIZ-01, F-BIZ-02, F-BIZ-04 |
+| business | Company details, eligibility, admin verification, network; merged into the vendor account (D-023), boundary to be re-cut once O-19 closes | F-BIZ-01, F-BIZ-02, F-BIZ-04 |
 | listings | Listings, catalogue, media, six gates, duplicates | F-VND-05 to F-VND-07, F-GDS-01 |
 | availability | Service areas, availability rules, slots | F-VND-08 |
 | search | Query, filters, ranking, favourites, compare | F-DSC-01 to F-DSC-07 |
 | bookings | Instant, scheduled, recurring, modify, cancel, complete | F-BKG-01 to F-BKG-10 |
-| rfq | RFQs, quotes, atomic accept, goods RFQ | F-RFQ-01 to F-RFQ-06, F-GDS-02 |
+| rfq | RFQs, quotes, atomic accept and configured fulfillment | F-RFQ-01 to F-RFQ-06, F-GDS-02 |
 | orders | Purchase orders and exceptions | F-GDS-03, F-GDS-04, F-GDS-06 |
 | contracts | Propose, counter, accept, milestones, disputes | F-CON-01, F-CON-02 |
 | messaging | Linked conversations, privacy filter, consent, report | F-MSG area |
@@ -103,7 +105,7 @@ Each folder under `backend/modules/` is one module. Phase is read from the spec,
 | audit | Append-only trail, query, export | F-ADM area |
 | files | Signed upload URLs, scanning, moderation | F-XCT area |
 
-Payments (Mode A and Mode B records, F-PAY-01 and F-PAY-02) are Phase 1 and live with bookings, orders and contracts as records; they have no separate module until the spec says otherwise.
+The bookings, RFQ, purchase-order and contract transaction APIs are implemented under `backend/src/`. Payment APIs are intentionally outside this transaction slice; no payment module or funds movement is added. Payment scope remains as recorded in F-PAY-01/F-PAY-02 and D-002.
 
 `backend/modules-phase2/`: `payments` (checkout, escrow, wallet, refunds), `payouts-commission`, `trade` (Incoterms, multi-currency, samples, trade documents), `teams` (business roles, approvals). Empty on purpose. Open features (F-GEO-04, F-GEO-05, F-VND-11, F-VND-12, F-DSC-08, F-DSC-09, F-CON-05, F-GDS-05 and others) have no folder or code until their O-xx is closed.
 
@@ -177,6 +179,9 @@ Rules:
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-11-13 12:44 | Amit | Modified: active transaction module inventory | Record the booking, contract and purchase-order API implementation and clarify that payment APIs are excluded from this slice. |
+| 2026-11-12 11:52 | Sahil Soni | Modified: active backend module status | Vendor roles module added under `backend/src/vendor-roles/` (D-024). |
+| 2026-11-11 16:52 | Sahil Soni | Modified: business module description | Vendor and Business merged (D-023); no code moved yet. |
 | 2026-11-10 13:59 | Amit | Modified: active backend module status | Vendor verification now has an implemented module under `backend/src/verification/`, not only a planned boundary. |
 | 2026-11-05 12:16 | Shil1517 | Modified: PostgreSQL migration scope reference (migrations 004-013 added) | Schema extended from the auth/vendor/taxonomy slice to the full Phase 1 data model so APIs on web and mobile share one consistent store. |
 | 2026-11-04 15:37 | Amit | Modified: PostgreSQL migration scope reference | Include the auth challenge and request-limit support migration added for the F-ACC implementation slice. |

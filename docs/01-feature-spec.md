@@ -1,4 +1,4 @@
-# VendorVerse Feature Specification (master register)
+﻿# VendorVerse Feature Specification (master register)
 
 **This file is the single source of truth for what VendorVerse does and in which phase.** Web and mobile are two clients of one product, so every feature below applies to both unless a row says otherwise. The mockups are measured against this file (see [03-mockup-sync-matrix.md](03-mockup-sync-matrix.md)); this file is not measured against the mockups.
 
@@ -29,7 +29,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 | ID | Feature | Phase | Description and rules | PRS ref |
 |---|---|---|---|---|
 | F-ACC-01 | Sign-up and login (phone or email + OTP) | P1 | One login for all roles. No role picker at login: the role comes from the account. Admin and privileged roles add a second factor (MFA). Rate limits on OTP. | §3, §16 |
-| F-ACC-02 | One identity, customer / vendor / business modes | P1 | A user can switch mode. Mode is a UX context, not a privilege; vendor APIs still need ownership. | §3.1 |
+| F-ACC-02 | One identity, customer / vendor / business modes | P1 | A user can switch mode. Mode is a UX context, not a privilege; vendor APIs still need ownership. Two modes after D-023: Customer and Vendor (Business is merged into Vendor). Buying happens in Customer mode and selling in Vendor mode (D-022). Mobile and web no longer offer a Business mode at sign-up or in the workspace picker; the Business screens stay in the code until O-19 is closed. | §3.1 |
 | F-ACC-03 | Account states | P1 | Pending verification, Active, Restricted, Suspended, Deletion requested, each with defined behaviour and a user-facing explanation. | §3.2 |
 | F-ACC-04 | Account deletion request | P1 | Verify requester, run the approved deletion/anonymisation flow, keep legally required records, show status. | SC-040, CFG-08 |
 | F-ACC-05 | Data export and deletion explainer | P1 | User can request an export of their data and sees what deletion keeps and removes. Added to P1 by the mobile scope doc (gap list). | §16, CFG-08 |
@@ -56,7 +56,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 |---|---|---|---|---|
 | F-TAX-01 | Browse industries, categories, subcategories | P1 | Reads the live taxonomy. All 30 industry nodes and their documented example subcategories are shown directly in the browse view without expanding an industry; actual categories without eligible listings in the market are hidden unless admin marks "always show". | §6, GM-04, D-017 |
 | F-TAX-02 | Admin taxonomy builder | P1 | Create, edit, reorder, merge, retire categories without a release. Lifecycle Draft, Active, Restricted, Retired. Retired categories keep history. Super Admin only. | GM-11, GM-16, GM-18 |
-| F-TAX-03 | Per-category configuration | P1 | Attribute schema, validation, booking modes, availability model, response deadline, cancellation policy, RFQ schema, verification rules, country availability, contract eligibility. Versioned; existing deals keep their snapshot. | §6.2, GM-12 |
+| F-TAX-03 | Per-category configuration | P1 | Attribute schema, validation, booking modes, availability model, response deadline, cancellation policy, RFQ schema, verification rules, country availability, contract eligibility, and service-RFQ fulfillment type (`rfqFulfillmentType`: booking, work_order, or contract). Versioned; existing deals keep their snapshot. Goods RFQs create purchase orders. | §6.2, GM-12 |
 | F-TAX-04 | Vendor suggests a category | P1 | Proposal enters an admin queue; vendor lists under the nearest approved category meanwhile; never auto-published. | GM-14, SC-046 |
 | F-TAX-05 | Core Phase 1 industries (10) | P1 | Home and household, Construction, Events, Professional, IT and digital, Wholesale and distribution, Logistics, Automotive, Health/education/wellness, Agriculture/energy/environment. Five groups remain the supply-building priority. The complete 30-industry taxonomy is browseable in Phase 1; listing workflows remain configured for the existing 10 industry groups (D-017). | §6.1 |
 | F-TAX-06 | Additional industries (9; formerly Phase 2) | P1 | Manufacturing and OEM, Textiles, Chemicals, Food processing, Education providers, Finance and real estate, Marketing and media, Power and utilities, Packaging and printing. Browseable with the documented example subcategories in Phase 1 (D-017); existing listing workflow configuration is unchanged. | §6.1 |
@@ -67,9 +67,9 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 
 | ID | Feature | Phase | Description and rules | PRS ref |
 |---|---|---|---|---|
-| F-VND-01 | Onboarding wizard by vendor type | P1 | Distinct paths for service provider/contractor and for manufacturer/supplier. Forms vary by type. | §5.1, §26.4.2 |
+| F-VND-01 | Onboarding wizard by vendor type | P1 | A vendor is one business with one or more vendor roles (manufacturer, supplier, wholesaler, distributor, retailer, contractor, service provider and others), not one fixed type (D-023). Forms and required documents follow the roles chosen, and the business submits only the documents its own roles require (D-019). A role is hidden publicly until verified (D-021). Role list for Phase 1: O-19. The list is open-ended: a new role is a configuration entry, not a code change (D-024). Mobile and web mockups both take one or more roles in the wizard. | §5.1, §26.4.2 |
 | F-VND-02 | "Become a vendor" asks country first | P1 | Country selection drives verification and category availability from the first step. | GM-08 |
-| F-VND-03 | Verification levels L0 to L3 | P1 | L0 Registered, L1 Contact, L2 Business, L3 Credential. Evidence, expiry tracking, reviewer queue, reasons, resubmission. Badges state what was verified and when. Not purchasable. | §5.2, §26.6 |
+| F-VND-03 | Verification levels L0 to L3 | P1 | L0 Registered, L1 Contact, L2 Business, L3 Credential. Evidence, expiry tracking, reviewer queue, reasons, resubmission. Badges state what was verified and when. Not purchasable. Verification applies to the business and to each vendor role (D-020). | §5.2, §26.6 |
 | F-VND-04 | Verification L4 and third-party KYB | P2 | Audited partner review; KYB/registry integrations per country. | §26.6, CFG-18 |
 | F-VND-05 | Publication gates | P1 | Six gates computed live, never stored: account state, content review, subscription, category verification, required fields and service area, no holds. | §5.3 |
 | F-VND-06 | Listings: create, edit, pause, unpublish | P1 | Multiple listings within plan limit; material edits can trigger re-review. | §5.4 |
@@ -79,7 +79,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 | F-VND-10 | Vendor dashboard | P1 | Listing states, subscription and lead usage, request inbox, RFQ opportunities, quotes, bookings, contracts, reviews, performance. | §26.8 |
 | F-VND-11 | Profile completeness score | OPEN | PRS requires it; absent from both mockups. Decision O-09. | §26.4.2 |
 | F-VND-12 | Field visibility classes (public / counterparty / private) | OPEN | PRS requires server-enforced classes; not in either mockup. Decision O-09. | §26.4 |
-| F-VND-13 | Workspace color mode | P1 | Persistent appearance-only Light/Dark toggle across Vendor, Agent and Business workspaces (D-019). Additional palette choices are removed. Must not alter role data, permissions, routes or workflows. |
+| F-VND-13 | Workspace color mode | P1 | Persistent appearance-only Light/Dark toggle across Vendor, Agent and Business workspaces (D-027). Additional palette choices are removed. Must not alter role data, permissions, routes or workflows. |
 | F-VND-14 | Vendor analytics presentation presets | OPEN | Optional appearance selector for existing vendor charts only; must not change analytics data or calculations. Do not implement until O-17 is decided. | Owner request 2026-11-10 |
 
 ## 5. Discovery (DSC)
@@ -87,7 +87,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 | ID | Feature | Phase | Description and rules | PRS ref |
 |---|---|---|---|---|
 | F-DSC-01 | Home with search, intent tabs and category explorer | P1 | Industry-neutral brand, "what" and "where" search, region/language selectors, clearly labelled sponsored blocks. | §26.1 |
-| F-DSC-02 | Search, filters, ranking, pagination | P1 | Coverage match, ineligible listings excluded, organic ranking (plan tier is not a signal), "why this matched" label. | §7, GM-21, GM-22 |
+| F-DSC-02 | Universal search, filters, ranking, pagination | P1 | One search spans public vendors, products, services and categories plus the caller's authorized private contracts, RFQs, bookings and purchase orders (D-025). Private results are visible only to a transaction party or an authorized vendor owner. Coverage match, ineligible listings excluded, organic ranking (plan tier is not a signal), and "why this matched" label. | §7, GM-21, GM-22, D-025 |
 | F-DSC-03 | Search error, offline and no-result flows | P1 | Recoverable states; broader-area suggestions are labelled as mismatches. | §7.3, SC-002 |
 | F-DSC-04 | Supplier and manufacturer search | P1 | Filters for vendor type, minimum order, lead time, ships-to display. | §26.7 |
 | F-DSC-05 | Listing detail with honest missing-data labels | P1 | Never show zero, estimates or inferred values for price, rating, availability, credentials. | §7.4, SC-003 |
@@ -119,7 +119,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 | F-RFQ-01 | Create RFQ | P1 | Category schema fields, scanned attachments, deadline, eligible vendor set. Services and goods variants. | §9.1 |
 | F-RFQ-02 | Vendor quotation: submit, revise, withdraw | P1 | Price, scope, inclusions, exclusions, timeline, validity. | §9.2, §9.3 |
 | F-RFQ-03 | Compare, negotiate, accept (atomic, one winner) | P1 | Exactly one quote wins under concurrent acceptance; others marked unsuccessful. | §9.5, SC-025 |
-| F-RFQ-04 | Accepted-terms snapshot and work order | P1 | Accepted terms immutable; creates booking, work order, PO or contract per category. | §9.5 |
+| F-RFQ-04 | Accepted-terms snapshot and work order | P1 | Accepted terms immutable; acceptance atomically creates a booking, work order, or contract according to the category's `rfqFulfillmentType`; goods RFQs create a PO. Missing or invalid service configuration blocks acceptance. | §9.5 |
 | F-RFQ-05 | Edit RFQ with revision history | P1 | Allowed while open and unaccepted; vendors notified. | §9.4, SC-021 |
 | F-RFQ-06 | Deadline extension and no-quotes flow | P1 | Reminders, extension, then suggestions. | §9.4, SC-020 |
 | F-RFQ-07 | Multi-currency quotes, Incoterms, samples workflow | P2 | Cross-border trade terms. | §26.5, §26.7 |
@@ -152,11 +152,11 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 
 | ID | Feature | Phase | Description and rules | PRS ref |
 |---|---|---|---|---|
-| F-BIZ-01 | Business account (separate account type) | P1 | Owner-only; eligibility 3+ years and registered; six-step company form; admin verification (D-005). | §26.4.1 differs, see D-005 |
+| F-BIZ-01 | Business account (separate account type) | P1 | Merged into Vendor by D-023 (supersedes D-005): a company is a vendor with company details and the documents its roles require. Whether the 3+ years / registered / owner-only eligibility and the six-step company form still apply: O-19. Mobile and web hide the Business account (D-023); the Business screens stay until O-19 is closed. | §26.4.1 differs, see D-005, D-023 |
 | F-BIZ-02 | Business workspace: home, services for vendors, vendor enquiries | P1 | Vendors message the company; company-side inbox. | |
 | F-BIZ-03 | Company directory, storefront and direct ordering | P2 | Verified companies list products with MOQ and lead time; customers order directly and the company accepts, processes and ships. Payment is settled directly with the company; the platform tracks status only. Decision D-015 (closes O-07). | |
 | F-BIZ-04 | Company verification queue | P1 | Admin reviews company evidence. | §13.1 |
-| F-BIZ-05 | Vendor as buyer | P1 | A vendor switches to a buyer journey: find supplier, bulk RFQ, compare, accept, PO, track. | Priority review journey 5 |
+| F-BIZ-05 | Vendor as buyer | P1 | A vendor switches to Customer mode to buy (D-022): find supplier, bulk RFQ, compare, accept, PO, track. Buying as the business: O-19. | Priority review journey 5 |
 | F-BIZ-06 | Business team roles, approvals, spending limits | P2 | Includes vendor staff accounts. | §24 |
 
 ## 11. Messaging and notifications (MSG)
@@ -295,7 +295,16 @@ Every PRS chapter maps to at least one feature, or to a documented non-goal.
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
-| 2026-11-13 15:36 | Abhishek Samadhiya | Modified: F-VND-13 workspace color mode | Supersede the six-preset selector with a single Light/Dark toggle per owner direction D-019. |
+| 2026-11-13 16:59 | Abhishek Samadhiya | Modified: F-VND-13 decision reference | Assign the Light/Dark decision D-027 because upstream D-019 is the permanent vendor-role decision. |
+| 2026-11-13 15:36 | Abhishek Samadhiya | Modified: F-VND-13 workspace color mode | Supersede the six-preset selector with a single Light/Dark toggle per owner direction D-027. |
+| 2026-11-13 12:44 | Amit | Modified: F-TAX-03 and F-RFQ-04 fulfillment mapping | Record the chosen category-config mapping and the goods-RFQ purchase-order rule without changing phase scope. |
+| 2026-11-13 11:16 | Amit | Modified: F-DSC-02 universal search scope | D-025 defines the public and caller-authorized private resource types and their visibility rules. |
+| 2026-11-12 12:01 | Sahil Soni | Modified: F-VND-01 description | Web onboarding now takes multiple vendor roles like mobile (D-023). |
+| 2026-11-12 11:44 | Sahil Soni | Modified: F-VND-01 description | Roles are open-ended and configurable (D-024). |
+| 2026-11-12 11:36 | Sahil Soni | Modified: F-ACC-02, F-BIZ-01 descriptions | Web now hides the Business account too (D-023). |
+| 2026-11-11 17:25 | Sahil Soni | Modified: F-ACC-02, F-BIZ-01 descriptions | Mobile mockup hides the Business account (D-023). |
+| 2026-11-11 17:00 | Sahil Soni | Modified: F-VND-01 description | Mobile mockup now implements multi-role onboarding (D-023). |
+| 2026-11-11 16:52 | Sahil Soni | Modified: F-VND-01, F-VND-03, F-ACC-02, F-BIZ-01, F-BIZ-05 descriptions (phases unchanged) | Vendor and Business merged into one Vendor account with multi-valued vendor roles (D-023, D-019 to D-022); open details in O-19. |
 | 2026-11-11 16:51 | Abhishek Samadhiya | Modified: D-017 and D-018 references | Keep the industry-browsing and workspace-theme decisions distinct after reconciling the branch histories. |
 | 2026-11-11 13:02 | Amit | Modified: F-TAX-01 subcategory visibility | Industry subcategory examples are now shown directly in the browse list on both platforms. |
 | 2026-11-11 12:34 | Amit | Modified: F-TAX-01, F-TAX-05, F-TAX-06 and F-TAX-07 | D-017 moves the full documented industry browser into Phase 1 while preserving current listing workflow scope. |
