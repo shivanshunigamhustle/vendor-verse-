@@ -2,21 +2,12 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 const ThemeContext = createContext(null)
 
-export const THEME_PRESETS = [
-  { id: 'light', label: 'Light', swatch: 'light' },
-  { id: 'dark', label: 'Dark', swatch: 'dark' },
-  { id: 'midnight', label: 'Midnight', swatch: 'midnight' },
-  { id: 'ocean', label: 'Ocean', swatch: 'ocean' },
-  { id: 'emerald', label: 'Emerald', swatch: 'emerald' },
-  { id: 'sunset', label: 'Sunset', swatch: 'sunset' },
-]
-
-const THEME_IDS = new Set(THEME_PRESETS.map(({ id }) => id))
-
 function getStoredTheme() {
   try {
     const stored = window.localStorage.getItem('vv-theme')
-    return THEME_IDS.has(stored) ? stored : null
+    if (stored === 'light' || stored === 'ocean' || stored === 'emerald' || stored === 'sunset') return 'light'
+    if (stored === 'dark' || stored === 'midnight') return 'dark'
+    return null
   } catch (error) {
     console.warn('Theme preference could not be read from local storage.', error)
     return null

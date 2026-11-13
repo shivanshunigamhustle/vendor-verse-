@@ -1,4 +1,4 @@
-# VendorVerse Feature Specification (master register)
+﻿# VendorVerse Feature Specification (master register)
 
 **This file is the single source of truth for what VendorVerse does and in which phase.** Web and mobile are two clients of one product, so every feature below applies to both unless a row says otherwise. The mockups are measured against this file (see [03-mockup-sync-matrix.md](03-mockup-sync-matrix.md)); this file is not measured against the mockups.
 
@@ -79,7 +79,7 @@ Read order: [README](README.md) · this file · [02-phase-scope.md](02-phase-sco
 | F-VND-10 | Vendor dashboard | P1 | Listing states, subscription and lead usage, request inbox, RFQ opportunities, quotes, bookings, contracts, reviews, performance. | §26.8 |
 | F-VND-11 | Profile completeness score | OPEN | PRS requires it; absent from both mockups. Decision O-09. | §26.4.2 |
 | F-VND-12 | Field visibility classes (public / counterparty / private) | OPEN | PRS requires server-enforced classes; not in either mockup. Decision O-09. | §26.4 |
-| F-VND-13 | Workspace color theme presets | P1 | Persistent appearance-only selector for Light, Dark, Midnight, Ocean, Emerald and Sunset across Vendor, Agent and Business workspaces on web and mobile (D-018). Must not alter role data, permissions, routes or workflows. | Owner request 2026-11-10; D-018 |
+| F-VND-13 | Workspace color mode | P1 | Persistent appearance-only Light/Dark toggle across Vendor, Agent and Business workspaces (D-027). Additional palette choices are removed. Must not alter role data, permissions, routes or workflows. |
 | F-VND-14 | Vendor analytics presentation presets | OPEN | Optional appearance selector for existing vendor charts only; must not change analytics data or calculations. Do not implement until O-17 is decided. | Owner request 2026-11-10 |
 
 ## 5. Discovery (DSC)
@@ -295,6 +295,8 @@ Every PRS chapter maps to at least one feature, or to a documented non-goal.
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-11-13 16:59 | Abhishek Samadhiya | Modified: F-VND-13 decision reference | Assign the Light/Dark decision D-027 because upstream D-019 is the permanent vendor-role decision. |
+| 2026-11-13 15:36 | Abhishek Samadhiya | Modified: F-VND-13 workspace color mode | Supersede the six-preset selector with a single Light/Dark toggle per owner direction D-027. |
 | 2026-11-13 12:44 | Amit | Modified: F-TAX-03 and F-RFQ-04 fulfillment mapping | Record the chosen category-config mapping and the goods-RFQ purchase-order rule without changing phase scope. |
 | 2026-11-13 11:16 | Amit | Modified: F-DSC-02 universal search scope | D-025 defines the public and caller-authorized private resource types and their visibility rules. |
 | 2026-11-12 12:01 | Sahil Soni | Modified: F-VND-01 description | Web onboarding now takes multiple vendor roles like mobile (D-023). |

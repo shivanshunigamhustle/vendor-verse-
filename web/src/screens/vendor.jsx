@@ -3,7 +3,7 @@ import { createContext, Fragment, useContext, useEffect, useLayoutEffect, useMem
 import {
   Package, CalendarCheck, FileText, IndianRupee, Plus, AlertTriangle, ChevronRight, Store, ShieldCheck, Clock, MessageCircle, Truck, Check, X, Briefcase, Building2,
   Upload, Wallet, BarChart3, Star, Settings, LogOut, MapPin, Boxes, CalendarClock, Crown, Download, Trash2, ImagePlus, Phone, TrendingUp, BadgeCheck, Minus, Info,
-  LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, ChevronLeft, ChevronDown, Sun, Moon, UsersRound, MessageSquare, PackageCheck, UserRound,
+  LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, ChevronLeft, ChevronDown, Sun, Moon, UsersRound, MessageSquare, PackageCheck, UserRound, Send, ArrowLeft,
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
@@ -24,7 +24,30 @@ export const useMyVendor = () => {
   const { me, vendors } = useApp()
   return vendors.find((v) => v.id === me.vendorId) || null
 }
-const VendorWorkspaceContext = createContext(false)
+const VendorWorkspaceContext = createContext(null)
+
+function VendorSidebarToggle({ workspace }) {
+  if (!workspace?.standalone) return null
+  const label = workspace.mobile
+    ? workspace.mobileOpen ? 'Close sidebar' : 'Open sidebar'
+    : workspace.collapsed ? 'Expand sidebar' : 'Collapse sidebar'
+  const Icon = workspace.mobile
+    ? workspace.mobileOpen ? PanelLeftClose : PanelLeftOpen
+    : workspace.collapsed ? PanelLeftOpen : PanelLeftClose
+  return (
+    <button
+      type="button"
+      className="vv-vendor-work-sidebar-toggle"
+      aria-controls="vendor-workspace-navigation"
+      aria-expanded={workspace.mobile ? workspace.mobileOpen : !workspace.collapsed}
+      aria-label={label}
+      title={label}
+      onClick={workspace.toggleWorkspace}
+    >
+      <Icon size={18} />
+    </button>
+  )
+}
 
 const VX_CSS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap');
 .vx-shell { --bg:#f2fbf8; --ink:#0c2a26; --muted:#5f8279; --soft:#35625a; --line:rgba(16,150,120,.16); --glass:rgba(255,255,255,.7); --glass2:rgba(255,255,255,.9); --mint:#12b48f; --sky:#1796d6; --violet:#6a5ae0; --gold:#d89a1d; --coral:#ff7a5c; --grad:linear-gradient(135deg,#27d9ae,#0fa98a); --r-lg:30px; --r-md:24px; --ease:cubic-bezier(.2,.8,.2,1); --sw:264px; --shellbg:linear-gradient(160deg,#fafffd 0%,#eafaf4 50%,#dff6ee 100%); --orb1:#9be8d0; --orb2:#b8f0e4; --side1:rgba(255,255,255,.88); --side2:rgba(255,255,255,.62); --hi:#fff; --g85:rgba(255,255,255,.85); --g70:rgba(255,255,255,.7); --rowh:#fff; --panel1:rgba(255,255,255,.72); --panel2:rgba(255,255,255,.4); --card1:rgba(255,255,255,.95); --card2:rgba(255,255,255,.7); --cardbd:rgba(255,255,255,.9); --btnl:#fff; --btnlh:#f4fffb; --h1a:#0c2a26; --h1b:#1b6b58; --tip:#0c2a26; --tipink:#fff; --track:rgba(18,150,120,.12); --dotfill:#fff; position:relative; isolation:isolate; overflow:hidden; display:grid; grid-template-columns:var(--sw) minmax(0,1fr); gap:16px; height:100vh; padding:16px; font-family:'Plus Jakarta Sans',system-ui,sans-serif; color:var(--ink); background:var(--shellbg); transition:grid-template-columns .55s var(--ease); -webkit-font-smoothing:antialiased; }
@@ -405,18 +428,18 @@ const VX_CSS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakar
   }
   .vx-shell { display:block; padding:0; }
   .vx-side {
-    position:absolute; inset:12px auto 12px 12px; z-index:22;
-    width:min(280px,calc(100vw - 56px)); height:auto; max-height:none;
+    position:absolute; inset:0 auto 0 0; z-index:22;
+    width:min(288px,calc(100vw - 48px)); height:100%; max-height:none;
     transform:translateX(calc(-100% - 16px)); visibility:hidden;
-    border-radius:18px; box-shadow:0 20px 60px rgba(12,44,37,.22);
+    border-radius:0 12px 12px 0; box-shadow:0 16px 36px rgba(12,44,37,.18);
     transition:transform .28s var(--ease),visibility .28s;
   }
   .vx-shell.is-mobile-open .vx-side { transform:translateX(0); visibility:visible; }
   .vx-shell.is-mobile-open .vx-mobile-scrim {
     position:absolute; inset:0; z-index:21; display:block;
-    border:0; background:rgba(13,36,31,.38); backdrop-filter:blur(2px);
+    border:0; background:rgba(13,36,31,.38);
   }
-  .vx-shell.is-collapsed .vx-side { align-items:stretch; padding:20px 12px 14px; }
+  .vx-shell.is-collapsed .vx-side { align-items:stretch; padding:16px 12px 12px; }
   .vx-shell.is-collapsed .vx-bt,
   .vx-shell.is-collapsed .vx-group,
   .vx-shell.is-collapsed .vx-lbl,
@@ -427,10 +450,10 @@ const VX_CSS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakar
   .vx-shell.is-collapsed .vx-lbl { display:inline-block; }
   .vx-shell.is-collapsed .vx-plan > div { display:flex; }
   .vx-shell.is-collapsed .vx-biz > div { display:block; }
-  .vx-shell.is-collapsed .vx-brand { justify-content:flex-start; padding:2px 6px 18px; }
+  .vx-shell.is-collapsed .vx-brand { justify-content:flex-start; padding:2px 6px 12px; }
   .vx-shell.is-collapsed .vx-nav-item { justify-content:flex-start; padding:10px 11px; }
-  .vx-shell.is-collapsed .vx-biz { justify-content:flex-start; margin:10px 4px 0; padding:8px; }
-  .vx-shell.is-collapsed .vx-plan { margin:auto 4px 0; padding:14px; }
+  .vx-shell.is-collapsed .vx-biz { justify-content:flex-start; margin:8px 4px 0; padding:8px; }
+  .vx-shell.is-collapsed .vx-plan { margin:auto 4px 0; padding:10px; }
   .vx-shell.is-collapsed .vx-logout { margin-top:6px; }
   .vx-main { width:100%; height:100%; gap:0; }
   .vx-top {
@@ -767,7 +790,7 @@ function BusinessSidebar({ active, collapsed, onNavigate }) {
   )
 }
 
-export function VendorWorkspace({ children, variant = 'vendor', header }) {
+export function VendorWorkspace({ children, variant = 'vendor', header, standalone = false }) {
   const nested = useContext(VendorWorkspaceContext)
   if (nested) return children
   const nav = useNav()
@@ -780,11 +803,11 @@ export function VendorWorkspace({ children, variant = 'vendor', header }) {
   const { theme } = useTheme()
   const collapseAt = variant === 'vendor' ? 760 : 1100
   const [collapsed, setCollapsed] = useState(() => window.innerWidth <= collapseAt)
-  const [mobile, setMobile] = useState(() => window.innerWidth <= 680)
+  const [mobile, setMobile] = useState(() => window.innerWidth <= 900)
   const [mobileOpen, setMobileOpen] = useState(false)
   useEffect(() => {
     const handleResize = () => {
-      const isMobile = window.innerWidth <= 680
+      const isMobile = window.innerWidth <= 900
       setMobile(isMobile)
       setMobileOpen(false)
       setCollapsed(window.innerWidth <= collapseAt)
@@ -797,18 +820,18 @@ export function VendorWorkspace({ children, variant = 'vendor', header }) {
     : setCollapsed((value) => !value)
 
   return (
-    <VendorWorkspaceContext.Provider value={true}>
-      <div className={cx('vx-shell vv-vendor-workspace', collapsed && 'is-collapsed', mobileOpen && 'is-mobile-open')} data-theme={theme}>
+    <VendorWorkspaceContext.Provider value={{ inWorkspace: true, standalone, mobile, mobileOpen, collapsed, toggleWorkspace }}>
+      <div className={cx('vx-shell vv-vendor-workspace', variant === 'vendor' && 'is-vendor-workspace', standalone && 'is-standalone', collapsed && 'is-collapsed', mobileOpen && 'is-mobile-open')} data-theme={theme}>
         <style>{VX_CSS}</style>
         {mobile && <button type="button" className="vx-mobile-scrim" aria-label="Close workspace menu" onClick={() => setMobileOpen(false)} />}
         {variant === 'business'
           ? <BusinessSidebar active={nav.id} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
           : <VendorSidebar active={nav.id} vendor={vendor} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />}
         <section className="vx-main">
-          {variant === 'business' && header
+          {!standalone && variant === 'business' && header
             ? header({ onWorkspaceToggle: toggleWorkspace, mobile, mobileOpen, collapsed })
-            : <header className="vx-top">
-              <button type="button" className="vx-toggle" aria-controls="vendor-workspace-navigation" aria-label={mobile ? mobileOpen ? 'Close workspace menu' : 'Open workspace menu' : collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={mobile ? !mobileOpen : !collapsed} onClick={toggleWorkspace}>
+            : !standalone && <header className="vx-top">
+              <button type="button" className="vx-toggle" aria-controls="vendor-workspace-navigation" aria-label={mobile ? mobileOpen ? 'Close workspace menu' : 'Open workspace menu' : collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={mobile ? mobileOpen : !collapsed} onClick={toggleWorkspace}>
                 {mobile ? mobileOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} /> : <ChevronLeft size={15} />}
               </button>
               {variant === 'vendor' && <nav className="vx-top-nav" aria-label="Vendor workspace shortcuts">
@@ -818,16 +841,155 @@ export function VendorWorkspace({ children, variant = 'vendor', header }) {
                   </button>
                 ))}
               </nav>}
-              <label className="vx-search"><Search size={16} /><input placeholder="Search listings, quote requests, messagesâ€¦" aria-label="Search" /></label>
+              <label className="vx-search"><Search size={16} /><input placeholder="Search" aria-label="Search" /></label>
               <ThemeToggle className="vx-theme-toggle" />
               <div className="vx-ico"><NotifBell role="vendor" /></div>
               <button type="button" className="vx-locale" onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} aria-label="Switch language">{lang === 'en' ? 'EN | हिन्दी' : 'हि | EN'} <ChevronDown size={12} /></button>
-              <div className="vx-me"><div className="vx-av">{(me.name || 'V').split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div><div><b>{me.name || 'Vendor'}</b><small>Owner</small></div></div>
+              <div className="vx-me" aria-label={`${me.name || 'Vendor'}, Owner`} title={me.name || 'Vendor'}><div className="vx-av">{(me.name || 'V').split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div><div><b>{me.name || 'Vendor'}</b><small>Owner</small></div></div>
             </header>}
           <main className="vx-panel">{children}</main>
         </section>
       </div>
     </VendorWorkspaceContext.Provider>
+  )
+}
+
+export function VendorMessages() {
+  const nav = useNav()
+  const workspace = useContext(VendorWorkspaceContext)
+  const { threads, setThreads } = useApp()
+  const [query, setQuery] = useState('')
+  const [draft, setDraft] = useState('')
+  const [selectedId, setSelectedId] = useState(() => window.innerWidth > 900 ? threads.vendor[0]?.id || null : null)
+  const messagesRef = useRef(null)
+  const conversations = threads.vendor
+  const selected = conversations.find((thread) => thread.id === selectedId) || null
+  const unreadTotal = conversations.reduce((sum, thread) => sum + thread.unread, 0)
+  const visible = conversations.filter((thread) => thread.name.toLowerCase().includes(query.trim().toLowerCase()))
+
+  useEffect(() => {
+    if (selected) messagesRef.current?.scrollTo({ top: messagesRef.current.scrollHeight })
+  }, [selectedId, selected?.msgs.length])
+
+  const openConversation = (thread) => {
+    setSelectedId(thread.id)
+    setDraft('')
+    if (thread.unread) {
+      setThreads((current) => ({
+        ...current,
+        vendor: current.vendor.map((item) => item.id === thread.id ? { ...item, unread: 0 } : item),
+      }))
+    }
+  }
+
+  const sendMessage = (event) => {
+    event.preventDefault()
+    const text = draft.trim()
+    if (!text || !selected) return
+    const at = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date())
+    setThreads((current) => ({
+      ...current,
+      vendor: current.vendor.map((thread) => thread.id === selected.id
+        ? { ...thread, msgs: [...thread.msgs, { f: 'me', t: text, at }] }
+        : thread),
+    }))
+    setDraft('')
+  }
+
+  return (
+    <Screen title="Messages" back={false} headerless pad={false}>
+      <div className="vv-vendor-inbox" data-chat-open={selected ? 'true' : 'false'}>
+        <aside className="vv-vendor-inbox-list" aria-label="Conversations" data-chat-open={Boolean(selected)}>
+          <div className="vv-vendor-inbox-list-header">
+            <div className="vv-vendor-inbox-title-row">
+              {workspace?.standalone && <button
+                type="button"
+                className="vv-vendor-inbox-sidebar-toggle"
+                aria-controls="vendor-workspace-navigation"
+                aria-expanded={workspace.mobile ? workspace.mobileOpen : !workspace.collapsed}
+                aria-label={workspace.mobile ? workspace.mobileOpen ? 'Close sidebar' : 'Open sidebar' : workspace.collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                title={workspace.mobile ? workspace.mobileOpen ? 'Close sidebar' : 'Open sidebar' : workspace.collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                onClick={workspace.toggleWorkspace}
+              >
+                {workspace.mobile
+                  ? workspace.mobileOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />
+                  : workspace.collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+              </button>}
+              <button type="button" className="vv-vendor-inbox-back vv-vendor-inbox-list-back" aria-label="Back to Dashboard" onClick={() => nav.reset('v_dash')}>
+                <ArrowLeft size={18} /><span>Dashboard</span>
+              </button>
+              <h1>Messages</h1>
+              <span className="vv-vendor-inbox-total">{unreadTotal} new</span>
+            </div>
+            <label className="vv-vendor-inbox-search">
+              <Search size={16} aria-hidden="true" />
+              <input aria-label="Search conversations" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search conversations" />
+            </label>
+          </div>
+          <div className="vv-vendor-inbox-threads">
+            {visible.map((thread) => {
+              const last = thread.msgs[thread.msgs.length - 1]
+              return (
+                <button
+                  type="button"
+                  key={thread.id}
+                  className={`vv-vendor-inbox-thread${thread.id === selectedId ? ' is-active' : ''}`}
+                  onClick={() => openConversation(thread)}
+                  aria-current={thread.id === selectedId ? 'true' : undefined}
+                >
+                  <span className="vv-vendor-inbox-avatar">
+                    {thread.name.charAt(0).toUpperCase()}
+                    {thread.online && <i aria-label="Online" />}
+                  </span>
+                  <span className="vv-vendor-inbox-thread-copy">
+                    <span className="vv-vendor-inbox-thread-top"><b>{thread.name}</b><time>{last?.at || ''}</time></span>
+                    <span className="vv-vendor-inbox-preview">{last?.f === 'me' ? 'You: ' : ''}{last?.file ? `📎 ${last.file}` : last?.t || 'Start a conversation'}</span>
+                  </span>
+                  {thread.unread > 0 && <span className="vv-vendor-inbox-unread" aria-label={`${thread.unread} unread messages`}>{thread.unread}</span>}
+                </button>
+              )
+            })}
+            {!visible.length && <p className="vv-vendor-inbox-empty">No conversations match your search.</p>}
+          </div>
+        </aside>
+
+        <section className="vv-vendor-inbox-chat" aria-label="Open conversation">
+          {selected ? (
+            <>
+              <header className="vv-vendor-inbox-chat-header">
+                <button type="button" className="vv-vendor-inbox-back" aria-label="Back to Dashboard" onClick={() => nav.reset('v_dash')}>
+                  <ArrowLeft size={18} /><span>Dashboard</span>
+                </button>
+                <span className="vv-vendor-inbox-avatar">{selected.name.charAt(0).toUpperCase()}{selected.online && <i aria-label="Online" />}</span>
+                <div className="vv-vendor-inbox-contact">
+                  <b>{selected.name}</b>
+                  <span className={selected.online ? 'is-online' : ''}>{selected.online ? 'Online' : 'Offline'}</span>
+                </div>
+              </header>
+              <div className="vv-vendor-inbox-messages" ref={messagesRef} aria-live="polite">
+                <p className="vv-vendor-inbox-context">{selected.ctx}</p>
+                {selected.msgs.map((message, index) => (
+                  <div className={`vv-vendor-inbox-message${message.f === 'me' ? ' is-mine' : ''}`} key={`${selected.id}-${index}`}>
+                    <p>{message.file ? `📎 ${message.file}` : message.t}</p>
+                    <time>{message.at}</time>
+                  </div>
+                ))}
+              </div>
+              <form className="vv-vendor-inbox-composer" onSubmit={sendMessage}>
+                <input aria-label="Type a message" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Write a message..." />
+                <button type="submit" disabled={!draft.trim()}><Send size={17} /><span>Send</span></button>
+              </form>
+            </>
+          ) : (
+            <div className="vv-vendor-inbox-placeholder">
+              <span><MessageCircle size={25} /></span>
+              <b>Select a conversation</b>
+              <p>Choose a message from your inbox to continue the conversation.</p>
+            </div>
+          )}
+        </section>
+      </div>
+    </Screen>
   )
 }
 
@@ -899,6 +1061,7 @@ async function loadRemoteVerification(vendorId) {
 }
 
 function RemoteVendorVerification({ vendor }) {
+  const workspace = useContext(VendorWorkspaceContext)
   const [documents, setDocuments] = useState([])
   const [verifications, setVerifications] = useState([])
   const [pendingFiles, setPendingFiles] = useState([])
@@ -974,7 +1137,7 @@ function RemoteVendorVerification({ vendor }) {
   const statusLabels = { submitted: 'Submitted — awaiting review', in_review: 'In review', info_requested: 'More information requested', approved: 'Approved', rejected: 'Rejected', expired: 'Expired', revoked: 'Revoked' }
 
   return (
-    <Screen title="Verification" footer={<Button full size="lg" disabled={busy || loading} onClick={submit}>Submit {level} for review</Button>}>
+    <Screen title="Verification" right={<VendorSidebarToggle workspace={workspace} />} footer={<Button full size="lg" disabled={busy || loading} onClick={submit}>Submit {level} for review</Button>}>
       <Banner tone="blue">Upload evidence below, then submit an L1–L3 verification request. Files are attached only after the security scan passes.</Banner>
       {error && <Banner tone="red" title="Verification request failed">{error}</Banner>}
       <Card><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase text-ink-400">Current status</p><p className="mt-1 text-sm font-bold">{latest ? statusLabels[latest.status] || latest.status : 'Not submitted'}</p></div>{latest && <Badge tone={latest.status === 'approved' ? 'green' : latest.status === 'rejected' || latest.status === 'revoked' ? 'red' : latest.status === 'info_requested' ? 'amber' : 'blue'}>{latest.level}</Badge>}</div>{latest?.reason && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{latest.reason}</p>}{latest?.expiresAt && <p className="mt-2 text-xs text-ink-500">Expires {new Date(latest.expiresAt).toLocaleDateString()}</p>}</Card>
@@ -1105,12 +1268,13 @@ export function VendorRegister({ params = {} }) {
 /* ================= VERIFICATION STATUS ================= */
 export function VendorVerify() {
   const nav = useNav()
+  const workspace = useContext(VendorWorkspaceContext)
   const v = useMyVendor()
   const { patchVendor, notify, toast, stamp, settings } = useApp()
   const [fixed, setFixed] = useState({})
   const [paying, setPaying] = useState(null)
   const [paidPlan, setPaidPlan] = useState(null)
-  if (!v) return <VendorWorkspace><Screen title="Verification"><EmptyState icon={ShieldCheck} title="No application yet" action={<Button onClick={() => nav.go('v_register')}>Start registration</Button>} /></Screen></VendorWorkspace>
+  if (!v) return <VendorWorkspace><Screen title="Verification" right={<VendorSidebarToggle workspace={workspace} />}><EmptyState icon={ShieldCheck} title="No application yet" action={<Button onClick={() => nav.go('v_register')}>Start registration</Button>} /></Screen></VendorWorkspace>
   if (authService.isRemote) return <VendorWorkspace><RemoteVendorVerification vendor={v} /></VendorWorkspace>
   const meta = {
     submitted: ['blue', 'Under review', 'We usually respond within 1â€“2 business days.'],
@@ -1129,7 +1293,7 @@ export function VendorVerify() {
   const bad = v.docs.filter((d) => ['rejected', 'missing'].includes(d.status))
   return (
     <VendorWorkspace>
-    <Screen title="Verification" footer={needsFix ? <Button full size="lg" disabled={bad.some((d) => !fixed[d.name])} onClick={resubmit}>Resubmit for review</Button> : null}>
+    <Screen title="Verification" right={<VendorSidebarToggle workspace={workspace} />} footer={needsFix ? <Button full size="lg" disabled={bad.some((d) => !fixed[d.name])} onClick={resubmit}>Resubmit for review</Button> : null}>
       <DemoPhonePePayment open={!!paying} amount={paying?.price} title={`${paying?.name || ''} subscription`} onClose={() => setPaying(null)} onSuccess={() => { patchVendor(v.id, { plan: paying.name }); setPaidPlan(paying); setPaying(null) }} />
       <div className="vv-vendor-verify-body">
       <Card className={cx('!p-5 text-center', { green: 'bg-emerald-50', blue: 'bg-sky-50', amber: 'bg-amber-50', red: 'bg-red-50' }[meta[0]])}>
@@ -1159,6 +1323,7 @@ export function VendorVerify() {
 /* ================= LISTINGS ================= */
 export function VendorListings() {
   const nav = useNav()
+  const workspace = useContext(VendorWorkspaceContext)
   const { me, listings } = useApp()
   const [tab, setTab] = useState('all')
   const mine = listings.filter((l) => l.vendorId === me.vendorId)
@@ -1166,7 +1331,7 @@ export function VendorListings() {
   const cnt = (f) => mine.filter(f).length
   return (
     <VendorWorkspace>
-    <Screen title="My listings" back={false} right={<Button size="sm" icon={Plus} className="mr-2" onClick={() => nav.go('v_listing_edit')}>Add</Button>}>
+    <Screen title="My listings" back={false} right={<div className="flex items-center gap-2 pr-2"><VendorSidebarToggle workspace={workspace} /><Button size="sm" icon={Plus} onClick={() => nav.go('v_listing_edit')}>Add</Button></div>}>
       <UsageMeter compact />
       <Segmented value={tab} onChange={setTab} options={[{ id: 'all', label: 'All', count: mine.length }, { id: 'live', label: 'Live', count: cnt((l) => l.status === 'approved') }, { id: 'pending', label: 'Review', count: cnt((l) => l.status === 'pending') }, { id: 'issues', label: 'Issues', count: cnt((l) => ['rejected', 'suspended'].includes(l.status)) }]} />
       <div className="vv-vendor-listing-grid space-y-2.5">
@@ -1319,12 +1484,13 @@ export function VendorRfq({ params }) {
 
 export function VendorOrders() {
   const nav = useNav()
+  const workspace = useContext(VendorWorkspaceContext)
   const { me, orders, listings, patchOrder, notify, toast, stamp } = useApp()
   const mine = orders.filter((o) => o.vendorId === me.vendorId)
   const next = { placed: ['confirmed', 'Accept order'], confirmed: ['packed', 'Start processing'], packed: ['shipped', 'Mark shipped'], shipped: ['delivered', 'Mark delivered'] }
   const advance = (o) => { const n = next[o.status]; if (!n) return; patchOrder(o.id, (x) => ({ ...x, status: n[0], history: [...(x.history || []), { s: n[0], at: stamp(), note: n[1] }] })); notify('customer', `Order ${n[0]}`, `${o.id} Â· ${n[1]}`, 'order'); toast(`${o.id} updated`) }
   const reject = (o) => { patchOrder(o.id, (x) => ({ ...x, status: 'rejected', history: [...(x.history || []), { s: 'rejected', at: stamp(), note: 'Supplier declined the order' }] })); notify('customer', 'Order rejected', `${o.id} Â· Supplier declined the order`, 'order'); toast(`${o.id} rejected`, 'warn') }
-  return <VendorWorkspace><Screen title="Purchase orders" back={false}>
+  return <VendorWorkspace><Screen title="Purchase orders" back={false} right={<VendorSidebarToggle workspace={workspace} />}>
     <Banner tone="blue">Supplier orders from direct catalogue purchases and accepted quotations appear here. Progress updates are visible to the buyer.</Banner>
     <div className="space-y-2.5">{mine.map((o) => { const l = listings.find((x) => x.id === o.listingId); return <Card key={o.id} className="!p-3.5"><div className="flex items-start justify-between gap-2"><div><p className="text-xs font-bold text-ink-500">{o.id} Â· {o.customer}</p><p className="mt-1 text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="mt-1 text-xs text-ink-500">{o.qty} {l?.unit || 'units'} Â· {fmt(o.total || 0)} Â· {o.address}</p></div><StatusBadge s={o.status} /></div>{o.status === 'placed' && <Button size="sm" variant="dangerSoft" className="mt-3 mr-2" onClick={() => reject(o)}>Reject order</Button>}{next[o.status] && <Button size="sm" className="mt-3" onClick={() => advance(o)}>{next[o.status][1]}</Button>}<button className="ml-2 mt-3 text-xs font-bold text-brand-700" onClick={() => nav.go('c_order', { id: o.id })}>View tracking</button></Card> })}{!mine.length && <EmptyState icon={Package} title="No purchase orders yet" body="Orders created by buyers will appear here." />}</div>
   </Screen></VendorWorkspace>
@@ -1338,6 +1504,7 @@ export function VendorOrders() {
 
 /* ================= PERFORMANCE ================= */
 export function Performance() {
+  const workspace = useContext(VendorWorkspaceContext)
   const { toast, me, listings } = useApp()
   const nav = useNav()
   const [range, setRange] = useState('30')
@@ -1365,7 +1532,7 @@ export function Performance() {
   ]
   return (
     <VendorWorkspace>
-    <Screen title="Performance">
+    <Screen title="Performance" right={<VendorSidebarToggle workspace={workspace} />}>
       <div className="vx-perf-shell">
         <div className="vx-perf-header">
           <div>
@@ -1490,6 +1657,7 @@ export function Performance() {
 }
 
 export function VendorReviews() {
+  const workspace = useContext(VendorWorkspaceContext)
   const { me, reviews, setReviews, toast } = useApp()
   const mine = reviews.filter((r) => r.target === me.vendorId)
   const [reply, setReply] = useState(null)
@@ -1497,7 +1665,7 @@ export function VendorReviews() {
   const avg = mine.length ? (mine.reduce((s, r) => s + r.rating, 0) / mine.length).toFixed(1) : 'â€”'
   return (
     <VendorWorkspace>
-    <Screen title="Reviews" overlay={<Sheet open={!!reply} onClose={() => setReply(null)} title="Reply publicly" footer={<Button full disabled={!txt.trim()} onClick={() => { setReviews((rs) => rs.map((r) => (r.id === reply.id ? { ...r, reply: txt } : r))); setReply(null); setTxt(''); toast('Reply posted') }}>Post reply</Button>}>{reply && <p className="rounded-xl bg-ink-50 p-3 text-sm text-ink-600">â€œ{reply.text}â€</p>}<Input textarea rows={3} placeholder="Thank the customer or address their concern" value={txt} onChange={(e) => setTxt(e.target.value)} /></Sheet>}>
+    <Screen title="Reviews" right={<VendorSidebarToggle workspace={workspace} />} overlay={<Sheet open={!!reply} onClose={() => setReply(null)} title="Reply publicly" footer={<Button full disabled={!txt.trim()} onClick={() => { setReviews((rs) => rs.map((r) => (r.id === reply.id ? { ...r, reply: txt } : r))); setReply(null); setTxt(''); toast('Reply posted') }}>Post reply</Button>}>{reply && <p className="rounded-xl bg-ink-50 p-3 text-sm text-ink-600">â€œ{reply.text}â€</p>}<Input textarea rows={3} placeholder="Thank the customer or address their concern" value={txt} onChange={(e) => setTxt(e.target.value)} /></Sheet>}>
       <div className="vv-vendor-reviews-body">
       <Card className="flex items-center gap-5"><div className="text-center"><p className="text-4xl font-extrabold">{avg}</p><Rating value={+avg || 0} /></div><div className="flex-1 space-y-1.5">{[5, 4, 3].map((s) => <HBar key={s} label={`${s}â˜…`} value={mine.filter((r) => r.rating === s).length} max={mine.length || 1} color="bg-amber-400" />)}</div></Card>
       {mine.map((r) => (
@@ -1514,6 +1682,7 @@ export function VendorReviews() {
 
 export function VendorProfile() {
   const nav = useNav()
+  const workspace = useContext(VendorWorkspaceContext)
   const v = useMyVendor()
   const { me, setMe, patchVendor, toast, settings } = useApp()
   const [f, setF] = useState({ name: v?.name || '', phone: v?.phone || '', email: v?.email || '', about: 'Trusted supplier of electrical and hardware products since 2019. Genuine brands, fast delivery.', areas: v?.areas || [] })
@@ -1523,7 +1692,7 @@ export function VendorProfile() {
   const [businessOpen, setBusinessOpen] = useState(false)
   const [businessName, setBusinessName] = useState(me.businessName || v?.name || '')
   const [deleteOpen, setDeleteOpen] = useState(false)
-  if (!v) return <VendorWorkspace><Screen title="Business profile"><EmptyState icon={Store} title="No business profile yet" body="Complete vendor registration to set up your profile." action={<Button onClick={() => nav.go('v_register')}>Start registration</Button>} /></Screen></VendorWorkspace>
+  if (!v) return <VendorWorkspace><Screen title="Business profile" right={<VendorSidebarToggle workspace={workspace} />}><EmptyState icon={Store} title="No business profile yet" body="Complete vendor registration to set up your profile." action={<Button onClick={() => nav.go('v_register')}>Start registration</Button>} /></Screen></VendorWorkspace>
   const save = () => {
     const e = {}
     if (f.name.trim().length < 3) e.name = 'Business name is required'
@@ -1556,7 +1725,7 @@ export function VendorProfile() {
   }
   return (
     <VendorWorkspace>
-    <Screen title="Business profile" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
+    <Screen title="Business profile" right={<VendorSidebarToggle workspace={workspace} />} footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
       <DemoPhonePePayment open={!!selectedPlan} amount={selectedPlan?.price} title={`${selectedPlan?.name || ''} subscription`} onClose={() => setSelectedPlan(null)} onSuccess={() => { patchVendor(v.id, { plan: selectedPlan.name }); setPaymentDone(selectedPlan); setSelectedPlan(null) }} />
       <div className="vv-vendor-profile-body">
       <Section title="Business workspace"><Card className="!border-violet-200 !bg-violet-50/60 !p-4"><div className="flex items-start gap-3"><Thumb tone="violet" icon={Briefcase} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">{me.businessWorkspace ? 'Business workspace active' : 'Create business workspace'}</p><p className="mt-1 text-xs leading-relaxed text-ink-600">{me.businessWorkspace ? `Open ${me.businessName || 'your company'} supplier dashboard and manage vendor RFQs.` : 'Create a supplier workspace for your company. Vendors can send bulk RFQs and purchase requirements to you.'}</p><Button size="sm" className="mt-3" variant={me.businessWorkspace ? 'secondary' : 'primary'} onClick={() => { if (me.businessWorkspace) { setMe({ ...me, role: 'business', name: me.businessName || me.name, buyerMode: false }); nav.reset('b_home') } else nav.go('b_eligibility') }}>{me.businessWorkspace ? 'Open workspace' : 'Create workspace'}</Button></div></div></Card></Section>
@@ -1583,7 +1752,7 @@ export function VendorProfile() {
 /* ================= DASHBOARD ================= */
 export function VendorDashboard() {
   const nav = useNav()
-  const { me, rfqs, listings, threads, bookings } = useApp()
+  const { me, rfqs, listings, threads, bookings, orders, lang } = useApp()
   const [range, setRange] = useState('6 weeks')
   const v = useMyVendor()
   const vid = me.vendorId
@@ -1724,6 +1893,7 @@ export function VendorDashboard() {
 /* ================= QUOTE REQUESTS ================= */
 export function VendorQuotes() {
   const nav = useNav()
+  const workspace = useContext(VendorWorkspaceContext)
   const { me, rfqs, bookings, listings } = useApp()
   const v = useMyVendor()
   const [fl, setFl] = useState('todo')
@@ -1735,7 +1905,7 @@ export function VendorQuotes() {
   const bookingList = myBookings.filter((b) => fl === 'todo' ? ['requested', 'change_requested'].includes(b.status) : fl === 'active' ? ['accepted', 'in_progress'].includes(b.status) : ['completed', 'closed', 'declined', 'cancelled'].includes(b.status))
   return (
     <VendorWorkspace>
-    <Screen title="Quote requests" back={false}>
+    <Screen title="Quote requests" back={false} right={<VendorSidebarToggle workspace={workspace} />}>
       <Segmented value={kind} onChange={(v) => { setKind(v); setFl('todo') }} options={[{ id: 'rfqs', label: 'Quote requests' }, { id: 'bookings', label: `Service bookings (${myBookings.length})` }]} />
       <Banner tone="blue">{kind === 'rfqs' ? (me.role === 'business' ? 'Vendors submit bulk requirements here. Respond with your supplier quotation, MOQ, lead time and terms.' : 'Customers post requirements here. Send your quotation, then continue the conversation in Messages.') : 'Review customer booking requests, confirm availability, and track service progress. Payment stays directly between you and the customer.'}</Banner>
       <Chips scroll={false} value={fl} onChange={setFl} options={kind === 'rfqs' ? [{ id: 'todo', label: `To quote (${mr.filter((x) => !mine(x) && x.status !== 'accepted').length})` }, { id: 'active', label: 'Quoted' }, { id: 'done', label: 'Closed' }] : [{ id: 'todo', label: `Needs reply (${myBookings.filter((b) => ['requested', 'change_requested'].includes(b.status)).length})` }, { id: 'active', label: 'Upcoming' }, { id: 'done', label: 'Past' }]} />
@@ -1762,6 +1932,7 @@ export function VendorQuotes() {
 /* ================= MORE / PROFILE ================= */
 export function VendorMore() {
   const nav = useNav()
+  const workspace = useContext(VendorWorkspaceContext)
   const { setMe, me } = useApp()
   const v = useMyVendor()
   const [businessOpen, setBusinessOpen] = useState(false)
@@ -1774,7 +1945,7 @@ export function VendorMore() {
   }
   return (
     <VendorWorkspace>
-    <Screen title="More" back={false} pad={false}>
+    <Screen title="More" back={false} right={<VendorSidebarToggle workspace={workspace} />} pad={false}>
       <div className="vv-vendor-more-body space-y-4 p-4">
         <Card onClick={() => nav.go('v_profile')} className="!p-4"><div className="flex items-center gap-3.5"><Thumb tone={v?.tone || 'teal'} icon={Store} size={56} /><div className="min-w-0 flex-1"><p className="truncate text-base font-extrabold">{v?.name || 'Your business'}</p><p className="text-sm text-ink-500">{me.name}</p><div className="mt-1.5">{v?.status === 'approved' ? <Badge tone="green"><ShieldCheck size={11} />Verified</Badge> : <StatusBadge s={v?.status || 'draft'} />}</div></div><ChevronRight size={18} className="text-ink-300" /></div></Card>
         <Group>

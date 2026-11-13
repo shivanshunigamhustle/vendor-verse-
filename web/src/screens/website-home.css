@@ -408,6 +408,48 @@
 .vv-c-home .vv-market-content .bg-white:hover,
 .vv-c-home .vv-market-content article:hover { box-shadow: 0 8px 24px rgba(23,41,35,.08); }
 
+.vv-c-home .vv-market-hero > .vv-hero-decoration {
+  max-width: 100%;
+  pointer-events: none;
+}
+
+.vv-c-home .vv-market-hero > .vv-hero-decoration-primary {
+  top: 0;
+  right: 0;
+  width: min(28rem, 100%);
+}
+
+.vv-c-home .vv-market-hero > .vv-hero-decoration-secondary {
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: min(26rem, 100%);
+}
+
+@media (max-width: 700px) {
+  .vv-c-home .vv-train-marquee {
+    display: block;
+    overflow: visible;
+  }
+
+  .vv-c-home .vv-train-track {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    padding-right: 0;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .vv-c-home .vv-train-track[aria-hidden='true'] {
+    display: none;
+  }
+
+  .vv-c-home .vv-train-track > .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Premium minimalist hero refinement. */
 .vv-c-home .vv-market-hero {
   isolation: isolate;
