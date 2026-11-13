@@ -6,8 +6,10 @@ import { NavProvider, useNav } from './nav.jsx'
 import { HOME, TABS, ROLES, ADMIN_SIDEBAR } from './roles.js'
 import { SCREENS, GROUPS } from './registry.jsx'
 import { Logo } from './screens/auth.jsx'
+import { Navbar } from './screens/landing/Navbar.jsx'
 import { FRS, NFR, MVP, PHASE2, ACCEPTANCE, DECISIONS, ROLE_TABLE } from './specs.js'
 import { cx } from './ui.jsx'
+import './screens/website-home.css'
 import './screens/customer-visuals.css'
 import './screens/explore-visuals.css'
 import './screens/vendor-dashboard-visuals.css'
@@ -218,17 +220,17 @@ function WebHeader({ onMenu, hideTabs }) {
   const tabs = TABS[me.role || 'customer'] || TABS.customer
   const activeTab = nav.stack.slice().reverse().map((entry) => tabs.find((tab) => tab.id === entry.id)).find(Boolean)?.id || nav.id
   return (
-    <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_4px_rgba(0,0,0,0.03)] backdrop-blur">
+    <header className="sticky top-0 z-40 shrink-0 border-b border-[#d9ecf8] bg-white/95 shadow-[0_4px_20px_rgba(24,50,71,0.05)] backdrop-blur">
       <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-8 lg:px-12">
         <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 text-left" aria-label="VendorVerse home">
           <Logo size={36} />
           <div>
-            <span className="block text-[17px] font-black leading-none tracking-tight text-slate-900">VendorVerse</span>
-            <span className="block text-[10.5px] font-semibold text-slate-500 leading-tight mt-0.5">Global Marketplace</span>
+            <span className="block text-[17px] font-black leading-none tracking-tight text-[#183247]">VendorVerse</span>
+            <span className="block text-[10.5px] font-semibold text-[#64748b] leading-tight mt-0.5">Global Marketplace</span>
           </div>
         </button>
 
-        <nav className={cx("no-scrollbar hidden min-w-0 items-center justify-center gap-1 overflow-x-auto rounded-2xl bg-[#f6f2ff] p-1 border border-[#e3dbfa]", hideTabs ? "" : "md:flex")} style={hideTabs ? { display: "none" } : undefined} aria-label="Main navigation">
+        <nav className={cx("no-scrollbar hidden min-w-0 items-center justify-center gap-1 overflow-x-auto rounded-2xl bg-[#f0f9ff] p-1 border border-[#d9ecf8]", hideTabs ? "" : "md:flex")} style={hideTabs ? { display: "none" } : undefined} aria-label="Main navigation">
           {tabs.map((tab) => {
             const on = activeTab === tab.id
             return (
@@ -238,7 +240,7 @@ function WebHeader({ onMenu, hideTabs }) {
                 aria-current={on ? 'page' : undefined}
                 className={cx(
                   'flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all',
-                  on ? 'bg-white text-[#5b21d6] shadow-sm shadow-purple-900/10' : 'text-slate-700 hover:bg-white/60 hover:text-[#5b21d6]'
+                  on ? 'bg-white text-[#0284c7] shadow-sm shadow-sky-900/10' : 'text-slate-700 hover:bg-white/60 hover:text-[#0284c7]'
                 )}
               >
                 <tab.icon size={16} strokeWidth={on ? 2.5 : 2} />
@@ -274,7 +276,7 @@ function WebHeader({ onMenu, hideTabs }) {
             className="hidden sm:flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition max-w-[210px] truncate"
             title={t('searchLocation')}
           >
-            <MapPin size={14} className="text-[#5b21d6] shrink-0" />
+            <MapPin size={14} className="text-[#0284c7] shrink-0" />
             <span className="truncate">{locale.city || 'Jaipur'}, {locale.state || 'Rajasthan'}, {locale.countryName || 'India'}</span>
             <ChevronDown size={13} className="text-slate-400 shrink-0" />
           </button>
@@ -301,7 +303,7 @@ function WebHeader({ onMenu, hideTabs }) {
           {!me.loggedIn && (
             <button
               onClick={() => nav.go('login')}
-              className="h-9 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#5b21d6] hover:from-[#6d28d9] hover:to-[#4c1d95] px-4 sm:px-5 text-xs sm:text-sm font-bold text-white shadow-md shadow-violet-900/20 transition active:scale-95"
+              className="h-9 rounded-full bg-[#0284c7] hover:bg-[#0369a1] px-4 sm:px-5 text-xs sm:text-sm font-bold text-white shadow-md shadow-sky-900/20 transition active:scale-95"
             >
               Sign in
             </button>
@@ -369,6 +371,7 @@ function Shell() {
   const [agentSidebarCollapsed, setAgentSidebarCollapsed] = useState(false)
   const [adminSidebarCollapsed, setAdminSidebarCollapsed] = useState(false)
   const desktop = w >= 768
+  const publicWelcome = nav.id === 'welcome' || nav.id === 'auth'
   const showAgentSidebar = me.role === 'agent' && ['a_home', 'a_leads', 'a_earnings', 'a_perf', 'a_followups', 'a_profile'].includes(nav.id)
   const adminSidebarIds = ADMIN_SIDEBAR.flatMap((group) => group.items.map((item) => item.id)).concat(['ad_approvals', 'ad_more', 'ad_vendors', 'ad_vendor', 'ad_vendor_new', 'ad_listings', 'ad_listing', 'ad_users', 'ad_user', 'ad_roles', 'ad_category', 'ad_agent', 'ad_case', 'ad_sub', 'ad_cat_new'])
   const showAdminSidebar = me.role === 'admin' && adminSidebarIds.includes(nav.id)
@@ -408,7 +411,20 @@ function Shell() {
       {showAgentSidebar && <AgentSidebar collapsed={agentSidebarCollapsed} onToggle={() => setAgentSidebarCollapsed((value) => !value)} onNavigate={(id) => nav.reset(id)} onLogout={agentLogout} me={me} t={t} activeId={nav.id} />}
       {showAdminSidebar && <AdminSidebar collapsed={adminSidebarCollapsed} onToggle={() => setAdminSidebarCollapsed((value) => !value)} onNavigate={jump} onLogout={adminLogout} me={me} t={t} activeId={nav.id} />}
       <div className={cx('flex min-h-0 min-w-0 flex-1 flex-col', showAgentSidebar && 'vv-agent-main', showAdminSidebar && 'vv-admin-main')}>
-        {nav.id !== 'c_home' && <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} />}
+        {['auth', 'login', 'welcome', 'register', 'otp'].includes(nav.id) ? (
+          <Navbar
+            activeView={nav.id === 'login' ? 'login' : 'home'}
+            onNavigateView={(viewId) => {
+              nav.reset('c_home', { view: viewId })
+            }}
+            onOpenAuth={(mode) => {
+              if (mode === 'register') nav.go('register')
+              else if (nav.id !== 'login') nav.go('login')
+            }}
+          />
+        ) : nav.id !== 'c_home' ? (
+          <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} />
+        ) : null}
         <main className="relative flex min-h-0 flex-1 flex-col bg-white">
           <Phone frame={false} scale={1} web={desktop} />
         </main>

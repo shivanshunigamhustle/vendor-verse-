@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNav } from '../../nav.jsx'
 import { useApp } from '../../store.jsx'
+import '../website-home.css'
 
 export function Navbar({
   activeView = 'home',
@@ -21,7 +22,7 @@ export function Navbar({
 
   useEffect(() => {
     const handleScroll = () => {
-      const scroller = document.querySelector('.vv-customer-route')
+      const scroller = document.querySelector('.vv-customer-route') || document.querySelector('.vv-screen-scroll') || document.documentElement
       const y = (scroller ? scroller.scrollTop : 0) || window.scrollY || 0
       setIsScrolled(y > 15)
     }
@@ -228,10 +229,13 @@ export function Navbar({
           {/* Login Button */}
           <button
             type="button"
-            className="nav-login-btn"
+            className={`nav-login-btn ${(activeView === 'login' || nav.id === 'login' || (nav.id === 'auth' && nav.params?.mode === 'login')) ? 'active-btn' : ''}`}
             onClick={() => {
-              if (onOpenAuth) onOpenAuth('login')
-              else nav.go('auth', { mode: 'login' })
+              if (onOpenAuth) {
+                onOpenAuth('login')
+              } else if (nav.id !== 'login') {
+                nav.go('login')
+              }
             }}
           >
             Login
@@ -292,7 +296,7 @@ export function Navbar({
                 onClick={() => {
                   setMobileMenuOpen(false)
                   if (onOpenAuth) onOpenAuth('login')
-                  else nav.go('auth', { mode: 'login' })
+                  else if (nav.id !== 'login') nav.go('login')
                 }}
               >
                 Login

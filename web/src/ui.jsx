@@ -44,7 +44,7 @@ export const GRAD = {
 
   rose: 'from-rose-400 to-pink-500',
 
-  teal: 'from-[#8b5cf6] to-[#5b21d6]',
+  teal: 'from-[#38bdf8] to-[#0284c7]',
 
   indigo: 'from-indigo-400 to-blue-600',
 
@@ -178,13 +178,13 @@ export function StatusBadge({ s, className }) {
 
 const BTN = {
 
-  primary: 'bg-gradient-to-r from-[#7c3aed] to-[#5b21d6] hover:from-[#6d28d9] hover:to-[#4c1d95] text-white shadow-sm shadow-purple-900/25 active:scale-[0.98]',
+  primary: 'bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-sm shadow-sky-900/25 active:scale-[0.98]',
 
-  secondary: 'bg-white text-ink-800 ring-1 ring-inset ring-[#e3dbfa] hover:bg-[#f6f2ff] hover:text-[#5b21d6] active:bg-[#ede9fe]',
+  secondary: 'bg-white text-ink-800 ring-1 ring-inset ring-[#d9ecf8] hover:bg-[#f0f9ff] hover:text-[#0284c7] active:bg-[#e0f2fe]',
 
-  soft: 'bg-brand-50 text-brand-700 hover:bg-brand-100 active:bg-brand-100',
+  soft: 'bg-sky-50 text-sky-700 hover:bg-sky-100 active:bg-sky-100',
 
-  ghost: 'text-brand-700 hover:bg-brand-50',
+  ghost: 'text-[#0284c7] hover:bg-[#f0f9ff]',
 
   danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-700',
 
@@ -600,7 +600,7 @@ export function useForm(initial) {
 
 
 
-const fieldBase = 'w-full rounded-xl bg-white px-3.5 text-sm text-ink-900 outline-none ring-1 ring-inset ring-[#e3dbfa] transition placeholder:text-ink-400 focus:ring-2 focus:ring-[#5b21d6]'
+const fieldBase = 'w-full rounded-xl bg-white px-3.5 text-sm text-ink-900 outline-none ring-1 ring-inset ring-[#d9ecf8] transition placeholder:text-ink-400 focus:ring-2 focus:ring-[#0284c7]'
 
 export function Field({ label, hint, error, children, required }) {
 
@@ -702,7 +702,7 @@ export function Checkbox({ checked, onChange, children }) {
 
     <button type="button" onClick={() => onChange(!checked)} className="flex items-start gap-3 text-left">
 
-      <span className={cx('mt-0.5 grid size-5 shrink-0 place-items-center rounded-md ring-1 ring-inset transition', checked ? 'bg-[#5b21d6] text-white ring-[#5b21d6]' : 'bg-white ring-[#e3dbfa]')}>
+      <span className={cx('mt-0.5 grid size-5 shrink-0 place-items-center rounded-md ring-1 ring-inset transition', checked ? 'bg-[#0284c7] text-white ring-[#0284c7]' : 'bg-white ring-[#d9ecf8]')}>
 
         {checked && <Check size={14} strokeWidth={3} />}
 
@@ -734,7 +734,7 @@ export function Chips({ options, value, onChange, multi, className, scroll = tru
 
         return (
 
-          <button key={id} type="button" onClick={() => pick(id)} className={cx('shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ring-1 ring-inset transition', isOn(id) ? 'bg-[#5b21d6] text-white ring-[#5b21d6] shadow-sm shadow-purple-900/20' : 'bg-white text-ink-600 ring-[#e3dbfa] hover:bg-[#f6f2ff] hover:text-[#5b21d6]')}>
+          <button key={id} type="button" onClick={() => pick(id)} className={cx('shrink-0 rounded-full px-3.5 py-2 text-[13px] font-semibold ring-1 ring-inset transition', isOn(id) ? 'bg-[#0284c7] text-white ring-[#0284c7] shadow-sm shadow-sky-900/20' : 'bg-white text-ink-600 ring-[#d9ecf8] hover:bg-[#f0f9ff] hover:text-[#0284c7]')}>
 
             {label}
 
@@ -754,11 +754,11 @@ export function Segmented({ options, value, onChange, className }) {
 
   return (
 
-    <div className={cx('flex rounded-xl bg-[#f6f2ff] p-1 border border-[#e3dbfa]', className)}>
+    <div className={cx('flex rounded-xl bg-[#f0f9ff] p-1 border border-[#d9ecf8]', className)}>
 
       {options.map((o) => (
 
-        <button key={o.id} onClick={() => onChange(o.id)} className={cx('flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold transition', value === o.id ? 'bg-white text-[#5b21d6] font-bold shadow-sm shadow-purple-900/10' : 'text-ink-500')}>
+        <button key={o.id} onClick={() => onChange(o.id)} className={cx('flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-semibold transition', value === o.id ? 'bg-white text-[#0284c7] font-bold shadow-sm shadow-sky-900/10' : 'text-ink-500')}>
 
           {o.label}
 
@@ -784,7 +784,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search', right, onCl
 
         <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
 
-        <input autoFocus={autoFocus} readOnly={!onChange} value={value} onChange={onChange} placeholder={placeholder} className="h-11 w-full rounded-xl bg-white pl-10 pr-3 text-sm text-ink-900 outline-none ring-1 ring-inset ring-[#e3dbfa] placeholder:text-ink-400 focus:ring-2 focus:ring-[#5b21d6]" />
+        <input autoFocus={autoFocus} readOnly={!onChange} value={value} onChange={onChange} placeholder={placeholder} className="h-11 w-full rounded-xl bg-white pl-10 pr-3 text-sm text-ink-900 outline-none ring-1 ring-inset ring-[#d9ecf8] placeholder:text-ink-400 focus:ring-2 focus:ring-[#0284c7]" />
 
       </div>
 
@@ -1056,7 +1056,7 @@ export function BarChart({ data, height = 120, color = 'bg-brand-500', money }) 
 
 }
 
-export function Spark({ points, color = '#5b21d6', h = 36, w = 110 }) {
+export function Spark({ points, color = '#0284c7', h = 36, w = 110 }) {
 
   const max = Math.max(...points), min = Math.min(...points)
 

@@ -21,6 +21,7 @@ const R = (id, C, role, title, fr = [], extra = {}) => [id, { id, C, role, title
 
 export const SCREENS = Object.fromEntries([
   // ---- auth ----
+  R('auth', Auth.AuthScreen, 'auth', 'Authentication', ['FR-01']),
   R('splash', Auth.Splash, 'auth', 'Splash', ['FR-01'], { bar: 'brand-dark' }),
   R('welcome', Auth.Welcome, 'auth', 'Welcome & language', ['FR-01'], { bar: 'brand' }),
   R('login', Auth.Login, 'auth', 'Log in (phone / email)', ['FR-01', 'FR-02']),

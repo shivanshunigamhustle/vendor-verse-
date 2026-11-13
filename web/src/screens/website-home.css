@@ -484,6 +484,12 @@
   transform: scale(0.98);
 }
 
+.nav-login-btn.active-btn {
+  background: var(--vv-deep-sky-hover);
+  border-color: var(--vv-deep-sky-hover);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4), 0 6px 18px rgba(2, 132, 199, 0.35);
+}
+
 .nav-join-btn {
   display: none !important;
 }

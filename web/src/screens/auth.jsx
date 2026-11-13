@@ -8,18 +8,48 @@ import { Button, Input, Segmented, Screen, Checkbox, Banner, useForm, cx } from 
 import './auth-visuals.css'
 
 export function Logo({ size = 64, light }) {
+  const iconSz = Math.max(16, Math.round(size * 0.58))
+  const fontSize = Math.max(9, Math.round(size * 0.34))
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
-      <defs>
-        <linearGradient id="logoVGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#8b5cf6" />
-          <stop offset="60%" stopColor="#5b21d6" />
-          <stop offset="100%" stopColor="#3b0fa3" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="18" fill={light ? '#fff' : 'url(#logoVGrad)'} />
-      <path d="M18 21h8.2l5.8 15.6L37.8 21H46L35.5 46h-7L18 21Z" fill={light ? '#5b21d6' : '#fff'} />
-    </svg>
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.28),
+        background: light ? '#ffffff' : 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+        boxShadow: light ? 'none' : '0 6px 18px rgba(56, 189, 248, 0.36)',
+      }}
+      className="inline-flex shrink-0 items-center justify-center relative overflow-hidden"
+    >
+      <div className="brand-bag-rotator flex items-center justify-center relative" style={{ width: iconSz, height: iconSz }}>
+        <svg
+          width={iconSz}
+          height={iconSz}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={light ? '#0284c7' : '#ffffff'}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+          <path d="M3 6h18" />
+          <path d="M16 10a4 4 0 0 1-8 0" />
+        </svg>
+        <span
+          className="brand-v-glyph absolute font-black"
+          style={{
+            fontSize,
+            color: light ? '#0284c7' : '#ffffff',
+            transform: 'translate(-50%, -46%)',
+            left: '50%',
+            top: '50%',
+          }}
+        >
+          V
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -39,13 +69,13 @@ export function Splash() {
     return () => clearTimeout(t)
   }, [])
   return (
-    <div onClick={() => nav.reset('c_home')} className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#1b1b4b] via-[#4c1d95] to-[#5b21d6] text-white">
+    <div onClick={() => nav.reset('c_home')} className="relative flex h-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#0c2a44] via-[#164e75] to-[#0284c7] text-white">
       <div className="absolute -left-20 -top-20 size-72 rounded-full bg-white/10" />
       <div className="absolute -bottom-24 -right-16 size-80 rounded-full bg-white/5" />
       <div className="vv-splash-loader"><div className="vv-splash-orbit vv-splash-orbit-a" /><div className="vv-splash-orbit vv-splash-orbit-b" /><div className="vv-splash-core"><Logo size={78} light /></div></div>
       <h1 className="mt-5 text-3xl font-extrabold tracking-tight">VendorVerse</h1>
-      <p className="mt-1.5 text-sm text-white/75">Global Marketplace · Products · Services · Quotes</p>
-      <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-white/65"><span className="size-2 animate-pulse rounded-full bg-violet-300" />Preparing your marketplace</div>
+      <p className="mt-1.5 text-sm text-white/80">Global Marketplace · Products · Services · Quotes</p>
+      <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-white/70"><span className="size-2 animate-pulse rounded-full bg-sky-300" />Preparing your marketplace</div>
       <p className="absolute bottom-10 text-[11px] tracking-widest text-white/50">ADRSTECHNO PRIVATE LIMITED</p>
     </div>
   )
@@ -66,7 +96,7 @@ export function Welcome() {
                 <Logo size={34} />
                 <div>
                   <span className="block text-base font-black leading-none tracking-tight text-[#183247]">VendorVerse</span>
-                  <span className="block text-[10.5px] font-semibold text-[#64748B] leading-tight mt-0.5">Global Marketplace</span>
+                  <span className="block text-[10.5px] font-semibold text-[#64748b] leading-tight mt-0.5">Global Marketplace</span>
                 </div>
               </div>
               <button
@@ -173,7 +203,7 @@ export function Login({ params = {} }) {
     nav.go('otp', { contact: method === 'phone' ? `${countryCode} ${phone}` : val, role, method, next: params.next, nextParams: params.nextParams })
   }
   return (
-    <Screen title="Log in" pad={false} bg="bg-white" scrollClass="vv-login-scroll">
+    <Screen title="Log in" pad={false} bg="bg-[#f8fcff]" scrollClass="vv-login-scroll" headerless>
       <div className="vv-login-layout">
         <aside className="vv-login-art">
           <span className="vv-login-kicker"><ShieldCheck size={14} /> VENDORVERSE ACCOUNT ACCESS</span>
@@ -188,33 +218,67 @@ export function Login({ params = {} }) {
         <form className="vv-login-form p-5 sm:p-7" onSubmit={submit} onKeyDown={(event) => { if (event.key === 'Enter' && event.target?.tagName === 'INPUT') { event.preventDefault(); submit(event) } }}>
           <div>
             <p className="vv-login-eyebrow">WELCOME BACK</p>
-            <h2 className="text-2xl font-extrabold tracking-tight">Sign in</h2>
-            <p className="mt-1 text-sm text-ink-500">Choose your workspace and enter your phone or email to continue.</p>
+            <h2 className="text-2xl font-extrabold tracking-tight text-[#183247]">Sign in</h2>
+            <p className="mt-1 text-sm text-[#64748b]">Choose your workspace and enter your phone or email to continue.</p>
           </div>
           <Segmented value={method} onChange={(m) => { setMethod(m); setVal(''); setErr('') }} options={[{ id: 'phone', label: 'Phone' }, { id: 'email', label: 'Email' }]} />
           {method === 'phone' ? (
-            <div><label className="mb-1.5 block text-[13px] font-semibold text-ink-700">Mobile number</label><div className="flex h-12 overflow-hidden rounded-xl bg-white ring-1 ring-inset ring-ink-200 focus-within:ring-2 focus-within:ring-brand-500"><select aria-label="Country calling code" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="w-[92px] shrink-0 border-r border-ink-200 bg-ink-50 px-2 text-sm font-bold text-ink-700 outline-none"><option value="+91">🇮🇳 +91</option><option value="+1">🇺🇸 +1</option><option value="+44">🇬🇧 +44</option><option value="+971">🇦🇪 +971</option><option value="+81">🇯🇵 +81</option><option value="+46">🇸🇪 +46</option></select><div className="relative flex min-w-0 flex-1 items-center"><Phone size={17} className="pointer-events-none absolute left-3 text-ink-400" /><input inputMode="numeric" maxLength={10} placeholder="98290 00001" value={val} onChange={(e) => { setVal(e.target.value.replace(/\D/g, '')); setErr('') }} className="h-full min-w-0 flex-1 bg-transparent pl-10 pr-3 text-sm outline-none" /></div></div>{err && <p className="mt-1.5 text-xs font-medium text-red-600">{err}</p>}<p className="mt-1.5 text-xs text-ink-500">Standard SMS rates may apply</p></div>
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-[#183247]">Mobile number</label>
+              <div className="flex h-12 overflow-hidden rounded-xl bg-white ring-1 ring-inset ring-[#d9ecf8] focus-within:ring-2 focus-within:ring-[#0284c7]">
+                <select aria-label="Country calling code" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="w-[92px] shrink-0 border-r border-[#d9ecf8] bg-[#f8fcff] px-2 text-sm font-bold text-[#183247] outline-none">
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+971">🇦🇪 +971</option>
+                  <option value="+81">🇯🇵 +81</option>
+                  <option value="+46">🇸🇪 +46</option>
+                </select>
+                <div className="relative flex min-w-0 flex-1 items-center">
+                  <Phone size={17} className="pointer-events-none absolute left-3 text-slate-400" />
+                  <input inputMode="numeric" maxLength={10} placeholder="98290 00001" value={val} onChange={(e) => { setVal(e.target.value.replace(/\D/g, '')); setErr('') }} className="h-full min-w-0 flex-1 bg-transparent pl-10 pr-3 text-sm outline-none text-[#183247]" />
+                </div>
+              </div>
+              {err && <p className="mt-1.5 text-xs font-medium text-red-600">{err}</p>}
+              <p className="mt-1.5 text-xs text-[#64748b]">Standard SMS rates may apply</p>
+            </div>
           ) : (
             <Input label="Email address" icon={Mail} type="email" placeholder="you@company.com" value={val} error={err} onChange={(e) => { setVal(e.target.value); setErr('') }} />
           )}
           <Button full size="lg" type="submit">Send OTP</Button>
 
-          <div className="vv-login-roles rounded-2xl p-4 ring-1 ring-inset ring-ink-100">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Choose your workspace</p>
+          <div className="vv-login-roles rounded-2xl p-4 ring-1 ring-inset ring-[#d9ecf8]">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">Choose your workspace</p>
             <div className="mt-2.5 grid grid-cols-2 gap-2">
               {ROLES.map((r) => (
-                <button type="button" key={r.id} onClick={() => setRole(r.id)} className={cx('rounded-xl px-3 py-2.5 text-[13px] font-semibold ring-1 ring-inset transition', role === r.id ? 'bg-[#5b21d6] text-white ring-[#5b21d6] shadow-sm shadow-purple-900/20' : 'bg-white text-ink-700 ring-[#e3dbfa] hover:bg-[#f6f2ff]')}>
+                <button
+                  type="button"
+                  key={r.id}
+                  onClick={() => setRole(r.id)}
+                  className={cx(
+                    'rounded-xl px-3 py-2.5 text-[13px] font-semibold ring-1 ring-inset transition',
+                    role === r.id
+                      ? 'bg-[#0284c7] text-white ring-[#0284c7] shadow-sm shadow-sky-900/20'
+                      : 'bg-white text-slate-700 ring-[#d9ecf8] hover:bg-[#f0f9ff] hover:text-[#0284c7]'
+                  )}
+                >
                   {r.short}
                 </button>
               ))}
             </div>
-            <p className="mt-2.5 text-xs text-ink-500">Sales Agents and Super Admins are invited by the platform — they cannot self-register.</p>
+            <p className="mt-2.5 text-xs text-[#64748b]">Sales Agents and Super Admins are invited by the platform — they cannot self-register.</p>
           </div>
-          <p className="text-center text-sm text-ink-500">New to VendorVerse? <button type="button" onClick={() => nav.replace('register')} className="font-bold text-[#5b21d6] hover:underline">Create account</button></p>
+          <p className="text-center text-sm text-[#64748b]">New to VendorVerse? <button type="button" onClick={() => nav.replace('register')} className="font-bold text-[#0284c7] hover:underline">Create account</button></p>
         </form>
       </div>
     </Screen>
   )
+}
+
+export function AuthScreen({ params = {} }) {
+  if (params.mode === 'login') return <Login params={params} />
+  if (params.mode === 'register') return <Register params={params} />
+  return <Welcome params={params} />
 }
 
 export function Otp({ params }) {
@@ -235,7 +299,6 @@ export function Otp({ params }) {
   const verify = (candidate = code) => {
     if (candidate.length < 6) return setErr('Enter all 6 digits')
     if (candidate !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
-    // Super Admin signs in with the same single OTP as every other role (owner request, 2026-10-30).
     if (mode === 'register') {
       if (role === 'business') {
         setMe({ role: 'business', loggedIn: true, guest: false, vendorId: 'v-me', name: name || 'Company owner', businessName: biz, bizId: 'biz-me', businessWorkspace: true, phone: contact })
@@ -256,11 +319,11 @@ export function Otp({ params }) {
     toast('Signed in successfully')
   }
   return (
-    <Screen title={step === 0 ? 'Verify OTP' : 'Two-step verification'} pad={false} bg="bg-white">
+    <Screen title={step === 0 ? 'Verify OTP' : 'Two-step verification'} pad={false} bg="bg-[#f8fcff]" headerless>
       <div className="vv-otp-stage">
         <div className="vv-otp-card">
           <div className="vv-otp-heading">
-            <div className="grid size-14 place-items-center rounded-2xl bg-[#f6f2ff] text-[#5b21d6]">{step === 0 ? <ShieldCheck size={28} /> : <Lock size={28} />}</div>
+            <div className="grid size-14 place-items-center rounded-2xl bg-[#e0f2fe] text-[#0284c7]">{step === 0 ? <ShieldCheck size={28} /> : <Lock size={28} />}</div>
             <div className="vv-otp-scene" aria-hidden="true">
               <div className="vv-otp-orbit vv-otp-orbit-one" /><div className="vv-otp-orbit vv-otp-orbit-two" />
               <div className="vv-otp-mini-cube"><span>V</span><span>+</span><span>✓</span></div>
@@ -269,25 +332,25 @@ export function Otp({ params }) {
           </div>
           <div className="vv-otp-copy">
             <p className="vv-login-eyebrow">SECURE ACCOUNT ACCESS</p>
-            <h2 className="text-2xl font-extrabold tracking-tight">{step === 0 ? 'Enter the code' : 'Authenticator code'}</h2>
-            <p className="mt-1 text-sm text-ink-500">
-              {step === 0 ? <>We sent a 6-digit code to <b className="text-ink-800">{contact}</b></> : 'Super Admin accounts require a second factor. Open your authenticator app and enter the current code.'}
+            <h2 className="text-2xl font-extrabold tracking-tight text-[#183247]">{step === 0 ? 'Enter the code' : 'Authenticator code'}</h2>
+            <p className="mt-1 text-sm text-[#64748b]">
+              {step === 0 ? <>We sent a 6-digit code to <b className="text-[#183247]">{contact}</b></> : 'Super Admin accounts require a second factor. Open your authenticator app and enter the current code.'}
             </p>
           </div>
           <div className="vv-otp-entry relative">
             <div className="flex justify-between gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className={cx('grid h-14 flex-1 place-items-center rounded-xl text-xl font-extrabold ring-1 ring-inset', i === code.length ? 'ring-2 ring-[#5b21d6]' : err ? 'ring-red-300' : 'ring-[#e3dbfa]', code[i] ? 'bg-[#f6f2ff] text-[#5b21d6]' : 'bg-white')}>{code[i] || ''}</div>
+                <div key={i} className={cx('grid h-14 flex-1 place-items-center rounded-xl text-xl font-extrabold ring-1 ring-inset', i === code.length ? 'ring-2 ring-[#0284c7]' : err ? 'ring-red-300' : 'ring-[#d9ecf8]', code[i] ? 'bg-[#f0f9ff] text-[#0284c7]' : 'bg-white')}>{code[i] || ''}</div>
               ))}
             </div>
             <input autoFocus aria-label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => { const nextCode = e.target.value.replace(/\D/g, '').slice(0, 6); setCode(nextCode); setErr(''); if (nextCode.length === 6) window.setTimeout(() => verify(nextCode), 0) }} className="absolute inset-0 h-full w-full cursor-text opacity-0" />
           </div>
           {err && <p className="text-sm font-medium text-red-600" role="alert">{err}</p>}
-          <Banner tone="blue" title="Access code">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role === 'business' ? 'Business / Company supplier' : role} OTP` : 'authenticator code'}. <button type="button" className="font-bold underline" onClick={() => { setCode(target); setErr(''); window.setTimeout(() => verify(target), 0) }}>Auto-fill</button></Banner>
+          <Banner tone="blue" title="Access code">Use <b>{target}</b> as the {step === 0 ? `${role === 'admin' ? 'Super Admin' : role === 'agent' ? 'Sales Agent' : role === 'business' ? 'Business / Company supplier' : role} OTP` : 'authenticator code'}. <button type="button" className="font-bold underline text-[#0284c7]" onClick={() => { setCode(target); setErr(''); window.setTimeout(() => verify(target), 0) }}>Auto-fill</button></Banner>
           <Button full size="lg" onClick={verify}>{step === 0 && role === 'admin' ? 'Continue' : mode === 'register' ? 'Verify & create account' : 'Verify & log in'}</Button>
           {step === 0 && (
-            <p className="text-center text-sm text-ink-500">
-              {secs > 0 ? `Resend code in 0:${String(secs).padStart(2, '0')}` : <button onClick={() => { setSecs(30); toast('A new OTP has been sent') }} className="font-bold text-[#5b21d6] hover:underline">Resend OTP</button>}
+            <p className="text-center text-sm text-[#64748b]">
+              {secs > 0 ? `Resend code in 0:${String(secs).padStart(2, '0')}` : <button onClick={() => { setSecs(30); toast('A new OTP has been sent') }} className="font-bold text-[#0284c7] hover:underline">Resend OTP</button>}
             </p>
           )}
         </div>
@@ -312,18 +375,18 @@ export function Register() {
     if (Object.keys(e).length === 0) nav.go('otp', { contact: `+91 ${f.phone}`, role, mode: 'register', name: f.name, biz: f.biz })
   }
   return (
-    <Screen title="Create account" pad={false} bg="bg-white">
-      <div className="space-y-4 p-5">
+    <Screen title="Create account" pad={false} bg="bg-[#f8fcff]" headerless>
+      <div className="space-y-4 p-5 max-w-[620px] mx-auto mt-20 mb-8 bg-white rounded-2xl border border-[#d9ecf8] shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight">Join VendorVerse</h2>
-          <p className="mt-1 text-sm text-ink-500">Choose how you want to use the marketplace.</p>
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#183247]">Join VendorVerse</h2>
+          <p className="mt-1 text-sm text-[#64748b]">Choose how you want to use the marketplace.</p>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[['customer', User, 'Customer', 'Buy products, book services, request quotes'], ['vendor', Store, 'Vendor', 'Sell products and services to customers'], ['business', Building2, 'Business', 'Registered company, 3+ years. Supply and services for vendors']].map(([id, I, a, b]) => (
-            <button key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3.5 text-left ring-1 ring-inset transition', role === id ? 'bg-[#f6f2ff] ring-2 ring-[#5b21d6]' : 'bg-white ring-[#e3dbfa] hover:bg-[#fbfaff]')}>
-              <span className={cx('grid size-10 place-items-center rounded-xl', role === id ? 'bg-[#5b21d6] text-white' : 'bg-[#f6f2ff] text-[#5b21d6]')}><I size={20} /></span>
-              <p className="mt-2.5 text-sm font-bold">{a}</p>
-              <p className="mt-0.5 text-xs leading-snug text-ink-500">{b}</p>
+            <button key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3.5 text-left ring-1 ring-inset transition', role === id ? 'bg-[#f0f9ff] ring-2 ring-[#0284c7]' : 'bg-white ring-[#d9ecf8] hover:bg-[#f8fcff]')}>
+              <span className={cx('grid size-10 place-items-center rounded-xl', role === id ? 'bg-[#0284c7] text-white' : 'bg-[#e0f2fe] text-[#0284c7]')}><I size={20} /></span>
+              <p className="mt-2.5 text-sm font-bold text-[#183247]">{a}</p>
+              <p className="mt-0.5 text-xs leading-snug text-[#64748b]">{b}</p>
             </button>
           ))}
         </div>
@@ -332,13 +395,13 @@ export function Register() {
         <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(normalizePhone(e.target.value))} error={errs.phone} className="!pl-10" />
         <Input label="Email (optional)" icon={Mail} type="email" placeholder="you@company.com" value={f.email} onChange={set('email')} error={errs.email} />
         <div>
-          <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-[#5b21d6]">Terms of Service</b> and <b className="text-[#5b21d6]">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>
+          <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-[#0284c7]">Terms of Service</b> and <b className="text-[#0284c7]">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>
           {errs.agree && <p className="mt-1 text-xs font-medium text-red-600">{errs.agree}</p>}
         </div>
         {role === 'business' && <Banner tone="blue" title="Business accounts are for company owners">You will confirm that you own a registered company that has operated for 3+ years, then submit a six-step company form for admin verification.</Banner>}
         {role === 'vendor' && <Banner tone="amber" title="Verification required">Vendors are shown as <b>Verified</b> only after Super Admin approves your business documents.</Banner>}
         <Button full size="lg" onClick={submit}>Continue</Button>
-        <p className="text-center text-sm text-ink-500">Already have an account? <button onClick={() => nav.replace('login')} className="font-bold text-[#5b21d6] hover:underline">Log in</button></p>
+        <p className="text-center text-sm text-[#64748b]">Already have an account? <button onClick={() => nav.replace('login')} className="font-bold text-[#0284c7] hover:underline">Log in</button></p>
       </div>
     </Screen>
   )
