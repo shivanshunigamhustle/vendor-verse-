@@ -4,7 +4,7 @@ import { useNav } from '../../nav.jsx'
 import { QuickRFQModal } from './QuickRFQModal.jsx'
 import { TiltCard } from './TiltCard.jsx'
 
-export function RFQBanner() {
+export function RFQBanner({ onPostRFQ, onExplore }) {
   const nav = useNav()
   const sectionRef = useRef(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -186,7 +186,10 @@ export function RFQBanner() {
               <button
                 type="button"
                 className="rfq-cta-primary"
-                onClick={() => setModalOpen(true)}
+                onClick={() => {
+                  if (onPostRFQ) onPostRFQ()
+                  else setModalOpen(true)
+                }}
               >
                 Post Your Requirement
                 <ArrowRight size={17} strokeWidth={2.4} />
@@ -194,7 +197,10 @@ export function RFQBanner() {
               <button
                 type="button"
                 className="rfq-cta-secondary"
-                onClick={() => nav.go('c_explore')}
+                onClick={() => {
+                  if (onExplore) onExplore()
+                  else nav.go('c_explore')
+                }}
               >
                 Explore Marketplace
               </button>

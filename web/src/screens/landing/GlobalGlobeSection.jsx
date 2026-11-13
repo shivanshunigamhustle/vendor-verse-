@@ -4,7 +4,7 @@ import { useNav } from '../../nav.jsx'
 import { GLOBAL_MARKETS, formatCoordinates } from './worldGlobeData.js'
 import { GlobalGlobeCanvas } from './GlobalGlobeCanvas.jsx'
 
-export function GlobalGlobeSection() {
+export function GlobalGlobeSection({ onNavigateCountry }) {
   const nav = useNav()
 
   // Single shared selection state synchronizing Left list, 3D Earth markers & Right info panel
@@ -253,38 +253,38 @@ export function GlobalGlobeSection() {
                 <p className="spotlight-industries-meta">{displayIndustries}</p>
                 <p className="spotlight-overview-note">{displayOverview}</p>
 
-                {activeCountry.isRegionalMarketplace ? (
+                <div className="spotlight-actions-group">
                   <button
                     type="button"
                     className="spotlight-explore-btn"
-                    onClick={() =>
-                      nav.go('c_explore', {
-                        location: activeCity ? activeCity.name : activeCountry.name,
-                        category:
-                          (activeCity ? activeCity.defaultCategory : activeCountry.defaultCategory) ||
-                          'Construction',
-                      })
-                    }
+                    onClick={() => {
+                      const targetLoc = activeCity ? activeCity.name : activeCountry.name
+                      if (onNavigateCountry) {
+                        onNavigateCountry(targetLoc)
+                      } else {
+                        nav.go('c_explore', {
+                          location: targetLoc,
+                          category:
+                            (activeCity ? activeCity.defaultCategory : activeCountry.defaultCategory) ||
+                            'Construction',
+                        })
+                      }
+                    }}
                   >
                     Browse Categories in {activeCity ? activeCity.name : activeCountry.name}
                     <ArrowRight size={16} strokeWidth={2.4} />
                   </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="spotlight-explore-btn secondary"
-                    onClick={() =>
-                      selectedLocation.isZoomed
-                        ? handleResetGlobe()
-                        : handleSelectCountry(activeCountry.id)
-                    }
-                  >
-                    {selectedLocation.isZoomed
-                      ? 'Return to Global View'
-                      : `Zoom to ${activeCountry.name}`}
-                    <ArrowRight size={16} strokeWidth={2.4} />
-                  </button>
-                )}
+
+                  {selectedLocation.isZoomed && (
+                    <button
+                      type="button"
+                      className="spotlight-reset-btn"
+                      onClick={handleResetGlobe}
+                    >
+                      Return to Global View
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

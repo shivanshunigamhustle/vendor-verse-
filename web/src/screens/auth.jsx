@@ -55,39 +55,94 @@ export function Welcome() {
   const nav = useNav()
   const { t, lang, setLang, setMe } = useApp()
   return (
-    <div className="flex h-full flex-col bg-white">
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-br from-[#1b1b4b] via-[#4c1d95] to-[#5b21d6] px-6 pt-5 text-white">
-        <div className="absolute -right-24 top-10 size-72 rounded-full bg-white/10" />
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-2"><Logo size={34} light /><span className="text-lg font-extrabold">VendorVerse</span></div>
-          <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold backdrop-blur">
-            <Globe size={13} />{lang === 'en' ? 'हिन्दी' : 'English'}
-          </button>
-        </div>
-        <div className="vv-root-hero-scene" aria-hidden="true">
-          <div className="vv-root-hero-orbit vv-root-hero-orbit-one" />
-          <div className="vv-root-hero-orbit vv-root-hero-orbit-two" />
-          <div className="vv-root-hero-cube"><span>V</span><span>RFQ</span><span>✓</span><span>GO</span><span>+</span><span>★</span></div>
-        </div>
-        <div className="relative my-auto space-y-3.5 pb-6">
-          {[[Truck, 'Order products', 'Track every status in real time'], [Sparkles, 'Book services', 'Pick a slot — no double booking'], [FileText, 'Compare quotes', 'RFQs from verified vendors']].map(([I, a, b], i) => (
-            <div key={a} className="flex items-center gap-3 rounded-2xl bg-white/12 p-3.5 backdrop-blur" style={{ marginLeft: i * 14 }}>
-              <span className="grid size-10 place-items-center rounded-xl bg-white/20"><I size={20} /></span>
-              <div><p className="text-sm font-bold">{a}</p><p className="text-xs text-white/70">{b}</p></div>
+    <div className="vv-welcome-screen">
+      <div className="vv-welcome-backdrop" aria-hidden="true" />
+      <div className="vv-welcome-shell">
+        <div className="vv-welcome-card">
+          {/* Top 40% Stage — Soft Sky & Ice Blue theme with 3D Square illustration */}
+          <div className="vv-welcome-top-stage">
+            <div className="vv-welcome-header">
+              <div className="flex items-center gap-2.5">
+                <Logo size={34} />
+                <div>
+                  <span className="block text-base font-black leading-none tracking-tight text-[#183247]">VendorVerse</span>
+                  <span className="block text-[10.5px] font-semibold text-[#64748B] leading-tight mt-0.5">Global Marketplace</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+                className="flex items-center gap-1.5 rounded-full border border-[#d9ecf8] bg-white/90 px-3.5 py-1.5 text-xs font-bold text-[#183247] shadow-sm backdrop-blur transition hover:border-[#bae6fd] hover:bg-white"
+                aria-label="Toggle language"
+              >
+                <Globe size={13} className="text-[#0284c7]" />
+                <span>{lang === 'en' ? 'हिन्दी' : 'English'}</span>
+              </button>
             </div>
-          ))}
-        </div>
-      </div>
-      <div className="px-6 pb-7 pt-6">
-        <h1 className="text-[22px] font-extrabold leading-tight tracking-tight">{t('welcomeTitle')}</h1>
-        <p className="mt-2 text-sm text-ink-500">{t('welcomeBody')}</p>
-        <div className="mt-5 space-y-2.5">
-          <Button full size="lg" onClick={() => nav.go('login')}>{t('login')} <ArrowRight size={18} /></Button>
-          <Button full size="lg" variant="secondary" onClick={() => nav.go('register')}>Create account</Button>
-          <button
-            onClick={() => { setMe({ role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest' }); nav.reset('c_home') }}
-            className="w-full py-2 text-sm font-semibold text-brand-700"
-          >{t('browse')}</button>
+
+            <div className="relative my-2 flex items-center justify-center">
+              <div className="vv-welcome-halo" aria-hidden="true" />
+              {/* 3D Square illustration: preserved exactly */}
+              <div className="vv-root-hero-scene" aria-hidden="true">
+                <div className="vv-root-hero-orbit vv-root-hero-orbit-one" />
+                <div className="vv-root-hero-orbit vv-root-hero-orbit-two" />
+                <div className="vv-root-hero-cube">
+                  <span>V</span><span>RFQ</span><span>✓</span><span>GO</span><span>+</span><span>★</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="vv-welcome-features">
+              {[[Truck, 'Order products', 'Track every status in real time'], [Sparkles, 'Book services', 'Pick a slot — no double booking'], [FileText, 'Compare quotes', 'RFQs from verified vendors']].map(([I, a, b], i) => (
+                <div
+                  key={a}
+                  className="vv-welcome-feature-item"
+                  style={{ marginLeft: i * 8 }}
+                >
+                  <span className="vv-welcome-feature-icon">
+                    <I size={19} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-[#183247] leading-tight">{a}</p>
+                    <p className="text-xs text-[#64748B] leading-tight mt-0.5">{b}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom 60% Stage — Clean White theme with Ocean Blue actions */}
+          <div className="vv-welcome-bottom-stage">
+            <h1 className="vv-welcome-title">{t('welcomeTitle')}</h1>
+            <p className="vv-welcome-body">{t('welcomeBody')}</p>
+            <div className="vv-welcome-actions">
+              <button
+                type="button"
+                onClick={() => nav.go('login')}
+                className="vv-welcome-btn-primary"
+              >
+                <span>{t('login')}</span>
+                <ArrowRight size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => nav.go('register')}
+                className="vv-welcome-btn-secondary"
+              >
+                Create account
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMe({ role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest' })
+                  nav.reset('c_home')
+                }}
+                className="vv-welcome-btn-browse"
+              >
+                {t('browse')}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

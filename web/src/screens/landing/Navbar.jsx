@@ -2,19 +2,20 @@ import { useState, useEffect, useRef } from 'react'
 import { useNav } from '../../nav.jsx'
 import { useApp } from '../../store.jsx'
 
-export function Navbar({ onOpenAuth, onOpenVendorApply }) {
+export function Navbar({
+  activeView = 'home',
+  onNavigateView,
+  onOpenAuth,
+  onOpenVendorApply,
+}) {
   const nav = useNav()
   const { locale, setLocale, lang, setLang } = useApp()
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [browseOpen, setBrowseOpen] = useState(false)
-  const [solutionsOpen, setSolutionsOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
 
   const headerRef = useRef(null)
-  const browseRef = useRef(null)
-  const solutionsRef = useRef(null)
   const langRef = useRef(null)
   const cityRef = useRef(null)
 
@@ -32,8 +33,6 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (browseRef.current && !browseRef.current.contains(e.target)) setBrowseOpen(false)
-      if (solutionsRef.current && !solutionsRef.current.contains(e.target)) setSolutionsOpen(false)
       if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false)
       if (cityRef.current && !cityRef.current.contains(e.target)) setCityOpen(false)
     }
@@ -61,12 +60,25 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
     setCityOpen(false)
   }
 
-  const navigateTo = (route, params = {}) => {
+  const handleNavClick = (viewId) => {
     setMobileMenuOpen(false)
-    setBrowseOpen(false)
-    setSolutionsOpen(false)
-    nav.go(route, params)
+    if (onNavigateView) {
+      onNavigateView(viewId)
+    } else {
+      nav.go('c_home', { view: viewId })
+    }
+    if (viewId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
+
+  const NAV_ITEMS = [
+    { id: 'home', label: 'HOME' },
+    { id: 'explore', label: 'EXPLORE' },
+    { id: 'about', label: 'ABOUT' },
+    { id: 'rfq', label: 'RFQ' },
+    { id: 'help', label: 'HELP' },
+  ]
 
   return (
     <header
@@ -75,215 +87,60 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
       id="site-nav"
     >
       <div className="nav-inner-container">
-        {/* Brand Logo */}
+        {/* Brand Logo: White shopping bag rotating continuously while blue box & wordmark remain stationary */}
         <a
           href="#top"
           className="nav-brand-link"
           onClick={(e) => {
             e.preventDefault()
-            window.scrollTo({ top: 0, behavior: 'smooth' })
+            handleNavClick('home')
           }}
           aria-label="VendorVerse Home"
         >
           <div className="brand-bag-icon" aria-hidden="true">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-            <span className="brand-v-glyph">V</span>
+            <div className="brand-bag-rotator">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                <path d="M3 6h18" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              <span className="brand-v-glyph">V</span>
+            </div>
           </div>
           <div className="brand-title-wrap">
             <span className="brand-name">VendorVerse</span>
-            <span className="brand-tagline">Global B2B Marketplace</span>
+            <span className="brand-tagline">Global Marketplace</span>
           </div>
         </a>
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop 5 Primary Navigation Items */}
         <nav className="desktop-nav-menu" aria-label="Main Navigation">
-          {/* Browse Dropdown */}
-          <div className="nav-dropdown-item" ref={browseRef}>
-            <button
-              type="button"
-              className={`nav-link-btn ${browseOpen ? 'open' : ''}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                setBrowseOpen((v) => !v)
-                setSolutionsOpen(false)
-              }}
-              aria-expanded={browseOpen}
-            >
-              Browse
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-
-            {browseOpen && (
-              <div className="nav-dropdown-panel" role="menu">
-                <a
-                  href="#industries"
-                  className="dropdown-item"
-                  role="menuitem"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setBrowseOpen(false)
-                    document.getElementById('industries')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                >
-                  <span className="dropdown-icon">🏢</span>
-                  <div>
-                    <strong>Core Industries</strong>
-                    <small>Home, Construction, Events, Professional, Wholesale</small>
-                  </div>
-                </a>
-                <button
-                  type="button"
-                  className="dropdown-item"
-                  role="menuitem"
-                  onClick={() => navigateTo('c_categories')}
-                >
-                  <span className="dropdown-icon">📂</span>
-                  <div>
-                    <strong>All Categories Directory</strong>
-                    <small>Complete 30-industry B2B taxonomy</small>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  className="dropdown-item"
-                  role="menuitem"
-                  onClick={() => navigateTo('c_explore')}
-                >
-                  <span className="dropdown-icon">🔍</span>
-                  <div>
-                    <strong>Explore Marketplace</strong>
-                    <small>Browse categories, services &amp; supplier profiles</small>
-                  </div>
-                </button>
-                <a
-                  href="#markets"
-                  className="dropdown-item"
-                  role="menuitem"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setBrowseOpen(false)
-                    document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                >
-                  <span className="dropdown-icon">📍</span>
-                  <div>
-                    <strong>Global Markets</strong>
-                    <small>India, USA, UAE, UK, Singapore, Germany</small>
-                  </div>
-                </a>
-              </div>
-            )}
-          </div>
-
-          {/* Solutions Dropdown */}
-          <div className="nav-dropdown-item" ref={solutionsRef}>
-            <button
-              type="button"
-              className={`nav-link-btn ${solutionsOpen ? 'open' : ''}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                setSolutionsOpen((v) => !v)
-                setBrowseOpen(false)
-              }}
-              aria-expanded={solutionsOpen}
-            >
-              Solutions
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-
-            {solutionsOpen && (
-              <div className="nav-dropdown-panel" role="menu">
-                <a
-                  href="#how"
-                  className="dropdown-item"
-                  role="menuitem"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setSolutionsOpen(false)
-                    document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                >
-                  <span className="dropdown-icon">⚡</span>
-                  <div>
-                    <strong>For Buyers &amp; Businesses</strong>
-                    <small>Discover suppliers, compare quotes &amp; manage orders</small>
-                  </div>
-                </a>
-                <a
-                  href="#rfq-section"
-                  className="dropdown-item"
-                  role="menuitem"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setSolutionsOpen(false)
-                    document.getElementById('rfq-section')?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                >
-                  <span className="dropdown-icon">📄</span>
-                  <div>
-                    <strong>Request for Quotation (RFQ)</strong>
-                    <small>Post single requirement, get multiple bids</small>
-                  </div>
-                </a>
-              </div>
-            )}
-          </div>
-
-          {/* For Businesses */}
-          <a
-            href="#markets"
-            className="nav-link-btn"
-            onClick={(e) => {
-              e.preventDefault()
-              document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
-            }}
-          >
-            For Businesses
-          </a>
-
-          {/* Become a Vendor */}
-          <button
-            type="button"
-            className="nav-link-btn"
-            onClick={() => {
-              if (onOpenVendorApply) onOpenVendorApply()
-              else navigateTo('v_home')
-            }}
-          >
-            Become a Vendor
-          </button>
-
-          {/* Help */}
-          <a
-            href="#how"
-            className="nav-link-btn"
-            onClick={(e) => {
-              e.preventDefault()
-              document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
-            }}
-          >
-            Help
-          </a>
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeView === item.id
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`nav-link-btn ${isActive ? 'active' : ''}`}
+                onClick={() => handleNavClick(item.id)}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {item.label}
+              </button>
+            )
+          })}
         </nav>
 
-        {/* Right Actions: Lang, Country, Login, Join Now */}
+        {/* Right Actions: Lang, Country, Cart, Login, Join Now */}
         <div className="nav-right-actions">
           {/* Language Selector */}
           <div className="nav-dropdown-item" ref={langRef}>
@@ -374,22 +231,10 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
             className="nav-login-btn"
             onClick={() => {
               if (onOpenAuth) onOpenAuth('login')
-              else navigateTo('auth', { mode: 'login' })
+              else nav.go('auth', { mode: 'login' })
             }}
           >
             Login
-          </button>
-
-          {/* Join Now Button - Sky Blue Primary CTA */}
-          <button
-            type="button"
-            className="nav-join-btn"
-            onClick={() => {
-              if (onOpenAuth) onOpenAuth('signup')
-              else navigateTo('auth', { mode: 'signup' })
-            }}
-          >
-            Join Now
           </button>
 
           {/* Mobile Hamburger Toggle */}
@@ -420,59 +265,25 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
       {mobileMenuOpen && (
         <div className="mobile-nav-drawer" role="dialog" aria-modal="true">
           <div className="mobile-drawer-inner">
-            <a
-              href="#industries"
-              className="mobile-drawer-link"
-              onClick={() => {
-                setMobileMenuOpen(false)
-                document.getElementById('industries')?.scrollIntoView({ behavior: 'smooth' })
-              }}
-            >
-              🏢 Industries & Categories
-            </a>
-            <a
-              href="#markets"
-              className="mobile-drawer-link"
-              onClick={() => {
-                setMobileMenuOpen(false)
-                document.getElementById('markets')?.scrollIntoView({ behavior: 'smooth' })
-              }}
-            >
-              🌍 Global Markets &amp; Hubs
-            </a>
-            <a
-              href="#how"
-              className="mobile-drawer-link"
-              onClick={() => {
-                setMobileMenuOpen(false)
-                document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
-              }}
-            >
-              ⚡ How It Works
-            </a>
-            <a
-              href="#rfq-section"
-              className="mobile-drawer-link"
-              onClick={() => {
-                setMobileMenuOpen(false)
-                document.getElementById('rfq-section')?.scrollIntoView({ behavior: 'smooth' })
-              }}
-            >
-              📄 Request for Quotation (RFQ)
-            </a>
-            <button
-              type="button"
-              className="mobile-drawer-link"
-              onClick={() => {
-                setMobileMenuOpen(false)
-                if (onOpenVendorApply) onOpenVendorApply()
-                else navigateTo('v_home')
-              }}
-            >
-              💼 Become a Vendor
-            </button>
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`mobile-drawer-link ${activeView === item.id ? 'font-bold text-sky-600' : ''}`}
+                onClick={() => handleNavClick(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
 
             <div className="mobile-drawer-divider" />
+
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-xs font-bold text-slate-500">LOCATION</span>
+              <span className="text-xs font-semibold text-slate-800">
+                🌐 {locale?.countryName || locale?.city || 'Global'}
+              </span>
+            </div>
 
             <div className="mobile-drawer-actions">
               <button
@@ -481,21 +292,10 @@ export function Navbar({ onOpenAuth, onOpenVendorApply }) {
                 onClick={() => {
                   setMobileMenuOpen(false)
                   if (onOpenAuth) onOpenAuth('login')
-                  else navigateTo('auth', { mode: 'login' })
+                  else nav.go('auth', { mode: 'login' })
                 }}
               >
                 Login
-              </button>
-              <button
-                type="button"
-                className="nav-join-btn full-width"
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  if (onOpenAuth) onOpenAuth('signup')
-                  else navigateTo('auth', { mode: 'signup' })
-                }}
-              >
-                Join Now
               </button>
             </div>
           </div>

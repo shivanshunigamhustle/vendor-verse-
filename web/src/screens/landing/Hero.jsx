@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNav } from '../../nav.jsx'
 import { useApp } from '../../store.jsx'
 
@@ -108,12 +108,26 @@ const LOCATION_OPTIONS = [
   'Delhi NCR',
 ]
 
-export function Hero({ onOpenVendorApply }) {
+export function Hero({ onOpenVendorApply, onSearch, onExplore }) {
   const nav = useNav()
   const { locale, setLocale } = useApp()
   const [activeIntent, setActiveIntent] = useState('products')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLocation, setSelectedLocation] = useState(locale?.countryName || '')
+  const videoRef = useRef(null)
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true
+      videoRef.current.muted = true
+      const playPromise = videoRef.current.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Fallback if browser requires interaction
+        })
+      }
+    }
+  }, [])
 
   const currentTab = INTENT_TABS.find((t) => t.id === activeIntent) || INTENT_TABS[0]
 
@@ -124,20 +138,31 @@ export function Hero({ onOpenVendorApply }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    nav.go('c_explore', {
-      q: searchTerm.trim() || undefined,
-      location: resolveLocationParam(),
-      type: activeIntent,
-    })
+    const query = searchTerm.trim()
+    const loc = resolveLocationParam()
+    if (onSearch) {
+      onSearch({ q: query || undefined, location: loc, type: activeIntent })
+    } else {
+      nav.go('c_explore', {
+        q: query || undefined,
+        location: loc,
+        type: activeIntent,
+      })
+    }
   }
 
   const handleSuggestionClick = (query) => {
     setSearchTerm(query)
-    nav.go('c_explore', {
-      q: query,
-      location: resolveLocationParam(),
-      type: activeIntent,
-    })
+    const loc = resolveLocationParam()
+    if (onSearch) {
+      onSearch({ q: query, location: loc, type: activeIntent })
+    } else {
+      nav.go('c_explore', {
+        q: query,
+        location: loc,
+        type: activeIntent,
+      })
+    }
   }
 
   return (
@@ -145,6 +170,7 @@ export function Hero({ onOpenVendorApply }) {
       {/* Exact Original Industrial MP4 played full-bleed cleanly */}
       <div className="hero-media-layer" aria-hidden="true">
         <video
+          ref={videoRef}
           className="hero-bg-video"
           autoPlay
           muted
@@ -185,7 +211,10 @@ export function Hero({ onOpenVendorApply }) {
             <button
               type="button"
               className="hero-primary-btn"
-              onClick={() => nav.go('c_explore')}
+              onClick={() => {
+                if (onExplore) onExplore()
+                else nav.go('c_explore')
+              }}
             >
               Explore Marketplace
               <svg

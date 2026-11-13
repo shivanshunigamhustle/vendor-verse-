@@ -2,12 +2,20 @@ import { useState } from 'react'
 import { useNav } from '../../nav.jsx'
 import { PolicyModal } from './PolicyModal.jsx'
 
-export function Footer({ onOpenVendorApply }) {
+export function Footer({ onOpenVendorApply, onNavigateView }) {
   const nav = useNav()
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
   const [subscribeSuccess, setSubscribeSuccess] = useState(false)
   const [activeModal, setActiveModal] = useState(null)
+
+  const handleNav = (viewName) => {
+    if (onNavigateView) {
+      onNavigateView(viewName)
+    } else {
+      nav.go('c_home', { view: viewName })
+    }
+  }
 
   const handleSubscribe = (e) => {
     e.preventDefault()
@@ -38,16 +46,18 @@ export function Footer({ onOpenVendorApply }) {
         <div className="footer-col footer-brand-col">
           <div className="footer-brand-header">
             <div className="brand-bag-icon small" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                <path d="M3 6h18" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-              <span className="brand-v-glyph">V</span>
+              <div className="brand-bag-rotator">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                  <path d="M3 6h18" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+                <span className="brand-v-glyph">V</span>
+              </div>
             </div>
             <div className="brand-title-wrap">
               <span className="brand-name">VendorVerse</span>
-              <span className="brand-tagline">Global B2B Marketplace</span>
+              <span className="brand-tagline">Global Marketplace</span>
             </div>
           </div>
 
@@ -118,27 +128,24 @@ export function Footer({ onOpenVendorApply }) {
           <h4 className="footer-col-title">For Buyers</h4>
           <ul className="footer-links-list">
             <li>
-              <button type="button" className="footer-link-btn" onClick={() => nav.go('c_explore')}>
+              <button type="button" className="footer-link-btn" onClick={() => handleNav('explore')}>
                 Explore Marketplace
               </button>
-            </li>
-            <li>
-              <a
-                href="#rfq-section"
-                className="footer-link-btn"
-                onClick={(e) => {
-                  e.preventDefault()
-                  document.getElementById('rfq-section')?.scrollIntoView({ behavior: 'smooth' })
-                }}
-              >
-                Request Quotation (RFQ)
-              </a>
             </li>
             <li>
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => nav.go('c_explore', { type: 'services' })}
+                onClick={() => handleNav('rfq')}
+              >
+                Request Quotation (RFQ)
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="footer-link-btn"
+                onClick={() => handleNav('explore')}
               >
                 Book Services
               </button>
@@ -147,9 +154,9 @@ export function Footer({ onOpenVendorApply }) {
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => nav.go('c_activity')}
+                onClick={() => handleNav('explore')}
               >
-                Compare Vendors
+                Compare Suppliers
               </button>
             </li>
           </ul>
@@ -175,27 +182,27 @@ export function Footer({ onOpenVendorApply }) {
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => nav.go('v_home')}
+                onClick={() => handleNav('about')}
               >
-                Vendor Plans
+                Global Trade Network
               </button>
             </li>
             <li>
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => nav.go('v_home')}
+                onClick={() => handleNav('about')}
               >
-                Grow Your Business
+                Why Choose VendorVerse
               </button>
             </li>
             <li>
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => setActiveModal('about')}
+                onClick={() => handleNav('help')}
               >
-                Vendor Resources
+                Vendor Resources &amp; Help
               </button>
             </li>
           </ul>
@@ -209,7 +216,7 @@ export function Footer({ onOpenVendorApply }) {
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => setActiveModal('about')}
+                onClick={() => handleNav('about')}
               >
                 About Us
               </button>
@@ -218,31 +225,28 @@ export function Footer({ onOpenVendorApply }) {
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => setActiveModal('careers')}
+                onClick={() => handleNav('help')}
               >
-                Careers
+                Help &amp; FAQs
               </button>
             </li>
             <li>
               <button
                 type="button"
                 className="footer-link-btn"
-                onClick={() => setActiveModal('contact')}
+                onClick={() => handleNav('help')}
               >
-                Contact Us
+                Contact Support
               </button>
             </li>
             <li>
-              <a
-                href="#how"
+              <button
+                type="button"
                 className="footer-link-btn"
-                onClick={(e) => {
-                  e.preventDefault()
-                  document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
-                }}
+                onClick={() => setActiveModal('about')}
               >
-                Help &amp; Support
-              </a>
+                Platform Trust &amp; Safety
+              </button>
             </li>
           </ul>
         </div>

@@ -224,7 +224,7 @@ function WebHeader({ onMenu, hideTabs }) {
           <Logo size={36} />
           <div>
             <span className="block text-[17px] font-black leading-none tracking-tight text-slate-900">VendorVerse</span>
-            <span className="block text-[10.5px] font-semibold text-slate-500 leading-tight mt-0.5">Global B2B Marketplace</span>
+            <span className="block text-[10.5px] font-semibold text-slate-500 leading-tight mt-0.5">Global Marketplace</span>
           </div>
         </button>
 
