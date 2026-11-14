@@ -141,6 +141,12 @@ export function Login({ params = {} }) {
   )
 }
 
+/** The signed-in user's own number: the stored profile phone, else the number they just verified. Never a placeholder. */
+const accountPhone = (profile, contact) => {
+  const raw = profile?.phone || (!isEmail(contact) && isPhone(contact) ? contact : '')
+  return /^\+91\d{10}$/.test(String(raw).replace(/\s/g, '')) ? `+91 ${String(raw).replace(/\s/g, '').slice(3, 8)} ${String(raw).replace(/\s/g, '').slice(8)}` : raw || ''
+}
+
 export function Otp({ params }) {
   const { contact = '+91 98290 00001', role = 'customer', mode, name, email, biz, next, nextParams } = params
   const nav = useNav()
@@ -212,7 +218,7 @@ export function Otp({ params }) {
     const accountRole = r.account ? roleForAccount(r.account) : role
     const same = accountRole === role
     const needsName = authService.isRemote && accountRole === 'customer' && !profile?.displayName
-    const extra = { ...(r.account ? { userId: r.account.userId, hasVendorAccount: !!r.account.availableModes?.includes('VENDOR') } : {}), ...(profile?.displayName ? { name: profile.displayName } : authService.isRemote ? { name: 'Customer' } : {}) }
+    const extra = { ...(r.account ? { userId: r.account.userId, hasVendorAccount: !!r.account.availableModes?.includes('VENDOR') } : {}), ...(accountPhone(profile, contact) ? { phone: accountPhone(profile, contact) } : {}), ...(profile?.displayName ? { name: profile.displayName } : authService.isRemote ? { name: 'Customer' } : {}) }
     if (needsName) {
       signIn(accountRole, extra, 'c_profile_edit', { firstRun: true })
       toast('Welcome! Add your name to finish your profile.')
@@ -276,32 +282,45 @@ export function Register() {
     if (Object.keys(e).length === 0) nav.go('otp', { contact: `+91 ${f.phone}`, role, mode: 'register', name: f.name, email: f.email, biz: f.biz })
   }
   return (
-    <Screen title="Create account" pad={false} bg="bg-white">
-      <div className="space-y-4 p-5">
-        <div>
-          <h2 className="text-2xl font-extrabold tracking-tight">Join VendorVerse</h2>
-          <p className="mt-1 text-sm text-ink-500">Choose how you want to use the marketplace.</p>
+    <Screen title="Create account" pad={false} bg="bg-white" scrollClass="vv-login-scroll">
+      <div className="vv-login-layout vv-register-layout">
+        <aside className="vv-login-art">
+          <span className="vv-login-kicker"><ShieldCheck size={14} /> VENDORVERSE ACCOUNT</span>
+          <div className="vv-login-scene" aria-hidden="true">
+            <div className="vv-login-orbit vv-login-orbit-one" /><div className="vv-login-orbit vv-login-orbit-two" />
+            <div className="vv-login-cube">{['V', 'RFQ', 'OK', 'VV', '+', '★'].map((face) => <span key={face}>{face}</span>)}</div>
+            <span className="vv-login-float vv-login-float-one"><ShieldCheck size={14} /> Verified vendors</span>
+            <span className="vv-login-float vv-login-float-two"><Store size={14} /> Quotes and bookings</span>
+          </div>
+          <div className="vv-login-art-copy"><h2>Start in a minute</h2><p>Buy products, book services and compare quotes, or sell to customers as a vendor.</p></div>
+        </aside>
+        <div className="vv-login-form vv-register-form p-5 sm:p-7">
+          <div>
+            <p className="vv-login-eyebrow">NEW ACCOUNT</p>
+            <h2 className="text-2xl font-extrabold tracking-tight">Join VendorVerse</h2>
+            <p className="mt-1 text-sm text-ink-500">Choose how you want to use the marketplace.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[['customer', User, 'Customer', 'Buy, book and request quotes'], ['vendor', Store, 'Vendor', 'Sell products and services']].map(([id, I, a, b]) => (
+              <button type="button" key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3 text-left ring-1 ring-inset transition', role === id ? 'bg-brand-50 ring-2 ring-brand-600' : 'bg-white ring-ink-200')}>
+                <span className={cx('grid size-9 place-items-center rounded-xl', role === id ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500')}><I size={18} /></span>
+                <p className="mt-2 text-sm font-bold">{a}</p>
+                <p className="mt-0.5 text-xs leading-snug text-ink-500">{b}</p>
+              </button>
+            ))}
+          </div>
+          <Input label="Full name" required placeholder="As per ID" value={f.name} onChange={set('name')} error={errs.name} />
+          {role !== 'customer' && <Input label="Business name" required placeholder="Registered business name" value={f.biz} onChange={set('biz')} error={errs.biz} />}
+          <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(normalizePhone(e.target.value))} error={errs.phone} className="!pl-10" />
+          <Input label="Email (optional)" icon={Mail} type="email" placeholder="you@company.com" value={f.email} onChange={set('email')} error={errs.email} />
+          <div>
+            <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-brand-700">Terms of Service</b> and <b className="text-brand-700">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>
+            {errs.agree && <p className="mt-1 text-xs font-medium text-red-600">{errs.agree}</p>}
+          </div>
+          {role === 'vendor' && <Banner tone="amber" title="Verification required">Vendors are shown as <b>Verified</b> only after Super Admin approves your business documents.</Banner>}
+          <Button full size="lg" onClick={submit}>Continue</Button>
+          <p className="text-center text-sm text-ink-500">Already have an account? <button type="button" onClick={() => nav.replace('login')} className="font-bold text-brand-700">Log in</button></p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {[['customer', User, 'Customer', 'Buy products, book services, request quotes'], ['vendor', Store, 'Vendor', 'Sell products and services to customers']].map(([id, I, a, b]) => (
-            <button key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3.5 text-left ring-1 ring-inset transition', role === id ? 'bg-brand-50 ring-2 ring-brand-600' : 'bg-white ring-ink-200')}>
-              <span className={cx('grid size-10 place-items-center rounded-xl', role === id ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500')}><I size={20} /></span>
-              <p className="mt-2.5 text-sm font-bold">{a}</p>
-              <p className="mt-0.5 text-xs leading-snug text-ink-500">{b}</p>
-            </button>
-          ))}
-        </div>
-        <Input label="Full name" required placeholder="As per ID" value={f.name} onChange={set('name')} error={errs.name} />
-        {role !== 'customer' && <Input label="Business name" required placeholder="Registered business name" value={f.biz} onChange={set('biz')} error={errs.biz} />}
-        <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(normalizePhone(e.target.value))} error={errs.phone} className="!pl-10" />
-        <Input label="Email (optional)" icon={Mail} type="email" placeholder="you@company.com" value={f.email} onChange={set('email')} error={errs.email} />
-        <div>
-          <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-brand-700">Terms of Service</b> and <b className="text-brand-700">Privacy Policy</b>, and consent to my data being processed to provide this service.</Checkbox>
-          {errs.agree && <p className="mt-1 text-xs font-medium text-red-600">{errs.agree}</p>}
-        </div>
-        {role === 'vendor' && <Banner tone="amber" title="Verification required">Vendors are shown as <b>Verified</b> only after Super Admin approves your business documents.</Banner>}
-        <Button full size="lg" onClick={submit}>Continue</Button>
-        <p className="text-center text-sm text-ink-500">Already have an account? <button onClick={() => nav.replace('login')} className="font-bold text-brand-700">Log in</button></p>
       </div>
     </Screen>
   )
