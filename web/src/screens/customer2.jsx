@@ -507,7 +507,7 @@ export function Profile() {
         <Card className="!p-4">
           <div className="flex items-center gap-3.5">
             <Avatar name={me.name || ME_NAME} size={60} />
-            <div className="min-w-0 flex-1"><p className="text-lg font-extrabold">{me.name || ME_NAME}</p><p className="text-sm text-ink-500">+91 98290 00001</p><Badge tone="teal" className="mt-1.5">Customer</Badge></div>
+            <div className="min-w-0 flex-1"><p className="text-lg font-extrabold">{me.name || ME_NAME}</p><p className="text-sm text-ink-500">{me.phone || (authService.isRemote ? '' : '+91 98290 00001')}</p><Badge tone="teal" className="mt-1.5">Customer</Badge></div>
             <Button size="sm" variant="soft" onClick={() => nav.go('c_profile_edit')}>Edit</Button>
           </div>
         </Card>
@@ -546,7 +546,7 @@ export function ProfileEdit({ params = {} }) {
   const { me, setMe, toast, locale, setLocale } = useApp()
   const remote = Boolean(authService.isRemote) // real API: name, email and address live on the server (F-ACC-06)
   const [f, setF] = useState(remote ? { name: '', email: '', city: locale.city || 'Jaipur', address: '' } : { name: me.name || ME_NAME, email: 'aarav.mehta@gmail.com', city: locale.city || 'Jaipur', address: '24, Vaishali Nagar, Jaipur 302021' })
-  const [phone, setPhone] = useState('+91 98290 00001')
+  const [phone, setPhone] = useState(authService.isRemote ? (me.phone || '') : '+91 98290 00001')
   const [emailOk, setEmailOk] = useState(false)
   const [homeLoc, setHomeLoc] = useState(null)
   const [loading, setLoading] = useState(remote)

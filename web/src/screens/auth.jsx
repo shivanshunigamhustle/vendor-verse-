@@ -141,6 +141,12 @@ export function Login({ params = {} }) {
   )
 }
 
+/** The signed-in user's own number: the stored profile phone, else the number they just verified. Never a placeholder. */
+const accountPhone = (profile, contact) => {
+  const raw = profile?.phone || (!isEmail(contact) && isPhone(contact) ? contact : '')
+  return /^\+91\d{10}$/.test(String(raw).replace(/\s/g, '')) ? `+91 ${String(raw).replace(/\s/g, '').slice(3, 8)} ${String(raw).replace(/\s/g, '').slice(8)}` : raw || ''
+}
+
 export function Otp({ params }) {
   const { contact = '+91 98290 00001', role = 'customer', mode, name, email, biz, next, nextParams } = params
   const nav = useNav()
@@ -212,7 +218,7 @@ export function Otp({ params }) {
     const accountRole = r.account ? roleForAccount(r.account) : role
     const same = accountRole === role
     const needsName = authService.isRemote && accountRole === 'customer' && !profile?.displayName
-    const extra = { ...(r.account ? { userId: r.account.userId, hasVendorAccount: !!r.account.availableModes?.includes('VENDOR') } : {}), ...(profile?.displayName ? { name: profile.displayName } : authService.isRemote ? { name: 'Customer' } : {}) }
+    const extra = { ...(r.account ? { userId: r.account.userId, hasVendorAccount: !!r.account.availableModes?.includes('VENDOR') } : {}), ...(accountPhone(profile, contact) ? { phone: accountPhone(profile, contact) } : {}), ...(profile?.displayName ? { name: profile.displayName } : authService.isRemote ? { name: 'Customer' } : {}) }
     if (needsName) {
       signIn(accountRole, extra, 'c_profile_edit', { firstRun: true })
       toast('Welcome! Add your name to finish your profile.')
