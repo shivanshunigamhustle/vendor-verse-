@@ -71,6 +71,9 @@
 .vv-login-art-copy p { max-width: 330px; margin: 0; color: #627985; font-size: 13px; line-height: 1.65; }
 .vv-login-form { display: flex; flex-direction: column; justify-content: center; gap: 20px; }
 .vv-login-eyebrow { margin-bottom: 6px; }
+/* Sign-up: same split card as sign-in, but the form is taller, so the card is slightly taller. */
+.vv-register-layout { min-height: min(760px, calc(100dvh - 118px)); }
+.vv-register-form { gap: 16px; }
 .vv-login-roles { background: linear-gradient(145deg, #f5fafb, #edf5f5); }
 
 /* Public root landing: keep the branded 3D motion here only. */

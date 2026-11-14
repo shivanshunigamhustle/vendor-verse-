@@ -205,6 +205,7 @@ These are mockup behaviours that differ between the apps and must be made the sa
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-11-14 16:28 | Sahil Soni | Modified: F-ACC-01 web `register` layout only | Sign-up stretched edge to edge on wide screens; it now uses the same split card as sign-in. Fields, validation and flow are unchanged. |
 | 2026-11-14 13:25 | Sahil Soni | Modified: F-ACC-06 web profile (shows the signed-in user's own number) | The profile card and edit screen showed a placeholder number; they now use the profile or verified number and show none rather than a dummy. Statuses unchanged. |
 | 2026-11-14 13:05 | Sahil Soni | Modified: F-ACC-02 web login (workspace chooser removed; sign-in opens the stored account mode; header switch saves the mode) | The chooser looked wrong and did not decide the workspace; a vendor account now opens in vendor mode because the mode is saved server-side. Statuses unchanged. |
 | 2026-11-14 12:30 | Sahil Soni | Modified: F-ACC-02 web sign-in and vendor registration (persist vendor mode via POST /me/mode) | Vendors were sent to the customer home after sign-in because the stored account mode stayed customer; statuses unchanged. |
