@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { validateReviewDecision } from '../services/verification.js'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ShieldCheck, Package, Users, Store, CalendarCheck, FileText, IndianRupee, UserPlus, AlertTriangle, ChevronRight, Check, X, Layers, Tag, Settings,
   ScrollText, LogOut, BarChart3, Download, Plus, Trash2, Lock, Percent, MapPin, Gift, Bell, Gavel, Wallet, Search, Eye, Ban, RotateCcw, KeyRound, Briefcase,
@@ -7,6 +8,7 @@ import {
 import { P2Badge } from './blocks.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
+import { authService } from '../services/authService.js'
 import { CATS, cat, REPORT, ME } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Banner, EmptyState, Stat, KV, fmt, cx,
@@ -164,10 +166,88 @@ export function Approvals() {
 }
 
 /* ================= VENDOR VERIFICATION ================= */
+function RemoteAdminVerificationQueue() {
+  const [status, setStatus] = useState('submitted')
+  const [items, setItems] = useState([])
+  const [nextCursor, setNextCursor] = useState(null)
+  const [reasons, setReasons] = useState({})
+  const [evidenceLinks, setEvidenceLinks] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    setLoading(true); setError('')
+    authService.listVerificationQueue({ status: status || undefined, limit: 50 }).then((result) => {
+      if (!active) return
+      if (!result.ok) setError(result.message)
+      else { setItems(result.verifications); setNextCursor(result.nextCursor); setReasons({}); setEvidenceLinks({}) }
+    }).finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [status])
+
+  const loadNext = async () => {
+    if (!nextCursor || busy) return
+    setBusy(true); setError('')
+    const result = await authService.listVerificationQueue({ status: status || undefined, limit: 50, cursor: nextCursor })
+    setBusy(false)
+    if (!result.ok) { setError(result.message); return }
+    setItems((current) => [...current, ...result.verifications])
+    setNextCursor(result.nextCursor)
+  }
+
+  const decide = async (item, decision) => {
+    const reason = (reasons[item.id] || '').trim()
+    if (!reason) { setError('Enter a review reason before recording a decision.'); return }
+    setBusy(true); setError('')
+    const result = await authService.reviewVerification(item.id, { status: decision, reason })
+    setBusy(false)
+    if (!result.ok) { setError(result.message); return }
+    setItems((current) => current.map((entry) => entry.id === item.id ? result.verification : entry))
+  }
+
+  const openEvidence = async (item, evidence) => {
+    setBusy(true); setError('')
+    const result = await authService.getVerificationEvidenceUrl(item.id, evidence.fileId)
+    setBusy(false)
+    if (!result.ok) { setError(result.message); return }
+    setEvidenceLinks((current) => ({ ...current, [evidence.fileId]: result.url }))
+  }
+
+  return (
+    <Screen title="Vendor verification">
+      <Banner tone="blue">Remote reviewer queue. Each decision requires a reason and is audited.</Banner>
+      <Chips scroll={false} value={status} onChange={setStatus} options={[{ id: 'submitted', label: 'Submitted' }, { id: 'in_review', label: 'In review' }, { id: 'info_requested', label: 'Info requested' }, { id: 'approved', label: 'Approved' }, { id: 'rejected', label: 'Rejected' }, { id: '', label: 'All' }]} />
+      {error && <Banner tone="red" title="Verification request failed">{error}</Banner>}
+      {loading && <p className="text-sm text-ink-500">Loading review queue…</p>}
+      <div className="space-y-3">{items.map((item) => (
+        <Card key={item.id} className="space-y-3 !p-3.5">
+          <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-bold">{item.level} · Vendor {item.vendorId}</p><p className="mt-1 text-xs text-ink-500">Submitted {new Date(item.submittedAt).toLocaleString()}</p></div><StatusBadge s={item.status} /></div>
+          <div className="space-y-1.5">{item.evidence.map((evidence) => <div key={evidence.documentId} className="flex items-center justify-between gap-2 rounded-lg bg-ink-50 p-2"><p className="truncate text-xs font-semibold">{evidence.documentType}</p>{evidenceLinks[evidence.fileId] ? <a href={evidenceLinks[evidence.fileId]} target="_blank" rel="noreferrer" className="shrink-0 text-xs font-bold text-brand-700">Open file</a> : <Button size="sm" variant="secondary" disabled={busy} onClick={() => openEvidence(item, evidence)}>Get file</Button>}</div>)}</div>
+          {['submitted', 'in_review'].includes(item.status) && <>
+            <Input textarea rows={2} label="Review reason" value={reasons[item.id] || ''} onChange={(event) => setReasons((current) => ({ ...current, [item.id]: event.target.value }))} />
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="secondary" disabled={busy} onClick={() => decide(item, 'in_review')}>Start review</Button>
+              <Button size="sm" variant="secondary" disabled={busy} onClick={() => decide(item, 'info_requested')}>Request info</Button>
+              <Button size="sm" variant="dangerSoft" disabled={busy} onClick={() => decide(item, 'rejected')}>Reject</Button>
+              <Button size="sm" disabled={busy} onClick={() => decide(item, 'approved')}>Approve</Button>
+            </div>
+          </>}
+          {item.reason && <p className="text-sm text-ink-600">{item.reason}</p>}
+        </Card>
+      ))}</div>
+      {!loading && !items.length && <EmptyState icon={ShieldCheck} title="Queue is clear" />}
+      {nextCursor && <Button full variant="secondary" disabled={busy || loading} onClick={loadNext}>Load more</Button>}
+    </Screen>
+  )
+}
+
 export function AdminVendors({ params = {} }) {
   const nav = useNav()
   const { vendors } = useApp()
   const [f, setF] = useState(params.f || 'pending')
+  if (authService.isRemote) return <RemoteAdminVerificationQueue />
   const match = { pending: ['submitted'], info: ['info'], rejected: ['rejected'], approved: ['approved'], all: null }[f]
   const list = vendors.filter((v) => f === 'business' ? vendorKind(v) === 'Supplier' : (!match || match.includes(v.status)))
   const c = (st) => vendors.filter((v) => st.includes(v.status)).length
@@ -211,7 +291,7 @@ export function AdminVendorNew() {
 
 export function AdminVendor({ params }) {
   const nav = useNav()
-  const { vendors, setVendors, patchVendor, addAudit, notify, toast, leads, patchLead, setCommissions, stamp } = useApp()
+  const { me, vendors, setVendors, patchVendor, addAudit, notify, toast, leads, patchLead, setCommissions, stamp } = useApp()
   const v = vendors.find((x) => x.id === (params.id || 'v8'))
   const [dlg, setDlg] = useState(null)
   const [reason, setReason] = useState('')
@@ -221,10 +301,11 @@ export function AdminVendor({ params }) {
   const allVerified = v.docs.every((d) => d.status === 'verified')
   const setDoc = (name, status, note) => patchVendor(v.id, (x) => ({ docs: x.docs.map((d) => (d.name === name ? { ...d, status, note } : d)) }))
   const act = (kind) => {
-    if (kind !== 'approved' && reason.trim().length < 5) return setErr('A reason is required (min 5 characters)')
-    patchVendor(v.id, (x) => ({ status: kind, history: [...x.history, { s: kind, at: stamp(), by: ME.admin, note: kind === 'approved' ? undefined : reason }], docs: kind === 'approved' ? x.docs.map((d) => ({ ...d, status: 'verified' })) : x.docs }))
-    addAudit(kind === 'approved' ? 'Approved vendor' : kind === 'rejected' ? 'Rejected vendor' : 'Requested more info from vendor', v.name, 'approval', kind === 'approved' ? undefined : reason)
-    notify('vendor', kind === 'approved' ? 'You are verified 🎉' : kind === 'rejected' ? 'Application rejected' : 'More information needed', kind === 'approved' ? 'Your business is now shown as Verified.' : reason, 'onboarding')
+    const check = validateReviewDecision({ kind, reason, reviewer: me, vendor: v })
+    if (!check.ok) return setErr(check.message)
+    patchVendor(v.id, (x) => ({ status: kind, history: [...x.history, { s: kind, at: stamp(), by: ME.admin, note: reason.trim() }], docs: kind === 'approved' ? x.docs.map((d) => ({ ...d, status: 'verified' })) : x.docs }))
+    addAudit(kind === 'approved' ? 'Approved vendor' : kind === 'rejected' ? 'Rejected vendor' : 'Requested more info from vendor', v.name, 'approval', reason.trim())
+    notify('vendor', kind === 'approved' ? 'You are verified 🎉' : kind === 'rejected' ? 'Application rejected' : 'More information needed', kind === 'approved' ? `Your business is now shown as Verified. ${reason.trim()}` : reason, 'onboarding')
     if (kind === 'approved') {
       const ld = leads.find((l) => l.vendorId === v.id)
       if (ld) patchLead(ld.id, { stage: 'Approved/Converted' })
@@ -240,7 +321,7 @@ export function AdminVendor({ params }) {
       subtitle={v.id}
       right={<StatusBadge s={v.status} className="mr-2" />}
       overlay={<><Dialog open={!!dlg} onClose={() => { setDlg(null); setErr('') }} title={dlg === 'approved' ? 'Approve this vendor?' : dlg === 'rejected' ? 'Reject application' : 'Request more information'} actions={<><Button variant="secondary" className="flex-1" onClick={() => { setDlg(null); setErr('') }}>Cancel</Button><Button variant={dlg === 'rejected' ? 'danger' : 'primary'} className="flex-1" onClick={() => act(dlg)}>{dlg === 'approved' ? 'Approve' : dlg === 'rejected' ? 'Reject' : 'Send request'}</Button></>}>
-          {dlg === 'approved' ? <p>{v.name} will be shown as <b>Verified</b> and can publish listings. This action is recorded in the audit log.</p> : <Input textarea rows={3} label="Reason (visible to vendor)" value={reason} onChange={(e) => { setReason(e.target.value); setErr('') }} error={err} placeholder={dlg === 'rejected' ? 'e.g. GSTIN inactive on portal' : 'e.g. Please re-upload a clear GST certificate'} />}
+          {dlg === 'approved' && <p className="mb-3">{v.name} will be shown as <b>Verified</b> and can publish listings. This action is recorded in the audit log.</p>}<Input textarea rows={3} label="Reason (visible to vendor)" value={reason} onChange={(e) => { setReason(e.target.value); setErr('') }} error={err} placeholder={dlg === 'approved' ? 'e.g. Registration and GSTIN match the portal' : dlg === 'rejected' ? 'e.g. GSTIN inactive on portal' : 'e.g. Please re-upload a clear GST certificate'} />
         </Dialog><Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title={`Delete ${vendorKind(v).toLowerCase()} account?`} actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Cancel</Button><Button variant="danger" className="flex-1" onClick={() => { setVendors((all) => all.filter((x) => x.id !== v.id)); addAudit('Deleted vendor account', v.name, 'user'); toast('Account deleted'); setDeleteOpen(false); nav.go('ad_vendors') }}>Delete account</Button></>}><p>This removes <b>{v.name}</b> from the admin account directory in this demo. Existing audit history remains recorded.</p></Dialog></>}
       footer={<div className="space-y-2">{!allVerified && v.status !== 'approved' && <button onClick={() => v.docs.forEach((d) => setDoc(d.name, 'verified'))} className="w-full text-center text-xs font-bold text-brand-700">Mark all documents as verified</button>}<div className="flex gap-2"><Button variant="dangerSoft" className="flex-1" onClick={() => setDlg('rejected')}>Reject</Button><Button variant="secondary" className="flex-1" onClick={() => setDlg('info')}>Request info</Button><Button className="flex-1" disabled={!allVerified || v.status === 'approved'} onClick={() => setDlg('approved')}>Approve</Button></div><Button full variant="dangerSoft" icon={Trash2} onClick={() => setDeleteOpen(true)}>Delete {vendorKind(v).toLowerCase()} account</Button></div>}
     >
@@ -675,5 +756,3 @@ function LegacyAdminSettings() {
     </Screen>
   )
 }
-
-

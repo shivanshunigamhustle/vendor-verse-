@@ -1,12 +1,12 @@
 # VendorVerse Technical Documentation
 
-One technical reference for the whole repository as it stands on 2026-11-03: what exists, how it is built and run, how the two mockups work, how the docs are kept in step, and what is not built yet. It describes; it does not define scope. Scope and phase come from [01-feature-spec.md](01-feature-spec.md) and [04-decisions-log.md](04-decisions-log.md).
+One technical reference for the whole repository as it stands on 2026-11-04: what exists, how it is built and run, how the two mockups work, how the docs are kept in step, and what is not built yet. It describes; it does not define scope. Scope and phase come from [01-feature-spec.md](01-feature-spec.md) and [04-decisions-log.md](04-decisions-log.md).
 
 ## 1. What VendorVerse is
 
 A global B2B and B2C marketplace where customers find verified vendors, book services, request quotations (RFQ), place purchase orders and sign contracts. Web and mobile are **one product** (D-013): every Phase 1 feature exists on both with the same rules and wording.
 
-**Current state: there is no backend.** The repository contains two front-end mockups (`web/`, `mobile/`), a documentation set, an empty backend and infrastructure scaffold, and a docs checker script. All data in the apps is seed data held in the browser.
+**Current state: there is no deployed backend.** A TypeScript/NestJS auth/account API and the public taxonomy reads (F-TAX-01, F-TAX-08) are implemented for local/test use under `backend/`, with Swagger UI at `/docs` when the service is running. PostgreSQL SQL migrations 001-013 covering the full Phase 1 data model (identity and roles, geography and markets, taxonomy, vendors, verification, listings, bookings, RFQ and quotes, purchase orders, contracts, messaging, reviews, cases, notifications, subscriptions, agents, audit, admin configuration) are applied to the shared Render development database, with the Phase 1 industries, India launch geography (all markets not live) and the CFG register seeded. The auth, account (mode), vendor onboarding, own profile and service areas (F-VND-01, F-VND-02, F-GEO-06), public geography reads and the city waitlist (F-GEO-01, F-GEO-02), listings, availability and live publication gates (F-VND-05, F-VND-06, F-VND-08), customer profile and saved-location (F-ACC-06) and taxonomy-read APIs use the schema so far; the other tables are ready for the next API slices. The mobile client technology remains open under O-13. The fixed OTP adapter is local/test only and does not deliver codes; production delivery, MFA and policy values remain unconfigured. Idempotency-Key, audit, outbox and rate-limit services exist under `backend/src/platform/`; only the account settings writes use the audit trail so far, an in-process dispatcher drains outbox events (no separate worker yet), and a private-files API with scan status exists (signed upload and download URLs, scan handler; migration 015; local/test stand-ins only), the notification inbox API and dispatch handler exist (F-MSG-04, F-MSG-05) with no push / SMS / email provider registered. Public listing search and detail with live-market and eligibility filtering, vendor favourites (F-DSC-02, F-DSC-03, F-DSC-05, F-DSC-07) and the booking lifecycle (create, instant, recurring series, accept, decline, modify, cancel, complete, confirm; F-BKG-01 to F-BKG-10) are implemented in `backend/src/discover/` and `backend/src/remote-bookings/` (a second booking API, `backend/src/bookings/`, also exists for the RFQ handoff; the two overlap and need reconciling); universal search across public content and the caller's own RFQs, bookings, contracts and purchase orders (F-DSC-02, D-025) is implemented in `backend/src/search/` (contract [search.openapi.yaml](../packages/api-contract/search.openapi.yaml), not called by the clients yet); the contract is [discovery-booking.openapi.yaml](../packages/api-contract/discovery-booking.openapi.yaml). The web and mobile mockups use browser-held seed data except sign-in, which calls the auth API when `VITE_API_BASE_URL` is set; with `VITE_API_BASE_URL` set, the search, listing detail, booking, activity and vendor work screens call the discovery and booking APIs through `screens/remote-discovery.jsx` (the registries swap the seed-data screen for it with `live(...)`); on both apps, `c_explore` also calls `GET /search` and the RFQ screens (`c_rfq_new`, `c_rfq`, `v_rfq`, plus the RFQ lists in `c_activity` and `v_work`) call the RFQ, quote and accept APIs through `screens/remote-rfq.jsx`, and the purchase-order, contract and work-order APIs through `screens/remote-transactions.jsx`, and the vendor listing, publication-gate, availability and capacity APIs through `screens/remote-listings.jsx` (the local `/bookings`, service-area, waitlist, geo-list and taxonomy-admin APIs have client methods in both `authService.js` files, tested, but no screen calls them yet), and Explore reads cities and categories from the geography and taxonomy APIs. When `VITE_API_BASE_URL` is set they also call the account settings (sessions, notification preferences, data requests) and vendor onboarding APIs from the screens listed in the sync matrix.
 
 | Item | Value |
 |---|---|
@@ -27,8 +27,8 @@ vendor-verse-/
 |   `-- tools/check_docs.py   consistency checker and phase-view generator
 |-- web/                      web mockup (React 19, Vite, Tailwind 4)
 |-- mobile/                   mobile mockup, rendered as a phone frame in the browser
-|-- backend/                  scaffold only (.gitkeep files); see section 8
-|-- packages/                 api-contract, design-tokens, shared (i18n, status-vocabulary); empty
+|-- backend/                  TypeScript/NestJS modular monolith, auth/account slice, SQL migrations
+|-- packages/                 api-contract has a draft auth contract; design-tokens and shared are empty
 |-- infra/                    docker, environments, observability; empty
 `-- tests/                    acceptance, contract, e2e, load; empty
 ```
@@ -79,7 +79,7 @@ Both apps are Vite single-page apps, `type: module`, with the same dependency se
 ### 4.2 Web specifics
 
 - Sources are 364 lines of shell (`App.jsx`) plus screens in `screens/`: `auth`, `customer1`, `customer2`, `vendor`, `vendor-explore`, `agent`, `admin`, `website-home`, `scope`, `blocks`, `biz-screens`, and the Phase 1/2 sync files `p1-account`, `p1-booking`, `p1-business`, `p1-misc`, `p1-review`, `p1-depth`, `p2-storefront`.
-- `services/authorization.js` holds the client-side permission model used by the mockup: role to permission sets (for example customer `booking:create`, `rfq:create`; vendor `listing:own`, `rfq:respond`; agent `lead:assigned`, `commission:own`; admin `vendor:review`, `taxonomy:manage`, `audit:read`), plus `can`, `ownsVendor`, `ownsCustomerRecord` and `canOpenRoute`. A vendor can open customer routes only with `buyerMode` on. This is illustrative; a real backend must enforce it server-side (section 8).
+- `services/authorization.js` holds the client-side permission model used by the mockup: role to permission sets (for example customer `booking:create`, `rfq:create`; vendor `listing:own`, `rfq:respond`; agent `lead:assigned`, `commission:own`; admin `vendor:review`, `taxonomy:manage`, `audit:read`), plus `can`, `ownsVendor`, `ownsCustomerRecord` and `canOpenRoute`. Customer routes are open to customers only: a vendor owner buys by switching to Customer mode (D-022), so the old `buyerMode` exception is gone. This is illustrative; a real backend must enforce it server-side (section 8).
 - `services/browserRepository.js` persists the whole store in `localStorage` under key `vendorverse.website.state.v3`. On load it merges saved state over the seed (RFQs and settings are merged so new seed rows appear); if storage is unavailable it falls back to seed state.
 - Locale model: country, state, city, pincode, currency, time zone, coverage. India is the default (Rajasthan, Jaipur, INR, Asia/Kolkata); other countries are shown as Phase 2.
 - Data collections in the store: vendors, listings, orders, bookings, rfqs, leads, commissions, disputes, users, agents, audit, notifs, threads, settings, reviews, saved, compare, contracts, company orders, waitlist, custom categories and overrides.
@@ -89,7 +89,7 @@ Both apps are Vite single-page apps, `type: module`, with the same dependency se
 - Rendered in a phone frame with a status bar (battery, signal, wifi) and a screen directory; the intended native clients (Android, iOS) are not built, and the client technology is open (O-13).
 - Screens are grouped by area: `auth`, `customer1`, `customer_book`, `customer_rfq`, `customer_misc`, `customer_biz`, `explore`, `vendor_a`, `vendor_b`, `agent`, `admin_a/b/c`, `business`, `catbuilder`, `contracts`, `payments`, `profiles`, `global`, `mvp`, `ops`, `shared`.
 - The admin role exists in code but is hidden from role pickers and the directory (`HIDE_ADMIN = true`). Web shows it. Aligning this is O-11.
-- Business is a separate account type: owner-only, never shares a vendor identity (D-005).
+- Business is merged into Vendor by D-023 (supersedes D-005): two account types, Customer and Vendor. Mobile and web hide the Business account (`HIDE_BUSINESS` in each `roles.js`) and keep its screens; the backend still has Business as a mode until the details in O-19 are closed. Vendor roles are configuration (D-024): the backend stores them in `vendor_role_definitions` and each vendor's roles in `vendor_roles` (migration 016); mobile reads them from `VENDOR_TYPES` in `mobile/src/mvpdata.jsx` and web from `web/src/vendorRoles.js`; labels and the goods / services filters are derived from it.
 
 ### 4.4 Build and deploy
 
@@ -123,7 +123,7 @@ Detail is in [06-architecture-and-structure.md](06-architecture-and-structure.md
 - **Data:** PostgreSQL 16 with PostGIS, Redis, OpenSearch as a read model, S3-compatible object storage.
 - **Cross-cutting rules:** JWT access plus rotating refresh tokens; `Idempotency-Key` on every write; correlation ID on every response and in the audit log; cursor pagination; RFC 9457 `problem+json` errors; money as integer minor units plus ISO currency; `is_public` computed, never stored; accepted terms and contract versions stored as immutable snapshots; a module reads another's data only through its public interface.
 - **Backend folders:** `modules/` (26 Phase 1 modules, e.g. auth, accounts, rbac, geo, taxonomy, vendors, verification, listings, search, bookings, rfq, orders, contracts, messaging, notifications, reviews, trust-cases, subscriptions, sponsored, invoices, agents, admin-ops, audit, files), `modules-phase2/` (payments, payouts-commission, teams, trade), `platform/` (http, idempotency, outbox, audit-hook, rate-limit, config), `workers/` (scheduler, search-indexer, notification-dispatch, file-scanner, retention), `integrations/` (sms, email, push, whatsapp, billing, kyc, maps, storage), `db/` (migrations, seeds).
-- **Status:** the language and framework, and the mobile client technology, are **not decided** (O-13). The scaffold is language-neutral and every folder is a `.gitkeep` placeholder. Items called proposed are not commitments.
+- **Status:** TypeScript/NestJS is the decided backend stack (D-016); the mobile client technology remains open (O-13). The auth/account API implementation covers local/test OTP, sessions, and customer/vendor modes; production OTP delivery and privileged-role MFA are not implemented, and BUSINESS mode remains unavailable pending verified business-account persistence. Required OTP/token/rate-limit values have no code defaults. API contracts are in [auth.openapi.yaml](../packages/api-contract/auth.openapi.yaml), [discovery-booking.openapi.yaml](../packages/api-contract/discovery-booking.openapi.yaml), [vendor.openapi.yaml](../packages/api-contract/vendor.openapi.yaml), and [taxonomy.openapi.yaml](../packages/api-contract/taxonomy.openapi.yaml); the product-wide logical model is [06-database-architecture-erd.md](../mobile/docs/deliverables/06-database-architecture-erd.md).
 
 ## 7. Build order and definition of done
 
@@ -135,7 +135,7 @@ A feature is done when: the spec row has one phase; the matrix maps its web and 
 
 | Gap | Effect | Where tracked |
 |---|---|---|
-| No backend, database, API or auth | Everything is seed data in browser storage; permissions in `authorization.js` are client-side only and not a security control | Section 6, O-13 |
+| No deployed backend or applied database | Only sign-in can call the local/test API from the web and mobile mockups; all other mockup data remains in browser storage. The product-wide OpenAPI contracts and [initial logical ERD](../mobile/docs/deliverables/06-database-architecture-erd.md) remain drafts, and permissions in `authorization.js` are client-side only and not a security control | Section 6, O-13 |
 | Backend language and mobile client technology undecided | Cannot start implementation | O-13 |
 | 13 features with OPEN phase (country packs, market activation checklist, contract suspend/resume, profile completeness, field visibility, saved searches, SEO landing pages, chat attachments and scanning, content screening, and others) | Not built, changed or removed until decided | O-04, O-05, O-08, O-09, and others |
 | Web admin screens held: Add vendor, Coupons | Kept as is pending ruling | O-01, O-02 |
@@ -144,6 +144,7 @@ A feature is done when: the spec row has one phase; the matrix maps its web and 
 | Mobile storefront screens need the "Phase 2" badge; several features Missing on mobile (for example F-ACC-05 data export, F-ACC-08 session list) | Mobile not yet at parity | Sync matrix |
 | PRS v3.0 differs from decisions D-003, D-005, D-006, D-011, D-013 | Decisions win; PRS not reissued | O-12 |
 | No automated tests, CI, linting or type checking in the front-end projects; web and mobile carry their own copies of shared logic (roles, store, UI kit) | Drift risk; the sync matrix is the only parity control | Section 6 target `packages/shared` |
+| Search does not yet apply the subscription, category-verification and no-holds publication gates (their modules are not built) or radius coverage; bookings apply deadlines when read, not from a scheduler worker; the response deadline exists only where a category sets `responseDeadlineHours`; no city is live yet, so real search returns an empty, labelled result until an admin activates a market | Discovery is open to listings that would be hidden once those gates exist; a deadline passes without a notification until the worker exists | Section 6, P1-S3, P1-S4 |
 | Statuses in the matrix come from code reading and a render check, not end-to-end testing | Treat as "what the code shows" | Matrix header |
 
 ## 9. Working rules (from CLAUDE.md)
@@ -160,4 +161,41 @@ A feature is done when: the spec row has one phase; the matrix maps its web and 
 
 | Date & time (YYYY-MM-DD HH:MM, local) | Updated by | Change | Reason |
 |---|---|---|---|
+| 2026-11-16 16:05 | Sahil Soni | Modified: current-state summary (listing screens) | Web and mobile call the listing, publication-gate, availability and capacity APIs through `remote-listings.jsx`. |
+| 2026-11-16 15:10 | Sahil Soni | Modified: current-state summary (client methods without screens) | Added tested web and mobile client methods for listing management, availability, capacity, service areas, waitlist, geo lists, taxonomy detail and file download links; screens are not wired yet. |
+| 2026-11-16 14:45 | Sahil Soni | Modified: current-state summary (transaction screens) | Web and mobile call the work-order, contract and purchase-order APIs through `remote-transactions.jsx`; local booking methods exist without screens. |
+| 2026-11-16 12:20 | Sahil Soni | Modified: current-state summary (mobile client wiring) | Mobile now calls universal search, RFQ, quote, accept and capacity APIs like web. |
+| 2026-11-14 12:10 | Sahil Soni | Modified: privileged sign-in note | Super Admin and Sales Agent can sign in with the OTP alone only when the demo flag `ALLOW_PRIVILEGED_OTP_SIGNIN` is set; MFA is still not built; web routes them using `roles` from GET /me. |
+| 2026-11-14 11:05 | Sahil Soni | Modified: current-state summary (web client wiring) | Web now calls universal search and the RFQ, quote and accept APIs when the API URL is set; mobile is not wired. |
+| 2026-11-13 14:15 | Sahil Soni | Modified: current-state summary | Universal search API added (`backend/src/search`); not wired to web or mobile. |
+| 2026-11-13 13:36 | Sahil Soni | Modified: booking module paths | Merge with theamitmehra produced two booking modules; documented as overlapping. |
+| 2026-11-12 14:18 | Sahil Soni | Modified: current-state summary, client wiring, contract list and known gaps | Discovery, favourites and bookings APIs landed (`backend/src/discover`, `backend/src/bookings`) and both apps call them when the API URL is set. |
+| 2026-11-12 13:45 | Sahil Soni | Modified: modes and buying | Buying happens in Customer mode only; web `canOpenRoute` no longer lets a vendor open customer routes (D-022). |
+| 2026-11-12 12:01 | Sahil Soni | Modified: vendor roles description | Web has the same roles registry and role screens (D-024). |
+| 2026-11-12 11:53 | Sahil Soni | Modified: vendor roles description | Backend vendor roles tables and APIs exist (D-024). |
+| 2026-11-12 11:44 | Sahil Soni | Modified: vendor roles description | Roles are a single registry, open to new entries (D-024). |
+| 2026-11-12 11:36 | Sahil Soni | Modified: Business account description | Web now hides the Business account too (D-023). |
+| 2026-11-11 17:25 | Sahil Soni | Modified: Business account description | Mobile hides the Business account (D-023). |
+| 2026-11-11 16:52 | Sahil Soni | Modified: Business account description | Vendor and Business merged (D-023); code unchanged. |
+| 2026-11-06 15:05 | Shil1517 | Modified: files status | Files module added to the backend; storage provider and limits remain undecided. |
+| 2026-11-06 13:48 | Shil1517 | Modified: outbox and notifications status | Outbox dispatcher and notifications core added to the backend. |
+| 2026-11-05 17:30 | Shil1517 | Modified: listings, availability, gates and waitlist APIs noted | Backend now covers the vendor listing lifecycle up to review. |
+| 2026-11-05 16:40 | Shil1517 | Modified: geography and service-area APIs noted | Backend now serves the location hierarchy and vendor coverage. |
+| 2026-11-05 16:05 | Shil1517 | Modified: web and mobile API integration note | Screens now call the settings and vendor onboarding APIs. |
+| 2026-11-05 15:40 | Shil1517 | Modified: vendor onboarding API noted | Backend now creates and edits vendors. |
+| 2026-11-05 13:05 | Shil1517 | Modified: API coverage (customer profile and saved locations, migration 014) | F-ACC-06 profile data (name, email, locale, addresses) is now stored on the server instead of browser memory. |
+| 2026-11-05 12:16 | Shil1517 | Modified: database status (migrations 004-013 applied) | The full Phase 1 schema now exists on the Render database; API coverage is unchanged. |
+| 2026-11-05 11:22 | Shil1517 | Modified: current-state notes for the applied Render database, optional client sign-in and the taxonomy API | Earlier text said no database was applied and the mockups did not call the API; both changed, and public taxonomy reads were added. |
+| 2026-11-05 09:42 | Amit | Modified: local API access and Swagger documentation | Explain how to browse the implemented local/test API and clarify the mockups are not connected to it. |
+| 2026-11-04 15:37 | Amit | Modified: auth/account implementation limitations | Call out unfinished platform idempotency/audit plumbing alongside the existing production auth blockers. |
+| 2026-11-04 15:27 | Amit | Modified: NestJS auth/account implementation status | Document the local/test-only boundary, unresolved production dependencies, and new auth migration without implying deploy readiness. |
+| 2026-11-04 15:24 | Amit | Modified: backend implementation status | Record the TypeScript/NestJS decision and explicit local/test-only authentication boundary without implying production readiness. |
+| 2026-11-04 15:12 | Amit | Modified: scoped SQL migration status | Document the authorized migration drafts accurately without suggesting the backend, database, or O-13 decision is complete. |
+| 2026-11-04 14:29 | Amit | Modified: product-wide ERD status reference | Reflect the expanded logical model while keeping the documented architecture proposals and unresolved technology decision intact. |
+| 2026-11-04 13:49 | Amit | Added: initial logical ERD status reference | Keep the technical inventory clear that the ERD is a draft and no database implementation exists. |
+| 2026-11-04 13:44 | Amit | Added: Phase 1 taxonomy API draft reference | Keep the technical inventory aligned with the public browse, category administration, and suggestion contract. |
+| 2026-11-04 13:37 | Amit | Added: F-VND-09 vendor profile API draft reference | Keep the technical inventory aligned with the new profile and trust contract. |
+| 2026-11-04 13:30 | Amit | Added: F-ACC-02 account mode API draft reference | Keep the technical inventory aligned with the identity and mode contract. |
+| 2026-11-04 13:26 | Amit | Added: F-ACC-01 authentication API draft reference | Keep the technical inventory aligned with the initial OpenAPI contract. |
 | 2026-11-03 14:45 | Shil1517 | Added: technical documentation (this file) | Owner asked for one technical document covering the whole repository. |
+| 2026-11-05 15:10 | Shil1517 | Modified: platform plumbing status | Idempotency, audit, outbox and rate-limit services now exist in the backend. |

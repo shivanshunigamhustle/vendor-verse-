@@ -1,0 +1,717 @@
+import { describe, expect, it } from 'vitest'
+import { createApiAuthService, canonicalIdentifier, roleForMode, roleForAccount } from './authService.js'
+import { createSessionStore } from './session.js'
+
+const memoryStorage = () => {
+  const data = new Map()
+  return { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => data.set(k, v), removeItem: (k) => data.delete(k) }
+}
+
+const reply = (status, body) => ({ status, json: async () => { if (body === undefined) throw new Error('no body'); return body } })
+const TOKENS = { accessToken: 'a1', refreshToken: 'r1', accessTokenExpiresAt: '2026-01-01T00:00:00Z' }
+const ACCOUNT = { userId: 'u1', currentMode: 'CUSTOMER', availableModes: ['CUSTOMER'] }
+
+/** routes: { 'METHOD /path': (request) => reply | array of replies (consumed in order) } */
+function setup(routes) {
+  const calls = []
+  const fetchImpl = async (url, init) => {
+    const requestUrl = new URL(url)
+    if (requestUrl.hostname !== 'api.test') return { status: 200, ok: true, json: async () => ({}) }
+    const path = requestUrl.pathname.replace('/v1', '')
+    const request = { path, query: requestUrl.search, method: init.method, auth: init.headers.authorization, key: init.headers['idempotency-key'], body: init.body ? JSON.parse(init.body) : undefined }
+    calls.push(request)
+    const handler = routes[`${init.method} ${path}`]
+    if (!handler) throw new Error(`unexpected ${init.method} ${path}`)
+    if (Array.isArray(handler)) return handler.shift()
+    return typeof handler === 'function' ? handler(request) : handler
+  }
+  const store = createSessionStore(memoryStorage())
+  const service = createApiAuthService({ baseUrl: 'http://api.test/v1/', fetchImpl, store })
+  return { service, store, calls }
+}
+
+describe('canonicalIdentifier / roleForMode', () => {
+  it('keeps country code, drops spacing, lowercases email', () => {
+    expect(canonicalIdentifier('+91 98290 00001')).toBe('+919829000001')
+    expect(canonicalIdentifier(' A@B.com ')).toBe('a@b.com')
+  })
+  it('maps account modes to client roles, defaulting to customer', () => {
+    expect(roleForMode('VENDOR')).toBe('vendor')
+    expect(roleForMode('BUSINESS')).toBe('business')
+    expect(roleForMode('???')).toBe('customer')
+  })
+})
+
+describe('createApiAuthService', () => {
+  it('requests an OTP with the channel and canonical identifier, exposing no code', async () => {
+    const { service, calls } = setup({ 'POST /auth/otp/request': reply(202, { challengeId: 'c1', expiresAt: 'x' }) })
+    const r = await service.requestOtp('+91 98290 00001')
+    expect(r).toEqual({ ok: true, mock: false })
+    expect(calls[0].body).toEqual({ channel: 'phone', identifier: '+919829000001' })
+  })
+
+  it('rejects malformed contacts without calling the server', async () => {
+    const { service, calls } = setup({})
+    expect((await service.requestOtp('nope')).code).toBe('INVALID_CONTACT')
+    expect(calls).toHaveLength(0)
+  })
+
+  it.each([
+    [429, 'RATE_LIMITED'],
+    [400, 'INVALID_CONTACT'],
+    [500, 'PROVIDER_ERROR'],
+  ])('maps request status %i to %s', async (status, code) => {
+    const { service } = setup({ 'POST /auth/otp/request': reply(status, {}) })
+    expect((await service.requestOtp('a@b.com')).code).toBe(code)
+  })
+
+  it('reports a network failure distinctly', async () => {
+    const service = createApiAuthService({ baseUrl: 'http://api.test/v1', fetchImpl: async () => { throw new TypeError('failed') }, store: createSessionStore(memoryStorage()) })
+    expect((await service.requestOtp('a@b.com')).code).toBe('NETWORK')
+  })
+
+  it('requires a prior request and a 6-digit code', async () => {
+    const { service } = setup({})
+    expect((await service.verifyOtp('a@b.com', '123')).code).toBe('INVALID_FORMAT')
+    expect((await service.verifyOtp('a@b.com', '123456')).code).toBe('NO_REQUEST')
+  })
+
+  it('verifies, stores the session and returns the account from /me', async () => {
+    const { service, store, calls } = setup({
+      'POST /auth/otp/request': reply(202, { challengeId: 'c1' }),
+      'POST /auth/otp/verify': reply(200, TOKENS),
+      'GET /me': reply(200, ACCOUNT),
+    })
+    await service.requestOtp('A@B.com')
+    const r = await service.verifyOtp('a@b.com', '123456')
+    expect(r).toEqual({ ok: true, account: ACCOUNT })
+    expect(calls[1].body).toEqual({ challengeId: 'c1', code: '123456' })
+    expect(calls[2].auth).toBe('Bearer a1')
+    expect(store.get()).toEqual(TOKENS)
+  })
+
+  it.each([
+    [401, 'INVALID_OTP'],
+    [429, 'LOCKED'],
+    [503, 'PRIVILEGED_BLOCKED'],
+  ])('maps verify status %i to %s and stores no session', async (status, code) => {
+    const { service, store } = setup({ 'POST /auth/otp/request': reply(202, { challengeId: 'c1' }), 'POST /auth/otp/verify': reply(status, {}) })
+    await service.requestOtp('a@b.com')
+    expect((await service.verifyOtp('a@b.com', '123456')).code).toBe(code)
+    expect(store.get()).toBeNull()
+  })
+
+  it('forgets the challenge after the server locks it', async () => {
+    const { service } = setup({ 'POST /auth/otp/request': reply(202, { challengeId: 'c1' }), 'POST /auth/otp/verify': reply(429, {}) })
+    await service.requestOtp('a@b.com')
+    await service.verifyOtp('a@b.com', '123456')
+    expect((await service.verifyOtp('a@b.com', '123456')).code).toBe('NO_REQUEST')
+  })
+
+  it('refreshes once on 401 and retries the request', async () => {
+    const { service, store, calls } = setup({
+      'POST /auth/otp/request': reply(202, { challengeId: 'c1' }),
+      'POST /auth/otp/verify': reply(200, TOKENS),
+      'GET /me': [reply(401, {}), reply(200, ACCOUNT)],
+      'POST /auth/refresh': reply(200, { ...TOKENS, accessToken: 'a2', refreshToken: 'r2' }),
+    })
+    await service.requestOtp('a@b.com')
+    const r = await service.verifyOtp('a@b.com', '123456')
+    expect(r.ok).toBe(true)
+    expect(calls.find((c) => c.path === '/auth/refresh').body).toEqual({ refreshToken: 'r1' })
+    expect(calls.filter((c) => c.path === '/me').map((c) => c.auth)).toEqual(['Bearer a1', 'Bearer a2'])
+    expect(store.get().refreshToken).toBe('r2')
+  })
+
+  it('clears the session when the refresh token is rejected', async () => {
+    const { service, store } = setup({
+      'POST /auth/otp/request': reply(202, { challengeId: 'c1' }),
+      'POST /auth/otp/verify': reply(200, TOKENS),
+      'GET /me': reply(401, {}),
+      'POST /auth/refresh': reply(401, {}),
+    })
+    await service.requestOtp('a@b.com')
+    const r = await service.verifyOtp('a@b.com', '123456')
+    expect(r.ok).toBe(false)
+    expect(store.get()).toBeNull()
+  })
+
+  it('logs out with the current refresh token and always clears local tokens', async () => {
+    const { service, store, calls } = setup({ 'POST /auth/logout': reply(204) })
+    store.set(TOKENS)
+    await service.endSession()
+    expect(calls[0].body).toEqual({ refreshToken: 'r1' })
+    expect(calls[0].auth).toBe('Bearer a1')
+    expect(store.get()).toBeNull()
+  })
+
+  it('uses the rotated refresh token when logout needs a refresh first', async () => {
+    const { service, store, calls } = setup({
+      'POST /auth/logout': [reply(401, {}), reply(204)],
+      'POST /auth/refresh': reply(200, { ...TOKENS, accessToken: 'a2', refreshToken: 'r2' }),
+    })
+    store.set(TOKENS)
+    await service.endSession()
+    const logouts = calls.filter((c) => c.path === '/auth/logout')
+    expect(logouts.map((c) => c.body.refreshToken)).toEqual(['r1', 'r2'])
+    expect(store.get()).toBeNull()
+  })
+
+  it('endSession is a no-op without a session', async () => {
+    const { service, calls } = setup({})
+    await service.endSession()
+    expect(calls).toHaveLength(0)
+  })
+})
+
+describe('createApiAuthService: customer profile and saved locations (F-ACC-06)', () => {
+  const signedIn = () => {
+    const ctx = setup({
+      'GET /me/profile': reply(200, { userId: 'u1', displayName: 'Aarav Mehta', phone: '+919829000001', email: 'a@b.co', emailVerified: false, customerType: 'individual', companyName: null, locale: {} }),
+      'PATCH /me/profile': (req) => reply(200, { userId: 'u1', displayName: req.body.displayName ?? 'Aarav Mehta', email: req.body.email ?? null }),
+      'GET /me/locations': reply(200, { locations: [{ id: 'l1', label: 'Home', addressText: '24 Vaishali Nagar', isDefault: true }] }),
+      'POST /me/locations': (req) => reply(201, { id: 'l2', ...req.body, isDefault: false }),
+      'PATCH /me/locations/l2': reply(200, { id: 'l2', isDefault: true }),
+      'DELETE /me/locations/l2': reply(204),
+    })
+    ctx.store.set(TOKENS)
+    return ctx
+  }
+
+  it('loads the profile with the bearer token', async () => {
+    const { service, calls } = signedIn()
+    const r = await service.getProfile()
+    expect(r.ok).toBe(true)
+    expect(r.profile).toMatchObject({ displayName: 'Aarav Mehta', phone: '+919829000001', emailVerified: false })
+    expect(calls[0]).toMatchObject({ method: 'GET', path: '/me/profile', auth: 'Bearer a1' })
+  })
+
+  it('sends only the fields it is given (PATCH) and null clears the email', async () => {
+    const { service, calls } = signedIn()
+    expect((await service.saveProfile({ displayName: 'Aarav Mehta', email: 'a@b.co' })).ok).toBe(true)
+    expect(calls[0].body).toEqual({ displayName: 'Aarav Mehta', email: 'a@b.co' })
+    await service.saveProfile({ email: null })
+    expect(calls[1].body).toEqual({ email: null })
+  })
+
+  it.each([
+    [400, 'INVALID_PROFILE'],
+    [404, 'NOT_FOUND'],
+    [409, 'CONFLICT'],
+    [500, 'PROVIDER_ERROR'],
+  ])('maps HTTP %i to %s', async (status, code) => {
+    const { service, store } = setup({ 'PATCH /me/profile': reply(status, {}) })
+    store.set(TOKENS)
+    const r = await service.saveProfile({ displayName: 'x' })
+    expect(r).toMatchObject({ ok: false, code })
+    expect(r.message).toBeTruthy()
+  })
+
+  it('reports a network failure distinctly', async () => {
+    const store = createSessionStore(memoryStorage())
+    store.set(TOKENS)
+    const service = createApiAuthService({ baseUrl: 'http://api.test/v1', fetchImpl: async () => { throw new Error('offline') }, store })
+    expect((await service.getProfile()).code).toBe('NETWORK')
+  })
+
+  it('refreshes an expired token once and retries the profile call', async () => {
+    const { service, store, calls } = setup({
+      'GET /me/profile': [reply(401, {}), reply(200, { userId: 'u1', displayName: 'Aarav Mehta' })],
+      'POST /auth/refresh': reply(200, { accessToken: 'a2', refreshToken: 'r2', accessTokenExpiresAt: 'x' }),
+    })
+    store.set(TOKENS)
+    const r = await service.getProfile()
+    expect(r.ok).toBe(true)
+    expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual(['GET /me/profile', 'POST /auth/refresh', 'GET /me/profile'])
+    expect(calls[2].auth).toBe('Bearer a2')
+  })
+
+  it('does nothing when signed out', async () => {
+    const { service, calls } = setup({})
+    expect((await service.getProfile()).ok).toBe(false)
+    expect(calls).toHaveLength(0)
+  })
+
+  it('lists, adds, edits and removes saved locations', async () => {
+    const { service, calls } = signedIn()
+    expect((await service.listLocations()).locations).toHaveLength(1)
+    const added = await service.addLocation({ label: 'Office', addressText: 'MI Road' })
+    expect(added).toMatchObject({ ok: true, location: { id: 'l2', label: 'Office' } })
+    expect((await service.updateLocation('l2', { isDefault: true })).location.isDefault).toBe(true)
+    expect(await service.removeLocation('l2')).toEqual({ ok: true })
+    expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual(['GET /me/locations', 'POST /me/locations', 'PATCH /me/locations/l2', 'DELETE /me/locations/l2'])
+  })
+
+  it('url-encodes location ids so a crafted id cannot change the path', async () => {
+    const { service, store, calls } = setup({ 'DELETE /me/locations/..%2Fprofile': reply(204) })
+    store.set(TOKENS)
+    await service.removeLocation('../profile')
+    expect(calls[0].path).toBe('/me/locations/..%2Fprofile')
+  })
+})
+
+describe('account settings and vendor onboarding calls', () => {
+  const signedIn = (routes) => {
+    const ctx = setup(routes)
+    ctx.store.set(TOKENS)
+    return ctx
+  }
+
+  it('lists and revokes sessions for the signed-in user', async () => {
+    const { service, calls } = signedIn({
+      'GET /me/sessions': reply(200, { sessions: [{ id: 's1', current: true }] }),
+      'DELETE /me/sessions/s2': reply(204),
+    })
+    expect((await service.listSessions()).sessions).toEqual([{ id: 's1', current: true }])
+    expect((await service.revokeSession('s2')).ok).toBe(true)
+    expect(calls.every((c) => c.auth === 'Bearer a1')).toBe(true)
+  })
+
+  it('maps a missing session to NOT_FOUND', async () => {
+    const { service } = signedIn({ 'DELETE /me/sessions/x': reply(404, {}) })
+    expect((await service.revokeSession('x')).code).toBe('NOT_FOUND')
+  })
+
+  it('saves notification preferences as one PUT', async () => {
+    const prefs = [{ channel: 'sms', category: 'offers', enabled: false }]
+    const { service, calls } = signedIn({ 'PUT /me/notification-preferences': reply(200, { preferences: prefs }) })
+    expect((await service.saveNotificationPreferences(prefs)).preferences).toEqual(prefs)
+    expect(calls[0].body).toEqual({ preferences: prefs })
+  })
+
+  it('lists the inbox with filters, reads the unread count and marks items read', async () => {
+    const { service, calls } = signedIn({
+      'GET /me/notifications': reply(200, { notifications: [{ id: 'n1' }] }),
+      'GET /me/notifications/unread-count': reply(200, { count: 2 }),
+      'POST /me/notifications/n1/read': reply(200, { id: 'n1', read: true }),
+      'POST /me/notifications/read-all': reply(200, { updated: 2 }),
+    })
+    expect((await service.listNotifications({ unreadOnly: true, limit: 10, before: '2026-11-06T00:00:00Z' })).notifications).toEqual([{ id: 'n1' }])
+    expect((await service.getUnreadNotificationCount()).count).toBe(2)
+    expect((await service.markNotificationRead('n1')).notification.read).toBe(true)
+    expect((await service.markAllNotificationsRead()).updated).toBe(2)
+    expect(calls.every((c) => c.auth === 'Bearer a1')).toBe(true)
+  })
+
+  it('reports a missing notification as NOT_FOUND', async () => {
+    const { service } = signedIn({ 'POST /me/notifications/n9/read': reply(404, {}) })
+    expect((await service.markNotificationRead('n9')).code).toBe('NOT_FOUND')
+  })
+
+  it('sends an Idempotency-Key on data requests and reports an open duplicate as CONFLICT', async () => {
+    const { service, calls } = signedIn({ 'POST /me/data-requests': [reply(201, { id: 'r1', type: 'export', status: 'requested' }), reply(409, {})] })
+    expect((await service.requestDataRequest('export')).request.id).toBe('r1')
+    expect((await service.requestDataRequest('export')).code).toBe('CONFLICT')
+    expect(calls[0].body).toEqual({ type: 'export' })
+    expect(calls[0].key).toBeTruthy()
+    expect(calls[0].key).not.toBe(calls[1].key)
+  })
+
+  it('creates a vendor with the country first and an Idempotency-Key', async () => {
+    const { service, calls } = signedIn({ 'POST /vendors': [reply(201, { id: 'v1' }), reply(400, {})] })
+    const r = await service.createVendor({ registrationCountry: 'IN', businessType: 'SUPPLIER', legalName: 'Sharma', tradingName: '' })
+    expect(r).toEqual({ ok: true, vendor: { id: 'v1' } })
+    expect(calls[0].body).toEqual({ registrationCountry: 'IN', businessType: 'SUPPLIER', legalName: 'Sharma' })
+    expect(calls[0].key).toBeTruthy()
+    expect((await service.createVendor({ registrationCountry: 'ZZ', businessType: 'SUPPLIER', legalName: 'x' })).code).toBe('INVALID_PROFILE')
+  })
+
+  it('reads the public vendor profile and reports a vendor with no verified role as not found', async () => {
+    const { service } = signedIn({ 'GET /vendors/v1/public': [reply(200, { id: 'v1', roles: [{ roleCode: 'SUPPLIER' }] }), reply(404, {})] })
+    expect((await service.getPublicVendor('v1')).vendor.roles).toEqual([{ roleCode: 'SUPPLIER' }])
+    expect((await service.getPublicVendor('v1')).ok).toBe(false)
+  })
+
+  it('sends extra vendor roles and reads, adds and removes a vendor roles (D-023)', async () => {
+    const { service, calls } = signedIn({
+      'POST /vendors': [reply(201, { id: 'v1' })],
+      'GET /vendor-roles': [reply(200, { roles: [{ code: 'SUPPLIER' }] })],
+      'GET /vendors/v1/roles': [reply(200, { roles: [{ roleCode: 'SUPPLIER', status: 'pending', isPublic: false }] })],
+      'POST /vendors/v1/roles': [reply(201, { roles: [{ roleCode: 'WHOLESALER' }] }), reply(409, {})],
+      'DELETE /vendors/v1/roles/WHOLESALER': [reply(200, { roles: [] })],
+    })
+    await service.createVendor({ registrationCountry: 'IN', businessType: 'SUPPLIER', roleCodes: ['WHOLESALER'], legalName: 'Sharma' })
+    expect(calls[0].body).toEqual({ registrationCountry: 'IN', businessType: 'SUPPLIER', roleCodes: ['WHOLESALER'], legalName: 'Sharma' })
+    expect((await service.listVendorRoleCatalogue()).roles).toEqual([{ code: 'SUPPLIER' }])
+    expect((await service.listVendorRoles('v1')).roles[0].isPublic).toBe(false)
+    expect((await service.addVendorRole('v1', 'WHOLESALER')).ok).toBe(true)
+    expect((await service.addVendorRole('v1', 'WHOLESALER')).ok).toBe(false)
+    expect((await service.removeVendorRole('v1', 'WHOLESALER')).ok).toBe(true)
+  })
+
+  it('uploads evidence, waits for scan status, registers it, and submits verification', async () => {
+    const { service, calls } = signedIn({
+      'POST /files': reply(201, { file: { id: 'f1' }, upload: { url: 'https://storage.test/signed', method: 'PUT', headers: { 'x-upload': 'yes' } } }),
+      'POST /files/f1/complete': reply(200, { id: 'f1', scanStatus: 'pending' }),
+      'GET /files/f1': reply(200, { id: 'f1', scanStatus: 'clean' }),
+      'POST /vendors/v1/documents': reply(201, { id: 'd1', documentType: 'Certificate' }),
+      'GET /vendors/v1/documents': reply(200, { documents: [{ id: 'd1' }] }),
+      'GET /vendors/v1/verifications': reply(200, { verifications: [] }),
+      'POST /vendors/v1/verifications': reply(201, { id: 'vr1', level: 'L1' }),
+    })
+    const file = new Blob(['evidence'], { type: 'application/pdf' })
+    Object.defineProperties(file, { name: { value: 'certificate.pdf' }, size: { value: 8 } })
+    const uploaded = await service.uploadVendorEvidence(file)
+    expect(uploaded.file.scanStatus).toBe('pending')
+    expect((await service.getFile('f1')).file.scanStatus).toBe('clean')
+    expect((await service.registerVendorDocument('v1', { fileId: 'f1', documentType: 'Certificate' })).document.id).toBe('d1')
+    expect((await service.listVendorDocuments('v1')).documents).toHaveLength(1)
+    expect((await service.listVendorVerifications('v1')).verifications).toEqual([])
+    expect((await service.submitVendorVerification('v1', { level: 'L1', documentIds: ['d1'] })).verification.id).toBe('vr1')
+    expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual([
+      'POST /files',
+      'POST /files/f1/complete',
+      'GET /files/f1',
+      'POST /vendors/v1/documents',
+      'GET /vendors/v1/documents',
+      'GET /vendors/v1/verifications',
+      'POST /vendors/v1/verifications',
+    ])
+    expect(calls[0].body).toMatchObject({ purpose: 'verification-evidence', originalName: 'certificate.pdf', contentType: 'application/pdf', sizeBytes: 8 })
+  })
+
+  it('lists, reviews and retrieves reviewer evidence links', async () => {
+    const { service, calls } = signedIn({
+      'GET /admin/verifications': reply(200, { verifications: [{ id: 'vr1' }], nextCursor: null }),
+      'POST /admin/verifications/vr1/decision': reply(200, { id: 'vr1', status: 'approved' }),
+      'GET /admin/verifications/vr1/evidence/f1/download-url': reply(200, { url: 'https://storage.test/download', expiresInSeconds: 60 }),
+    })
+    expect((await service.listVerificationQueue({ status: 'submitted' })).verifications).toEqual([{ id: 'vr1' }])
+    expect((await service.reviewVerification('vr1', { status: 'approved', reason: 'Evidence verified' })).verification.status).toBe('approved')
+    expect((await service.getVerificationEvidenceUrl('vr1', 'f1')).url).toBe('https://storage.test/download')
+    expect(calls[0].query).toBe('?status=submitted&limit=50')
+    expect(calls[1].body).toEqual({ status: 'approved', reason: 'Evidence verified' })
+  })
+})
+
+describe('discovery and booking calls (F-DSC-02/05/07, F-BKG-*)', () => {
+  const signedIn = (routes) => {
+    const ctx = setup(routes)
+    ctx.store.set(TOKENS)
+    return ctx
+  }
+
+  it('searches without signing in and drops empty filters', async () => {
+    const { service, calls } = setup({ 'GET /discover/listings': reply(200, { items: [{ id: 'l1' }], nextCursor: 'c2', marketLive: true }) })
+    const r = await service.searchListings({ countryCode: 'IN', q: 'electrician', cityId: undefined, instantOnly: false, minPriceMinor: 0, cursor: '' })
+    expect(r).toMatchObject({ ok: true, items: [{ id: 'l1' }], nextCursor: 'c2', marketLive: true })
+    expect(calls[0].auth).toBeUndefined()
+    expect(calls[0].query).toBe('?countryCode=IN&q=electrician&minPriceMinor=0')
+  })
+
+  it('reads a public listing and reports a missing one', async () => {
+    const { service } = setup({ 'GET /discover/listings/l1': reply(200, { id: 'l1', price: { state: 'not_provided' } }), 'GET /discover/listings/gone': reply(404, { detail: 'No such listing' }) })
+    expect((await service.getPublicListing('l1')).listing.price.state).toBe('not_provided')
+    expect(await service.getPublicListing('gone')).toMatchObject({ ok: false, code: 'NOT_FOUND' })
+  })
+
+  it('saves and removes favourite vendors', async () => {
+    const { service, calls } = signedIn({ 'GET /me/favorites': reply(200, { favorites: [{ vendorId: 'v1' }] }), 'PUT /me/favorites/v1': reply(204), 'DELETE /me/favorites/v1': reply(204) })
+    expect((await service.listFavorites()).favorites).toEqual([{ vendorId: 'v1' }])
+    expect((await service.addFavorite('v1')).ok).toBe(true)
+    expect((await service.removeFavorite('v1')).ok).toBe(true)
+    expect(calls.every((c) => c.auth === 'Bearer a1')).toBe(true)
+  })
+
+  it('creates a booking with the caller-supplied idempotency key, so a retry is one booking', async () => {
+    const { service, calls } = signedIn({ 'POST /remote-bookings': reply(201, { bookings: [{ id: 'b1', state: 'requested' }] }) })
+    const body = { listingId: 'l1', slotStart: '2026-12-01T09:00:00Z', slotEnd: '2026-12-01T10:00:00Z', timeZone: 'Asia/Kolkata' }
+    await service.createBooking(body, 'key-1')
+    await service.createBooking(body, 'key-1')
+    expect(calls.map((c) => c.key)).toEqual(['key-1', 'key-1'])
+    expect(calls[0].body).toEqual(body)
+  })
+
+  it('tells a lost instant slot (409) apart from other failures', async () => {
+    const { service } = signedIn({ 'POST /remote-bookings': [reply(409, { detail: 'That slot is no longer available.' }), reply(500, {})] })
+    expect(await service.createBooking({ listingId: 'l1' })).toMatchObject({ ok: false, status: 409, code: 'CONFLICT', message: 'That slot is no longer available.' })
+    expect(await service.createBooking({ listingId: 'l1' })).toMatchObject({ ok: false, code: 'PROVIDER_ERROR' })
+  })
+
+  it('lists, reads and acts on bookings', async () => {
+    const { service, calls } = signedIn({
+      'GET /remote-bookings': reply(200, { bookings: [{ id: 'b1' }] }),
+      'GET /vendors/v1/remote-bookings': reply(200, { bookings: [{ id: 'b2' }] }),
+      'GET /remote-bookings/b1': reply(200, { id: 'b1', events: [] }),
+      'POST /remote-bookings/b1/decline': reply(200, { id: 'b1', state: 'declined' }),
+      'POST /remote-bookings/b1/modifications': reply(201, { id: 'b1', openModification: { id: 'm1' } }),
+      'POST /remote-bookings/b1/modifications/m1/accept': reply(200, { id: 'b1' }),
+    })
+    expect((await service.listMyBookings('requested')).bookings).toEqual([{ id: 'b1' }])
+    expect((await service.listVendorBookings('v1')).bookings).toEqual([{ id: 'b2' }])
+    expect((await service.getBooking('b1')).booking.id).toBe('b1')
+    expect((await service.bookingAction('b1', 'decline', { reason: 'Fully booked' })).booking.state).toBe('declined')
+    expect((await service.proposeBookingModification('b1', { proposedTerms: { notes: 'x' } })).ok).toBe(true)
+    expect((await service.decideBookingModification('b1', 'm1', 'accept')).ok).toBe(true)
+    expect(calls[0].query).toBe('?state=requested')
+    expect(calls[3].body).toEqual({ reason: 'Fully booked' })
+  })
+  it('universal search: anonymous call carries no token and only the types asked for', async () => {
+    const { service, calls } = setup({ 'GET /search': reply(200, { q: 'pipe', marketLive: true, signedIn: false, sections: { product: { items: [], nextCursor: null } } }) })
+    const r = await service.universalSearch({ q: 'pipe', countryCode: 'IN', types: ['product', 'vendor'], limit: 5 })
+    expect(r.ok).toBe(true)
+    expect(r.sections.product.items).toEqual([])
+    expect(calls[0].query).toContain('types=product%2Cvendor')
+    expect(calls[0].query).toContain('countryCode=IN')
+    expect(calls[0].auth).toBeUndefined()
+  })
+
+  it('universal search: signed in sends the token and a bad request is reported', async () => {
+    const { service, calls } = signedIn({ 'GET /search': [reply(200, { sections: {}, signedIn: true }), reply(400, { detail: 'cursor is not valid' })] })
+    expect((await service.universalSearch({ q: 'pipe', countryCode: 'IN' })).signedIn).toBe(true)
+    expect(calls[0].auth).toBe('Bearer a1')
+    expect(await service.universalSearch({ q: 'pipe', countryCode: 'IN', cursor: 'x' })).toMatchObject({ ok: false, code: 'INVALID_PROFILE' })
+  })
+
+  it('creates, opens and lists an RFQ', async () => {
+    const { service, calls } = signedIn({
+      'POST /rfqs': reply(201, { id: 'r1', state: 'draft' }),
+      'POST /rfqs/r1/open': reply(200, { id: 'r1', state: 'open' }),
+      'GET /me/rfqs': reply(200, { rfqs: [{ id: 'r1' }] }),
+      'GET /vendors/v1/rfqs': reply(200, { rfqs: [{ id: 'r1' }] }),
+      'GET /rfqs/r1': reply(200, { id: 'r1' }),
+    })
+    expect((await service.createRfq({ categoryId: 'c1', kind: 'service', requirements: { title: 'Fix pipe' } })).rfq.id).toBe('r1')
+    expect((await service.openRfq('r1', { quoteDeadlineAt: '2026-12-01T00:00:00Z', vendorIds: ['v1'] })).rfq.state).toBe('open')
+    expect((await service.listMyRfqs()).rfqs).toHaveLength(1)
+    expect((await service.listVendorRfqs('v1')).rfqs).toHaveLength(1)
+    expect((await service.getRfq('r1')).rfq.id).toBe('r1')
+    expect(calls[1].body).toEqual({ quoteDeadlineAt: '2026-12-01T00:00:00Z', vendorIds: ['v1'] })
+  })
+
+  it('submits, lists and accepts a quote and returns the fulfilment', async () => {
+    const { service, calls } = signedIn({
+      'POST /rfqs/r1/quotes': reply(201, { id: 'q1', state: 'submitted' }),
+      'GET /rfqs/r1/quotes': reply(200, { rfq: { id: 'r1' }, quotes: [{ id: 'q1', totalMinor: 150000 }] }),
+      'POST /rfqs/r1/quotes/q1/accept': reply(201, { rfqId: 'r1', quoteId: 'q1', fulfillment: { type: 'booking', id: 'b1' } }),
+    })
+    expect((await service.submitQuote('r1', { vendorId: 'v1', currency: 'INR', totalMinor: 150000 })).quote.id).toBe('q1')
+    expect((await service.listRfqQuotes('r1')).quotes[0].totalMinor).toBe(150000)
+    expect((await service.acceptQuote('r1', 'q1')).fulfillment).toEqual({ type: 'booking', id: 'b1' })
+    expect(calls[0].body).toEqual({ vendorId: 'v1', currency: 'INR', totalMinor: 150000 })
+  })
+
+  it('reports a refused quote acceptance with the server message', async () => {
+    const { service } = signedIn({ 'POST /rfqs/r1/quotes/q1/accept': reply(409, { detail: 'Configure rfqFulfillmentType as booking, work_order, or contract for this service category' }) })
+    expect(await service.acceptQuote('r1', 'q1')).toMatchObject({ ok: false, status: 409, code: 'CONFLICT', message: expect.stringContaining('rfqFulfillmentType') })
+  })
+  it('lists capacity windows of a listing and sends slot terms with a quote', async () => {
+    const { service, calls } = signedIn({
+      'GET /listings/l1/capacity': reply(200, { windows: [{ id: 'w1', startsAt: '2026-12-01T04:00:00Z', endsAt: '2026-12-01T06:00:00Z', capacity: 2, reserved: 1 }] }),
+      'POST /rfqs/r1/quotes': reply(201, { id: 'q1' }),
+    })
+    expect((await service.listListingCapacity('l1')).windows[0].id).toBe('w1')
+    const timeline = { slotStart: '2026-12-01T04:00:00.000Z', slotEnd: '2026-12-01T06:00:00.000Z', timeZone: 'Asia/Kolkata', capacityId: 'w1' }
+    await service.submitQuote('r1', { vendorId: 'v1', currency: 'INR', totalMinor: 1, timeline })
+    expect(calls[1].body.timeline).toEqual(timeline)
+  })
+})
+
+describe('createApiAuthService: work orders, contracts, purchase orders and local bookings', () => {
+  const signedIn = (routes) => {
+    const ctx = setup(routes)
+    ctx.store.set(TOKENS)
+    return ctx
+  }
+
+  it('lists, reads and acts on work orders', async () => {
+    const { service, calls } = signedIn({
+      'GET /me/work-orders': reply(200, { workOrders: [{ id: 'w1', state: 'created' }] }),
+      'GET /vendors/v1/work-orders': reply(200, { workOrders: [{ id: 'w1' }] }),
+      'GET /work-orders/w1': reply(200, { id: 'w1', state: 'created' }),
+      'POST /work-orders/w1/actions': [reply(200, { id: 'w1', state: 'in_progress' }), reply(409, { detail: 'A closed work order cannot start' })],
+    })
+    expect((await service.listMyWorkOrders()).workOrders).toHaveLength(1)
+    expect((await service.listVendorWorkOrders('v1')).workOrders).toHaveLength(1)
+    expect((await service.getWorkOrder('w1')).workOrder.id).toBe('w1')
+    expect((await service.workOrderAction('w1', 'start')).workOrder.state).toBe('in_progress')
+    expect(calls[3].body).toEqual({ action: 'start' })
+    expect(await service.workOrderAction('w1', 'start')).toMatchObject({ ok: false, status: 409, code: 'CONFLICT', message: 'A closed work order cannot start' })
+  })
+
+  it('proposes, reads, counters, accepts and declines a contract and runs milestones', async () => {
+    const { service, calls } = signedIn({
+      'POST /contracts': reply(201, { id: 'k1', state: 'proposed' }),
+      'GET /me/contracts': reply(200, { contracts: [{ id: 'k1' }] }),
+      'GET /vendors/v1/contracts': reply(200, { contracts: [{ id: 'k1' }] }),
+      'GET /contracts/k1': reply(200, { id: 'k1', milestones: [], acceptances: [] }),
+      'POST /contracts/k1/versions': reply(201, { id: 'k1', currentVersion: 2 }),
+      'POST /contracts/k1/accept': reply(200, { id: 'k1', state: 'active' }),
+      'POST /contracts/k1/decline': reply(200, { id: 'k1', state: 'declined' }),
+      'POST /contracts/k1/milestones': reply(201, { id: 'm1', state: 'pending' }),
+      'POST /milestones/m1/actions': reply(200, { id: 'm1', state: 'in_progress' }),
+      'POST /contracts/k1/complete': reply(200, { id: 'k1', state: 'completed' }),
+    })
+    expect((await service.proposeContract({ vendorId: 'v1', categoryId: 'c1', scope: { title: 'AMC' } })).contract.id).toBe('k1')
+    expect((await service.listMyContracts()).contracts).toHaveLength(1)
+    expect((await service.listVendorContracts('v1')).contracts).toHaveLength(1)
+    expect((await service.getContract('k1')).contract.id).toBe('k1')
+    expect((await service.reviseContract('k1', { scope: { title: 'AMC v2' } })).ok).toBe(true)
+    expect((await service.acceptContract('k1')).contract.state).toBe('active')
+    expect((await service.declineContract('k1', 'Too costly')).contract.state).toBe('declined')
+    expect((await service.addContractMilestone('k1', { title: 'Phase 1' })).ok).toBe(true)
+    expect((await service.milestoneAction('m1', 'start')).ok).toBe(true)
+    expect((await service.completeContract('k1')).contract.state).toBe('completed')
+    expect(calls[6].body).toEqual({ reason: 'Too costly' })
+    expect(calls[8].body).toEqual({ action: 'start' })
+  })
+
+  it('sends the support case with a milestone dispute', async () => {
+    const { service, calls } = signedIn({ 'POST /milestones/m1/actions': reply(200, { id: 'm1', state: 'disputed' }) })
+    await service.milestoneAction('m1', 'dispute', 's1')
+    expect(calls[0].body).toEqual({ action: 'dispute', supportCaseId: 's1' })
+  })
+
+  it('lists purchase orders and runs the supplier and buyer actions', async () => {
+    const { service, calls } = signedIn({
+      'GET /me/purchase-orders': reply(200, { purchaseOrders: [{ id: 'o1' }] }),
+      'GET /vendors/v1/purchase-orders': reply(200, { purchaseOrders: [{ id: 'o1' }] }),
+      'GET /purchase-orders/o1': reply(200, { id: 'o1', state: 'created' }),
+      'POST /purchase-orders/o1/actions': reply(200, { id: 'o1', state: 'shipped' }),
+      'POST /purchase-orders/o1/disputes': reply(201, { id: 'd1' }),
+      'POST /purchase-order-disputes/d1/resolve': reply(200, { id: 'd1' }),
+    })
+    expect((await service.listMyPurchaseOrders()).purchaseOrders).toHaveLength(1)
+    expect((await service.listVendorPurchaseOrders('v1')).purchaseOrders).toHaveLength(1)
+    expect((await service.getPurchaseOrder('o1')).purchaseOrder.id).toBe('o1')
+    expect((await service.purchaseOrderAction('o1', 'ship', { carrier: 'BlueDart', trackingReference: 'T1' })).purchaseOrder.state).toBe('shipped')
+    expect(calls[3].body).toEqual({ action: 'ship', carrier: 'BlueDart', trackingReference: 'T1' })
+    expect((await service.openPurchaseOrderDispute('o1', 's1')).ok).toBe(true)
+    expect((await service.resolvePurchaseOrderDispute('d1', 'replace')).ok).toBe(true)
+    expect(calls[5].body).toEqual({ outcome: 'replace' })
+  })
+
+  it('creates local bookings with an idempotency key and drives their lifecycle', async () => {
+    const { service, calls } = signedIn({
+      'POST /bookings': reply(201, { id: 'b1' }),
+      'POST /booking-series': reply(201, { bookings: [{ id: 'b1' }, { id: 'b2' }] }),
+      'GET /me/bookings': reply(200, { bookings: [{ id: 'b1' }] }),
+      'GET /vendors/v1/bookings': reply(200, { bookings: [{ id: 'b1' }] }),
+      'GET /bookings/b1': reply(200, { id: 'b1' }),
+      'GET /bookings/b1/events': reply(200, { events: [{ id: 'e1' }] }),
+      'POST /bookings/b1/actions': reply(200, { id: 'b1', state: 'confirmed' }),
+      'POST /bookings/b1/cancel': reply(200, { id: 'b1', state: 'cancelled' }),
+      'POST /bookings/b1/modifications': reply(201, { id: 'b1' }),
+      'POST /booking-modifications/m1/decision': reply(200, { id: 'b1' }),
+      'POST /bookings/b1/confirm-completion': reply(200, { id: 'b1' }),
+      'POST /bookings/b1/report-completion': reply(200, { id: 'b1' }),
+      'POST /bookings/conflicts/resolve': reply(200, { kept: 'b1' }),
+    })
+    expect((await service.createLocalBooking({ listingId: 'l1', mode: 'scheduled' }, 'key-1')).booking.id).toBe('b1')
+    expect(calls[0].key).toBe('key-1')
+    expect((await service.createLocalBookingSeries({ listingId: 'l1', recurrenceRule: 'FREQ=WEEKLY', timeZone: 'Asia/Kolkata', occurrences: [] }, 'key-2')).bookings).toHaveLength(2)
+    expect(calls[1].key).toBe('key-2')
+    expect((await service.listMyLocalBookings()).bookings).toHaveLength(1)
+    expect((await service.listVendorLocalBookings('v1')).bookings).toHaveLength(1)
+    expect((await service.getLocalBooking('b1')).booking.id).toBe('b1')
+    expect((await service.listLocalBookingEvents('b1')).events).toHaveLength(1)
+    expect((await service.localBookingAction('b1', 'accept')).booking.state).toBe('confirmed')
+    expect((await service.cancelLocalBooking('b1', 'Changed plans', 'series')).booking.state).toBe('cancelled')
+    expect(calls[7].body).toEqual({ reason: 'Changed plans', scope: 'series' })
+    expect((await service.proposeLocalBookingModification('b1', { notes: 'later' })).ok).toBe(true)
+    expect((await service.decideLocalBookingModification('m1', true)).ok).toBe(true)
+    expect(calls[9].body).toEqual({ accept: true })
+    expect((await service.confirmLocalBookingCompletion('b1')).ok).toBe(true)
+    expect((await service.reportLocalBookingCompletion('b1', 's1')).ok).toBe(true)
+    expect((await service.resolveLocalBookingConflicts('b1', ['b2'])).kept).toBe('b1')
+    expect(calls[12].body).toEqual({ keepBookingId: 'b1', cancelBookingIds: ['b2'] })
+  })
+})
+
+describe('createApiAuthService: geo, taxonomy, listings and coverage', () => {
+  const signedIn = (routes) => {
+    const ctx = setup(routes)
+    ctx.store.set(TOKENS)
+    return ctx
+  }
+
+  it('reads the public geography and taxonomy without a token', async () => {
+    const { service, calls } = setup({
+      'GET /geo/countries': reply(200, { countries: [{ code: 'IN' }] }),
+      'GET /geo/regions': reply(200, { regions: [{ id: 'r1' }] }),
+      'GET /geo/localities': reply(200, { localities: [{ id: 'p1' }] }),
+      'GET /taxonomy/industries': reply(200, { items: [{ industryId: 'i1' }] }),
+      'GET /taxonomy/categories/c1': reply(200, { id: 'c1' }),
+    })
+    expect((await service.listCountries()).countries).toHaveLength(1)
+    expect((await service.listRegions('IN')).regions).toHaveLength(1)
+    expect((await service.listLocalities('city1')).localities).toHaveLength(1)
+    expect((await service.listIndustries({ countryCode: 'IN' })).industries).toHaveLength(1)
+    expect((await service.getCategory('c1', { countryCode: 'IN', cityId: 'x' })).category.id).toBe('c1')
+    expect(calls[1].query).toBe('?countryCode=IN')
+    expect(calls[2].query).toBe('?cityId=city1')
+    expect(calls[4].query).toBe('?countryCode=IN&cityId=x')
+    expect(calls.every((c) => c.auth === undefined)).toBe(true)
+  })
+
+  it('joins, lists and leaves a city waitlist', async () => {
+    const { service } = signedIn({
+      'GET /me/waitlist': reply(200, { entries: [{ cityId: 'c1' }] }),
+      'POST /geo/cities/c1/waitlist': [reply(201, { cityId: 'c1' }), reply(400, { detail: 'That city is already live' })],
+      'DELETE /geo/cities/c1/waitlist': reply(204),
+    })
+    expect((await service.listMyWaitlist()).entries).toHaveLength(1)
+    expect((await service.joinCityWaitlist('c1')).entry.cityId).toBe('c1')
+    expect(await service.joinCityWaitlist('c1')).toMatchObject({ ok: false, code: 'INVALID_PROFILE', message: 'That city is already live' })
+    expect((await service.leaveCityWaitlist('c1')).ok).toBe(true)
+  })
+
+  it('creates a listing with an idempotency key and runs its lifecycle', async () => {
+    const { service, calls } = signedIn({
+      'POST /vendors/v1/listings': reply(201, { id: 'l1', state: 'draft' }),
+      'GET /vendors/v1/listings': reply(200, { listings: [{ id: 'l1' }] }),
+      'GET /listings/l1': reply(200, { id: 'l1' }),
+      'PATCH /listings/l1': reply(200, { id: 'l1', title: 'New' }),
+      'POST /listings/l1/submit': reply(200, { id: 'l1', state: 'pending_review' }),
+      'GET /vendors/v1/publication-gates': reply(200, { canPublish: false, gates: [] }),
+    })
+    expect((await service.createListing('v1', { categoryId: 'c1', listingType: 'service', title: 'Pipe repair' }, 'k1')).listing.id).toBe('l1')
+    expect(calls[0].key).toBe('k1')
+    expect((await service.listVendorListings('v1')).listings).toHaveLength(1)
+    expect((await service.getListing('l1')).listing.id).toBe('l1')
+    expect((await service.updateListing('l1', { title: 'New' })).listing.title).toBe('New')
+    expect((await service.listingTransition('l1', 'submit')).listing.state).toBe('pending_review')
+    expect((await service.getPublicationGates('v1', 'l1')).gates.canPublish).toBe(false)
+    expect(calls[5].query).toBe('?listingId=l1')
+  })
+
+  it('saves availability and capacity windows and removes them', async () => {
+    const { service, calls } = signedIn({
+      'GET /listings/l1/availability': reply(200, { availabilityModel: 'weekly_slots' }),
+      'PUT /listings/l1/availability': reply(200, { availabilityModel: 'weekly_slots' }),
+      'DELETE /listings/l1/availability': reply(204),
+      'POST /listings/l1/capacity': reply(201, { id: 'w1' }),
+      'DELETE /listings/l1/capacity/w1': reply(204),
+    })
+    expect((await service.getListingAvailability('l1')).availability.availabilityModel).toBe('weekly_slots')
+    const body = { availabilityModel: 'weekly_slots', timeZone: 'Asia/Kolkata', weeklySchedule: { mon: [{ start: '09:00', end: '18:00' }] } }
+    expect((await service.saveListingAvailability('l1', body)).ok).toBe(true)
+    expect(calls[1].body).toEqual(body)
+    expect((await service.clearListingAvailability('l1')).ok).toBe(true)
+    expect((await service.addListingCapacity('l1', { startsAt: '2026-12-01T04:00:00Z', endsAt: '2026-12-01T06:00:00Z', capacity: 2 })).window.id).toBe('w1')
+    expect((await service.removeListingCapacity('l1', 'w1')).ok).toBe(true)
+  })
+
+  it('manages service areas and requests a file download link', async () => {
+    const { service, calls } = signedIn({
+      'GET /vendors/v1/service-areas': reply(200, { serviceAreas: [{ id: 'a1' }] }),
+      'POST /vendors/v1/service-areas': reply(201, { id: 'a2' }),
+      'DELETE /vendors/v1/service-areas/a2': reply(204),
+      'GET /files/f1/download-url': reply(200, { url: 'https://files.test/f1', expiresAt: '2026-12-01T00:00:00Z' }),
+    })
+    expect((await service.listServiceAreas('v1')).serviceAreas).toHaveLength(1)
+    expect((await service.addServiceArea('v1', { coverageType: 'city', cityId: 'c1' }, 'k2')).serviceArea.id).toBe('a2')
+    expect(calls[1].key).toBe('k2')
+    expect((await service.removeServiceArea('v1', 'a2')).ok).toBe(true)
+    expect((await service.getFileDownloadUrl('f1')).url).toBe('https://files.test/f1')
+  })
+})
+
+describe('roleForAccount', () => {
+  it('sends a Super Admin or Sales Agent to its own screens and everyone else by mode', () => {
+    expect(roleForAccount({ currentMode: 'CUSTOMER', roles: ['SUPER_ADMIN'] })).toBe('admin')
+    expect(roleForAccount({ currentMode: 'CUSTOMER', roles: ['CUSTOMER', 'SALES_AGENT'] })).toBe('agent')
+    expect(roleForAccount({ currentMode: 'VENDOR', roles: ['CUSTOMER', 'VENDOR'] })).toBe('vendor')
+    expect(roleForAccount({ currentMode: 'CUSTOMER' })).toBe('customer')
+  })
+})

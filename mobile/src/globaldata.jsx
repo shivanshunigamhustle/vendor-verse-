@@ -43,6 +43,7 @@ const GEO_BASE = [
   { code: 'AU', name: 'Australia', flag: '🇦🇺', cur: 'AUD', launch: 'later', langs: ['English'], vendors: 0, states: [{ name: 'New South Wales', cities: [C('Sydney', 'later', { wait: 35 })] }] },
 ]
 import { WORLD, EXTRA_CUR } from './geodata.jsx'
+import { VENDOR_TYPES } from './mvpdata.jsx'
 const W = (str) => str.split(';').map((x) => x.trim()).filter(Boolean).map((x) => { const [st, cs] = x.split(':'); return { name: st.trim(), cities: cs.split('|').map((c, k) => C(c.trim(), 'later', { wait: 8 + ((st.length * 11 + k * 17) % 120) })) } })
 const EXTRA = WORLD.map(([code, name, flag, cur, langs, st]) => ({ code, name, flag, cur, launch: 'later', langs, vendors: 0, states: W(st) }))
 /* keep the hand-tuned launch data, then add every other region worldwide (all start as waitlists) */
@@ -81,30 +82,30 @@ export const INDUSTRIES = [
   { id: 'i_prof', name: 'Professional & business services', icon: Briefcase, tone: 'indigo', cat: 'prof', cats: 92, subs: ['CA & tax', 'Legal', 'Architects', 'Consultants', 'Translation'], phase: 'MVP' },
   { id: 'i_it', name: 'IT, software & digital', icon: Laptop, tone: 'violet', cat: 'it', cats: 110, subs: ['Web & app development', 'IT support', 'Digital marketing', 'Cybersecurity', 'Cloud & DevOps'], phase: 'MVP' },
   { id: 'i_whole', name: 'Wholesale, suppliers & distribution', icon: Factory, tone: 'slate', cat: 'whole', cats: 140, subs: ['Electrical supplies', 'Building materials', 'Packaging', 'Industrial machinery', 'Office supplies'], phase: 'MVP' },
-  { id: 'i_manu', name: 'Manufacturing & OEM', icon: Cpu, tone: 'teal', cat: 'whole', cats: 168, subs: ['Electronics & PCB', 'CNC & machining', 'Plastics & moulding', 'Metal fabrication', 'Auto components'], phase: 'P2' },
+  { id: 'i_manu', name: 'Manufacturing & OEM', icon: Cpu, tone: 'teal', cat: 'whole', cats: 168, subs: ['Electronics & PCB', 'CNC & machining', 'Plastics & moulding', 'Metal fabrication', 'Auto components'], phase: 'MVP' },
   { id: 'i_logi', name: 'Logistics, freight & shipping', icon: Truck, tone: 'teal', cat: 'logi', cats: 47, subs: ['Packers & movers', 'Freight forwarding', 'Courier', 'Customs clearance', 'Warehousing'], phase: 'MVP' },
   { id: 'i_auto', name: 'Automotive & mobility', icon: Car, tone: 'amber', cat: 'auto', cats: 52, subs: ['Car service', 'Towing', 'Driver hire', 'Vehicle rental', 'Fleet maintenance'], phase: 'MVP' },
   { id: 'i_health', name: 'Healthcare, education & wellness', icon: HeartPulse, tone: 'emerald', cat: 'health', cats: 73, subs: ['Physiotherapy', 'Tutors', 'Yoga & fitness', 'Home nursing', 'Diagnostics'], phase: 'MVP' },
   { id: 'i_agri', name: 'Agriculture, energy & environment', icon: Sprout, tone: 'lime', cat: 'agri', cats: 64, subs: ['Solar installation', 'Agri equipment', 'Soil testing', 'Waste & recycling', 'Water treatment'], phase: 'MVP' },
-  { id: 'i_textile', name: 'Textiles, apparel & fashion', icon: Shirt, tone: 'rose', cats: 61, subs: ['Garment manufacturing', 'Fabrics & yarn', 'Embroidery', 'Uniforms'], phase: 'P2' },
-  { id: 'i_chem', name: 'Chemicals, plastics & materials', icon: FlaskConical, tone: 'violet', cats: 55, subs: ['Industrial chemicals', 'Polymers', 'Adhesives', 'Paints & coatings'], phase: 'P2' },
-  { id: 'i_food', name: 'Food, beverage & agri-processing', icon: UtensilsCrossed, tone: 'amber', cats: 49, subs: ['Packaged food', 'Spices', 'Beverages', 'Cold storage'], phase: 'P2' },
-  { id: 'i_edu', name: 'Education & training providers', icon: GraduationCap, tone: 'indigo', cats: 38, subs: ['Corporate training', 'Test prep', 'Vocational skills'], phase: 'P2' },
-  { id: 'i_fin', name: 'Finance, insurance & real estate', icon: Landmark, tone: 'slate', cats: 44, subs: ['Accounting', 'Insurance brokers', 'Property consultants', 'Valuation'], phase: 'P2' },
-  { id: 'i_media', name: 'Marketing, media & printing', icon: Megaphone, tone: 'rose', cats: 57, subs: ['Branding', 'Video production', 'Printing & packaging', 'Signage'], phase: 'P2' },
-  { id: 'i_energy', name: 'Power, utilities & electrical', icon: Zap, tone: 'amber', cats: 41, subs: ['Transformers', 'Switchgear', 'Generators', 'EV charging'], phase: 'P2' },
-  { id: 'i_mining', name: 'Mining, metals & minerals', icon: Pickaxe, tone: 'orange', cats: 33, subs: ['Steel & alloys', 'Aggregates', 'Industrial minerals'], phase: 'P3' },
-  { id: 'i_hosp', name: 'Hospitality, travel & tourism', icon: Hotel, tone: 'sky', cats: 46, subs: ['Hotels', 'Tour operators', 'Travel desks'], phase: 'P3' },
-  { id: 'i_real', name: 'Real estate & property services', icon: Building2, tone: 'teal', cats: 36, subs: ['Facility management', 'Interior design', 'Property inspection'], phase: 'P3' },
-  { id: 'i_beauty', name: 'Beauty, salon & personal care', icon: Sparkles, tone: 'rose', cats: 29, subs: ['Salon at home', 'Spa', 'Makeup artists'], phase: 'P3' },
-  { id: 'i_sport', name: 'Sports, fitness & recreation', icon: Dumbbell, tone: 'emerald', cats: 27, subs: ['Coaches', 'Equipment', 'Turf & courts'], phase: 'P3' },
-  { id: 'i_print', name: 'Security & safety services', icon: ShieldCheck, tone: 'indigo', cats: 31, subs: ['Guards', 'CCTV', 'Fire safety'], phase: 'P3' },
-  { id: 'i_telecom', name: 'Telecom & networking', icon: Radio, tone: 'violet', cats: 35, subs: ['Network cabling', 'Telecom towers', 'ISP services'], phase: 'P3' },
-  { id: 'i_aero', name: 'Aerospace & defence suppliers', icon: Plane, tone: 'slate', cats: 22, subs: ['Aero components', 'MRO'], phase: 'P3' },
-  { id: 'i_marine', name: 'Marine & shipbuilding', icon: Ship, tone: 'sky', cats: 19, subs: ['Ship repair', 'Marine equipment'], phase: 'P3' },
-  { id: 'i_env', name: 'Recycling & circular economy', icon: Recycle, tone: 'lime', cats: 24, subs: ['E-waste', 'Scrap trading', 'Upcycling'], phase: 'P3' },
-  { id: 'i_lux', name: 'Jewellery, gifts & luxury', icon: Gem, tone: 'amber', cats: 26, subs: ['Jewellery makers', 'Corporate gifting'], phase: 'P3' },
-  { id: 'i_print2', name: 'Packaging & printing', icon: Printer, tone: 'violet', cats: 43, subs: ['Corrugated boxes', 'Labels', 'Custom packaging'], phase: 'P2' },
+  { id: 'i_textile', name: 'Textiles, apparel & fashion', icon: Shirt, tone: 'rose', cats: 61, subs: ['Garment manufacturing', 'Fabrics & yarn', 'Embroidery', 'Uniforms'], phase: 'MVP' },
+  { id: 'i_chem', name: 'Chemicals, plastics & materials', icon: FlaskConical, tone: 'violet', cats: 55, subs: ['Industrial chemicals', 'Polymers', 'Adhesives', 'Paints & coatings'], phase: 'MVP' },
+  { id: 'i_food', name: 'Food, beverage & agri-processing', icon: UtensilsCrossed, tone: 'amber', cats: 49, subs: ['Packaged food', 'Spices', 'Beverages', 'Cold storage'], phase: 'MVP' },
+  { id: 'i_edu', name: 'Education & training providers', icon: GraduationCap, tone: 'indigo', cats: 38, subs: ['Corporate training', 'Test prep', 'Vocational skills'], phase: 'MVP' },
+  { id: 'i_fin', name: 'Finance, insurance & real estate', icon: Landmark, tone: 'slate', cats: 44, subs: ['Accounting', 'Insurance brokers', 'Property consultants', 'Valuation'], phase: 'MVP' },
+  { id: 'i_media', name: 'Marketing, media & printing', icon: Megaphone, tone: 'rose', cats: 57, subs: ['Branding', 'Video production', 'Printing & packaging', 'Signage'], phase: 'MVP' },
+  { id: 'i_energy', name: 'Power, utilities & electrical', icon: Zap, tone: 'amber', cats: 41, subs: ['Transformers', 'Switchgear', 'Generators', 'EV charging'], phase: 'MVP' },
+  { id: 'i_mining', name: 'Mining, metals & minerals', icon: Pickaxe, tone: 'orange', cats: 33, subs: ['Steel & alloys', 'Aggregates', 'Industrial minerals'], phase: 'MVP' },
+  { id: 'i_hosp', name: 'Hospitality, travel & tourism', icon: Hotel, tone: 'sky', cats: 46, subs: ['Hotels', 'Tour operators', 'Travel desks'], phase: 'MVP' },
+  { id: 'i_real', name: 'Real estate & property services', icon: Building2, tone: 'teal', cats: 36, subs: ['Facility management', 'Interior design', 'Property inspection'], phase: 'MVP' },
+  { id: 'i_beauty', name: 'Beauty, salon & personal care', icon: Sparkles, tone: 'rose', cats: 29, subs: ['Salon at home', 'Spa', 'Makeup artists'], phase: 'MVP' },
+  { id: 'i_sport', name: 'Sports, fitness & recreation', icon: Dumbbell, tone: 'emerald', cats: 27, subs: ['Coaches', 'Equipment', 'Turf & courts'], phase: 'MVP' },
+  { id: 'i_print', name: 'Security & safety services', icon: ShieldCheck, tone: 'indigo', cats: 31, subs: ['Guards', 'CCTV', 'Fire safety'], phase: 'MVP' },
+  { id: 'i_telecom', name: 'Telecom & networking', icon: Radio, tone: 'violet', cats: 35, subs: ['Network cabling', 'Telecom towers', 'ISP services'], phase: 'MVP' },
+  { id: 'i_aero', name: 'Aerospace & defence suppliers', icon: Plane, tone: 'slate', cats: 22, subs: ['Aero components', 'MRO'], phase: 'MVP' },
+  { id: 'i_marine', name: 'Marine & shipbuilding', icon: Ship, tone: 'sky', cats: 19, subs: ['Ship repair', 'Marine equipment'], phase: 'MVP' },
+  { id: 'i_env', name: 'Recycling & circular economy', icon: Recycle, tone: 'lime', cats: 24, subs: ['E-waste', 'Scrap trading', 'Upcycling'], phase: 'MVP' },
+  { id: 'i_lux', name: 'Jewellery, gifts & luxury', icon: Gem, tone: 'amber', cats: 26, subs: ['Jewellery makers', 'Corporate gifting'], phase: 'MVP' },
+  { id: 'i_print2', name: 'Packaging & printing', icon: Printer, tone: 'violet', cats: 43, subs: ['Corrugated boxes', 'Labels', 'Custom packaging'], phase: 'MVP' },
 ]
 export const LAUNCH_CATS = ['home', 'constr', 'events', 'prof', 'whole']          // priority categories at launch
 export const CAT_REQUESTS0 = [
@@ -218,7 +219,12 @@ export const GLOBAL_LISTINGS = [
   GL({ id: 'l34', vendorId: 'v25', cat: 'whole', sub: 'Industrial machinery', title: 'Forged & machined auto components — export grade', desc: 'Crankshafts, connecting rods, gear blanks and transmission parts for OEM and aftermarket. Exporting to 22 countries.', priceMin: 340, priceMax: 5200, cur: 'INR', unit: 'pc', basis: 'Per part, volume tiers apply', areas: ['Pune', 'Mumbai'], scope: 'global', rating: 4.4, reviews: 112, tone: 'amber', exp: '19+ yrs', resp: 3, jobs: 430, specs: [['Brand', 'OEM / aftermarket'], ['Min order quantity', '1,000 pcs'], ['Delivery radius', 'Worldwide']], trade: { moq: 1000, unit: 'pcs', tiers: [[1000, 5200], [5000, 1800], [25000, 340]], leadDays: 35, incoterms: ['FOB Nhava Sheva', 'CIF', 'EXW Pune'], certs: ['IATF 16949', 'ISO 9001'], samples: 'Free for qualified buyers', origin: 'India', hs: '8708.99', capacity: '600k parts / month' } }),
   GL({ id: 'l35', vendorId: 'v26', cat: 'whole', sub: 'Packaging', title: 'Custom corrugated & rigid boxes — manufacturer', desc: '3-ply to 7-ply corrugated, rigid gift boxes and mailers with full-colour print. Free dieline and digital proof.', priceMin: 11, priceMax: 64, cur: 'INR', unit: 'pc', basis: 'Per box by size and run', areas: ['Jaipur', 'Delhi NCR', 'Ajmer'], scope: 'city', rating: 4.6, reviews: 74, tone: 'violet', exp: '11+ yrs', resp: 2, jobs: 295, specs: [['Brand', 'Custom print'], ['Min order quantity', '500 pcs'], ['Delivery radius', '400 km']], trade: { moq: 500, unit: 'pcs', tiers: [[500, 64], [2000, 28], [10000, 11]], leadDays: 9, incoterms: ['EXW', 'Delivered'], certs: ['FSC', 'ISO 9001'], samples: 'Free digital proof', origin: 'India', capacity: '2M boxes / month' } }),
 ]
-export const KIND_LABEL = { service: 'Service provider', supplier: 'Supplier / distributor', manufacturer: 'Manufacturer', contractor: 'Contractor' }
+export const KIND_LABEL = Object.fromEntries(Object.entries(VENDOR_TYPES).map(([id, t]) => [id, t.label])) // derived: add roles in mvpdata.jsx (D-024)
+
+/* Vendor roles (D-023): a vendor holds one or more roles; a role is public only once verified (D-020, D-021).
+   Records with `roles: [{ id, status }]` use per-role status; seeded vendors without `roles` fall back to their single `kind`. */
+export const vendorRoles = (v) => (v?.roles ? v.roles : v?.kind ? [{ id: v.kind, status: 'verified' }] : [])
+export const publicRoleLabels = (v) => vendorRoles(v).filter((r) => r.status === 'verified').map((r) => KIND_LABEL[r.id]).filter(Boolean)
 
 /* ---------- Postal-code detection: pincode / ZIP / postcode → country, state, city ---------- */
 const IN_PIN = { 302: ['Jaipur', 'Rajasthan'], 303: ['Jaipur', 'Rajasthan'], 305: ['Ajmer', 'Rajasthan'], 332: ['Sikar', 'Rajasthan'], 342: ['Jodhpur', 'Rajasthan'], 324: ['Kota', 'Rajasthan'], 313: ['Udaipur', 'Rajasthan'],

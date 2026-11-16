@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { authService } from '../services/authService.js'
 import {
   Package, CalendarCheck, FileText, Plus, AlertTriangle, ChevronRight, Store, ShieldCheck, Clock, MessageCircle, Check, X, Upload, BarChart3, Star, MapPin, Crown, Trash2, ImagePlus,
   BadgeCheck, Info, Pause, Play, Copy, Eye, RefreshCw, CalendarClock, Settings, Lock, Layers, Megaphone, Gavel, LogOut, Repeat, Hourglass, TriangleAlert,
@@ -97,57 +98,75 @@ export function VendorDashboard() {
 }
 
 /* ================= ONBOARDING WIZARD (spec §5.1) ================= */
+const COUNTRY_CODE = { India: 'IN' }
+/** Wizard vendor type -> backend vendors.business_type. */
+const BUSINESS_TYPE = { service: 'SERVICE_PROVIDER', contractor: 'CONTRACTOR', manufacturer: 'MANUFACTURER', supplier: 'SUPPLIER' }
 export function VendorRegister({ params = {} }) {
   const nav = useNav()
   const { me, setMe, setVendors, notify, toast, stamp } = useApp()
   const [step, setStep] = useState(0)
-  const [vtype, setVtype] = useState(params.type || null)
-  const [f, setF] = useState({ name: me.biz || '', owner: me.name || '', gstin: '', pan: '', email: '', years: '2020', cats: ['home'], subs: [], areas: ['Jaipur'], pins: '', ans: {}, lang: ['English', 'Hindi'], contact: 'chat' })
+  const [vroles, setVroles] = useState(params.type ? [params.type] : []) // D-023: one or more vendor roles
+  const vtype = vroles[0] || null // primary role: the backend still takes a single business type
+  const [f, setF] = useState({ country: 'India', name: me.biz || '', owner: me.name || '', gstin: '', pan: '', email: '', years: '2020', cats: ['home'], subs: [], areas: ['Jaipur'], pins: '', ans: {}, lang: ['English', 'Hindi'], contact: 'chat' })
   const [docs, setDocs] = useState({})
   const [consent, setConsent] = useState(false)
   const [errs, setErrs] = useState({})
+  const [busy, setBusy] = useState(false)
+  const createdId = useRef(null)
   const c = cat(f.cats[0])
-  const VT = vtype ? VENDOR_TYPES[vtype] : null
-  const goods = VT?.offer === 'products'
-  const docList = VT && vtype !== 'service' ? VT.docs : c.docs
+  const goods = vroles.some((r) => VENDOR_TYPES[r]?.offer === 'products')
+  // D-019: only the documents the chosen roles require, combined without duplicates
+  const docList = vroles.length ? [...new Set(vroles.flatMap((r) => (r === 'service' ? c.docs : VENDOR_TYPES[r].docs)))] : c.docs
   const fieldKeys = [...c.fields, ...(goods ? ['Minimum order quantity', 'Lead time (days)', 'Certifications', 'Delivery regions'] : [])]
   const set = (k) => (e) => { setF({ ...f, [k]: e?.target ? e.target.value : e }); setErrs({ ...errs, [k]: '' }) }
   const validate = () => {
     const e = {}
     if (step === 0) {
       if (f.name.trim().length < 3) e.name = 'Enter your business name'
-      if (!vtype) e.vtype = 'Choose your vendor type'
+      if (!vroles.length) e.vtype = 'Choose at least one vendor role'
       if (!/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(f.gstin.toUpperCase())) e.gstin = 'Enter a valid 15-character GSTIN (e.g. 08ABCPS1234F1Z5)'
       if (!/^[A-Z]{5}\d{4}[A-Z]$/.test(f.pan.toUpperCase())) e.pan = 'Enter a valid PAN (e.g. ABCPS1234F)'
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) e.email = 'Enter a valid business email'
     }
     if (step === 1) { if (!f.cats.length) e.cats = 'Choose at least one category'; if (!f.areas.length) e.areas = 'Select at least one service area' }
     if (step === 2) { fieldKeys.forEach((k) => { if (!(f.ans[k] || '').trim()) e['a_' + k] = 'Required for this category' }) }
-    if (step === 3) { const miss = docList.filter((d) => !docs[d]); if (miss.length) e.docs = `${miss.length} required document${miss.length > 1 ? 's' : ''} missing` }
+    if (step === 3 && !authService.isRemote) { const miss = docList.filter((d) => !docs[d]); if (miss.length) e.docs = `${miss.length} required document${miss.length > 1 ? 's' : ''} missing` }
     if (step === 4 && !consent) e.consent = 'Please confirm to submit'
     setErrs(e); return Object.keys(e).length === 0
   }
-  const next = () => {
+  const next = async () => {
     if (!validate()) return
     if (step < 4) return setStep(step + 1)
-    const rec = { id: 'v-new', name: f.name, owner: f.owner, cat: f.cats[0], city: f.areas[0], areas: f.areas, branches: 1, acct: 'pending', kind: vtype || 'service', ver: c.verifyReq ? 'submitted' : 'not_started', tone: c.tone, since: +f.years, gstin: f.gstin.toUpperCase(), phone: '+91 98290 00099', email: f.email, resp: null, jobs: 0, rating: 0, reviews: 0, langs: f.lang, docs: docList.map((d) => ({ name: d, status: 'pending' })), sub: { plan: 'Free', status: 'none', renews: '—', paidUntil: null, autoRenew: false, leads: 0 }, history: [{ s: 'submitted', at: stamp(), by: f.owner }] }
-    setVendors((vs) => [rec, ...vs.filter((x) => x.id !== 'v-new')])
-    setMe({ ...me, role: 'vendor', vendorId: 'v-new', hasVendor: true })
-    notify('admin', 'Vendor awaiting verification', `${f.name} submitted for review.`, 'onboarding', ['ad_vendors', {}])
-    toast(c.verifyReq ? 'Submitted for verification' : 'Profile created — add a listing')
+    if (authService.isRemote && !createdId.current) {
+      // F-VND-01/02: create the vendor only after onboarding is complete; evidence is uploaded from v_verify.
+      setBusy(true)
+      const r = await authService.createVendor({ registrationCountry: COUNTRY_CODE[f.country] || 'IN', businessType: BUSINESS_TYPE[vtype], roleCodes: vroles.slice(1).map((r) => BUSINESS_TYPE[r]), legalName: f.name.trim() })
+      setBusy(false)
+      if (!r.ok) return toast(r.message, 'warn')
+      if (!r.vendor?.id) return toast('Vendor was created without an ID; reload and contact support before continuing.', 'warn')
+      createdId.current = r.vendor.id
+    }
+    const vendorId = createdId.current || 'v-new'
+    const rec = { id: vendorId, name: f.name, owner: f.owner, cat: f.cats[0], city: f.areas[0], areas: f.areas, branches: 1, acct: 'pending', kind: vtype || 'service', roles: (vroles.length ? vroles : ['service']).map((id) => ({ id, status: 'pending' })), ver: authService.isRemote ? 'not_started' : c.verifyReq ? 'submitted' : 'not_started', tone: c.tone, since: +f.years, gstin: f.gstin.toUpperCase(), phone: '+91 98290 00099', email: f.email, resp: null, jobs: 0, rating: 0, reviews: 0, langs: f.lang, docs: authService.isRemote ? [] : docList.map((d) => ({ name: d, status: 'pending' })), sub: { plan: 'Free', status: 'none', renews: '—', paidUntil: null, autoRenew: false, leads: 0 }, history: authService.isRemote ? [] : [{ s: 'submitted', at: stamp(), by: f.owner }] }
+    setVendors((vs) => [rec, ...vs.filter((x) => x.id !== vendorId && x.id !== 'v-new')])
+    setMe({ ...me, role: 'vendor', vendorId, hasVendor: true })
+    if (authService.isRemote) toast('Vendor profile created — upload evidence and submit verification')
+    else { notify('admin', 'Vendor awaiting verification', `${f.name} submitted for review.`, 'onboarding', ['ad_vendors', {}]); toast(c.verifyReq ? 'Submitted for verification' : 'Profile created — add a listing') }
     nav.reset('v_verify')
   }
   return (
-    <Screen title="Vendor onboarding" subtitle={`${VT ? VT.label + ' · ' : ''}step ${step + 1} of 5`} back={step === 0} footer={<div className="flex gap-2">{step > 0 && <Button variant="secondary" onClick={() => setStep(step - 1)}>Back</Button>}<Button className="flex-1" size="lg" onClick={next}>{step === 4 ? 'Submit for review' : 'Continue'}</Button></div>}>
+    <Screen title="Vendor onboarding" subtitle={`${vroles.length ? vroles.map((r) => VENDOR_TYPES[r].label).join(' + ') + ' · ' : ''}step ${step + 1} of 5`} back={step === 0} footer={<div className="flex gap-2">{step > 0 && <Button variant="secondary" onClick={() => setStep(step - 1)}>Back</Button>}<Button className="flex-1" size="lg" disabled={busy} onClick={next}>{step === 4 ? 'Submit for review' : 'Continue'}</Button></div>}>
       <Stepper steps={['Business', 'Services', 'Details', 'Documents', 'Submit']} current={step} />
       {step === 0 && (
         <div className="space-y-4">
           <Banner tone="blue">Your vendor organization is separate from your personal identity. Release 1 is owner-managed — no staff accounts.</Banner>
+          <Select label="Which country is your business in?" value={f.country} onChange={set('country')} options={['India']} hint="Asked first, because verification evidence depends on it. Other countries open in Phase 2." />
           <Input label="Business name" required value={f.name} onChange={set('name')} error={errs.name} />
           <div>
-            <Select label="Vendor type" required placeholder="Choose what best describes you" value={vtype || ''} onChange={(e) => { setVtype(e.target.value); setDocs({}); setErrs({ ...errs, vtype: '' }) }} options={Object.entries(VENDOR_TYPES).map(([id, t]) => ({ value: id, label: t.label }))} />
+            <p className="mb-2 text-[13px] font-semibold text-ink-700">Your vendor roles <span className="text-red-600">*</span></p>
+            <Chips scroll={false} multi value={vroles} onChange={(v) => { setVroles(v); setDocs({}); setErrs({ ...errs, vtype: '' }) }} options={Object.entries(VENDOR_TYPES).map(([id, t]) => ({ id, label: t.label }))} />
             {errs.vtype && <p className="mt-1 text-xs font-medium text-red-600">{errs.vtype}</p>}
-            {VT ? <div className="mt-2 rounded-xl bg-ink-50 p-3 text-xs text-ink-600"><p className="font-semibold text-ink-700">{VT.hint}</p><p className="mt-1">Needs: {VT.needs.join(' · ')}</p></div> : <p className="mt-1 text-xs text-ink-500">Your type decides the fields, documents and coverage we ask for.</p>}
+            {vroles.length ? <div className="mt-2 space-y-2 rounded-xl bg-ink-50 p-3 text-xs text-ink-600">{vroles.map((r) => <div key={r}><p className="font-semibold text-ink-700">{VENDOR_TYPES[r].label}: {VENDOR_TYPES[r].hint}</p><p className="mt-0.5">Needs: {VENDOR_TYPES[r].needs.join(' · ')}</p></div>)}<p className="font-semibold text-ink-700">A role is shown publicly only after it is verified. You can add more roles later.</p></div> : <p className="mt-1 text-xs text-ink-500">Pick every role that applies. Your roles decide the fields and documents we ask for, and you submit only what they require.</p>}
           </div>
           <Input label="Owner / authorised person" value={f.owner} onChange={set('owner')} />
           <Input label="GSTIN" required placeholder="08ABCPS1234F1Z5" maxLength={15} value={f.gstin} onChange={(e) => set('gstin')(e.target.value.toUpperCase())} error={errs.gstin} />
@@ -175,14 +194,16 @@ export function VendorRegister({ params = {} }) {
       )}
       {step === 3 && (
         <div className="space-y-3">
-          {docList.length === 0 ? <Banner tone="green" title="No documents required">{c.name} needs no document verification. Your listings still go through content review.</Banner> : <Banner tone="blue">Required for {c.name}: {docList.join(', ')}. Files are scanned and stored privately; only verification reviewers can open them.</Banner>}
-          {docList.map((d) => <DocTile key={d} name={d} status={docs[d] ? 'pending' : 'missing'} onAction={() => setDocs({ ...docs, [d]: !docs[d] })} actionLabel={docs[d] ? 'Remove' : 'Upload'} note={docs[d] ? 'Uploaded · awaiting review' : 'Required'} />)}
-          {errs.docs && <p className="text-xs font-medium text-red-600">{errs.docs}</p>}
+          {authService.isRemote
+            ? <Banner tone="blue">Evidence files are uploaded from the verification screen after your vendor profile is created. No evidence is submitted in this mock registration step.</Banner>
+            : <>{docList.length === 0 ? <Banner tone="green" title="No documents required">{c.name} needs no document verification. Your listings still go through content review.</Banner> : <Banner tone="blue">Required for {c.name}: {docList.join(', ')}. Files are scanned and stored privately; only verification reviewers can open them.</Banner>}
+              {docList.map((d) => <DocTile key={d} name={d} status={docs[d] ? 'pending' : 'missing'} onAction={() => setDocs({ ...docs, [d]: !docs[d] })} actionLabel={docs[d] ? 'Remove' : 'Upload'} note={docs[d] ? 'Uploaded · awaiting review' : 'Required'} />)}
+              {errs.docs && <p className="text-xs font-medium text-red-600">{errs.docs}</p>}</>}
         </div>
       )}
       {step === 4 && (
         <div className="space-y-4">
-          <Card><KV rows={[['Business', f.name], ['Category', c.name], ['Service types', f.subs.join(', ') || '—'], ['Areas', f.areas.join(', ')], ['GSTIN', f.gstin.toUpperCase()], ['Documents', `${Object.values(docs).filter(Boolean).length}/${docList.length} uploaded`]]} /></Card>
+          <Card><KV rows={[['Business', f.name], ['Roles', vroles.map((r) => VENDOR_TYPES[r].label).join(', ')], ['Category', c.name], ['Service types', f.subs.join(', ') || '—'], ['Areas', f.areas.join(', ')], ['GSTIN', f.gstin.toUpperCase()], ['Documents', authService.isRemote ? 'Upload from verification after profile creation' : `${Object.values(docs).filter(Boolean).length}/${docList.length} uploaded`]]} /></Card>
           <Banner tone="amber" title="What happens next">Automated checks run first; flagged items go to a human reviewer. A reviewer can approve, reject with a reason or ask for more information. <b>You can’t publish until</b> your account, a paid subscription, content review and any required verification all pass.</Banner>
           <div><Checkbox checked={consent} onChange={(v) => { setConsent(v); setErrs({}) }}>I confirm the details are accurate and consent to VendorVerse verifying my documents.</Checkbox>{errs.consent && <p className="mt-1 text-xs font-medium text-red-600">{errs.consent}</p>}</div>
         </div>
@@ -192,12 +213,123 @@ export function VendorRegister({ params = {} }) {
 }
 
 /* ================= VERIFICATION STATUS (spec §5.2) ================= */
+async function loadRemoteVerification(vendorId) {
+  const [documents, verifications] = await Promise.all([
+    authService.listVendorDocuments(vendorId),
+    authService.listVendorVerifications(vendorId),
+  ])
+  if (!documents.ok) return documents
+  if (!verifications.ok) return verifications
+  return { ok: true, documents: documents.documents, verifications: verifications.verifications }
+}
+
+function RemoteVendorVerification({ vendor }) {
+  const [documents, setDocuments] = useState([])
+  const [verifications, setVerifications] = useState([])
+  const [pendingFiles, setPendingFiles] = useState([])
+  const [level, setLevel] = useState('L1')
+  const [documentType, setDocumentType] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const refresh = async () => {
+    const result = await loadRemoteVerification(vendor.id)
+    if (!result.ok) { setError(result.message); return false }
+    setDocuments(result.documents)
+    setVerifications(result.verifications)
+    setError('')
+    return true
+  }
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    loadRemoteVerification(vendor.id).then((result) => {
+      if (!active) return
+      if (!result.ok) setError(result.message)
+      else { setDocuments(result.documents); setVerifications(result.verifications); setError('') }
+    }).finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [vendor.id])
+
+  const registerFile = async (file) => {
+    const result = await authService.registerVendorDocument(vendor.id, { fileId: file.fileId, documentType: file.documentType })
+    if (!result.ok) { setError(result.message); return false }
+    setPendingFiles((items) => items.filter((item) => item.fileId !== file.fileId))
+    await refresh()
+    return true
+  }
+
+  const upload = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setBusy(true); setError('')
+    const result = await authService.uploadVendorEvidence(file)
+    setBusy(false)
+    if (!result.ok) { setError(result.message); return }
+    const pending = { fileId: result.file.id, fileName: file.name, documentType: documentType.trim() || file.name }
+    if (result.file.scanStatus === 'clean') await registerFile(pending)
+    else if (['infected', 'failed'].includes(result.file.scanStatus)) setError('The evidence file did not pass the security scan. Choose a different file.')
+    else setPendingFiles((items) => [...items, pending])
+  }
+
+  const checkScan = async (file) => {
+    setBusy(true); setError('')
+    const result = await authService.getFile(file.fileId)
+    setBusy(false)
+    if (!result.ok) { setError(result.message); return }
+    if (result.file.scanStatus === 'clean') await registerFile(file)
+    else if (['infected', 'failed'].includes(result.file.scanStatus)) {
+      setPendingFiles((items) => items.filter((item) => item.fileId !== file.fileId))
+      setError('The evidence file did not pass the security scan. Choose a different file.')
+    } else setError('The security scan is still in progress. Check again later.')
+  }
+
+  const submit = async () => {
+    setBusy(true); setError('')
+    const result = await authService.submitVendorVerification(vendor.id, { level, documentIds: documents.map((document) => document.id) })
+    setBusy(false)
+    if (!result.ok) { setError(result.message); return }
+    await refresh()
+  }
+
+  const latest = verifications[0]
+  const statusLabels = { submitted: 'Submitted — awaiting review', in_review: 'In review', info_requested: 'More information requested', approved: 'Approved', rejected: 'Rejected', expired: 'Expired', revoked: 'Revoked' }
+
+  return (
+    <Screen title="Verification" footer={<Button full size="lg" disabled={busy || loading} onClick={submit}>Submit {level} for review</Button>}>
+      <Banner tone="blue">Upload evidence below, then submit an L1–L3 verification request. Files are attached only after the security scan passes.</Banner>
+      {error && <Banner tone="red" title="Verification request failed">{error}</Banner>}
+      <Card><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase text-ink-400">Current status</p><p className="mt-1 text-sm font-bold">{latest ? statusLabels[latest.status] || latest.status : 'Not submitted'}</p></div>{latest && <Badge tone={latest.status === 'approved' ? 'green' : latest.status === 'rejected' || latest.status === 'revoked' ? 'red' : latest.status === 'info_requested' ? 'amber' : 'blue'}>{latest.level}</Badge>}</div>{latest?.reason && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{latest.reason}</p>}{latest?.expiresAt && <p className="mt-2 text-xs text-ink-500">Expires {new Date(latest.expiresAt).toLocaleDateString()}</p>}</Card>
+      <Section title="Evidence documents">
+        <Input label="Evidence label" value={documentType} onChange={(event) => setDocumentType(event.target.value)} placeholder="e.g. Business registration" />
+        <label className="mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-ink-300 bg-white px-4 py-4 text-sm font-semibold text-brand-700">
+          <Upload size={17} />{busy ? 'Uploading or checking scan…' : 'Choose evidence file'}
+          <input type="file" className="sr-only" disabled={busy} onChange={upload} />
+        </label>
+        {pendingFiles.map((file) => <Card key={file.fileId} className="mt-2 !p-3"><div className="flex items-center justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-semibold">{file.fileName}</p><p className="text-xs text-ink-500">Security scan pending</p></div><Button size="sm" variant="secondary" disabled={busy} onClick={() => checkScan(file)}>Check</Button></div></Card>)}
+        {loading && <p className="mt-3 text-sm text-ink-500">Loading verification records…</p>}
+        {!loading && documents.length === 0 && <p className="mt-3 text-sm text-ink-500">No evidence documents registered yet.</p>}
+        <div className="mt-3 space-y-2">{documents.map((document) => <Card key={document.id} className="!p-3"><p className="text-sm font-semibold">{document.documentType}</p><p className="mt-1 text-xs text-ink-500">Uploaded {new Date(document.submittedAt).toLocaleString()}</p></Card>)}</div>
+      </Section>
+      <Select label="Verification level" value={level} onChange={(event) => setLevel(event.target.value)} options={['L1', 'L2', 'L3'].map((value) => ({ value, label: value }))} />
+      <Section title="Submission history">
+        {verifications.length === 0 && <p className="text-sm text-ink-500">No verification requests yet.</p>}
+        <div className="space-y-2">{verifications.map((verification) => <Card key={verification.id} className="!p-3"><div className="flex items-center justify-between gap-3"><p className="text-sm font-bold">{verification.level} · {statusLabels[verification.status] || verification.status}</p><Badge tone="gray">{new Date(verification.submittedAt).toLocaleDateString()}</Badge></div>{verification.reason && <p className="mt-2 text-sm text-ink-600">{verification.reason}</p>}</Card>)}</div>
+      </Section>
+    </Screen>
+  )
+}
+
 export function VendorVerify() {
   const nav = useNav()
   const v = useMyVendor()
   const { patchVendor, notify, toast, stamp, addAudit, listings, published } = useApp()
   const [fixed, setFixed] = useState({})
   if (!v) return <NoVendor title="Verification" />
+  if (authService.isRemote) return <RemoteVendorVerification vendor={v} />
   const c = cat(v.cat)
   const meta = {
     not_started: ['gray', 'Not started', c.verifyReq ? 'Submit your documents to start verification.' : 'Your category doesn’t need document verification.'],

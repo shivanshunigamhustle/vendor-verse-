@@ -1,6 +1,6 @@
 import {
   Home, Compass, ClipboardList, MessageCircle, User, LayoutDashboard, Briefcase, Package, MoreHorizontal, Users, CalendarClock,
-  TrendingUp, ShieldCheck, BarChart3, Settings, Building2, ShoppingCart,
+  TrendingUp, ShieldCheck, BarChart3, Settings, Building2,
 } from 'lucide-react'
 
 export const ROLES = [
@@ -14,7 +14,11 @@ export const ROLES = [
 /* Admin is kept in the codebase but hidden from every role picker and the screen directory.
    Flip to false to bring it back. */
 export const HIDE_ADMIN = true
-export const VISIBLE_ROLES = HIDE_ADMIN ? ROLES.filter((r) => r.id !== 'admin') : ROLES
+/* Vendor and Business are merged (D-023): the Business account is hidden from every picker and the screen directory.
+   Its screens stay in the codebase until the open details in O-19 are decided. */
+export const HIDE_BUSINESS = true
+export const isHiddenRole = (id) => (HIDE_ADMIN && id === 'admin') || (HIDE_BUSINESS && id === 'business')
+export const VISIBLE_ROLES = ROLES.filter((r) => !isHiddenRole(r.id))
 
 /* Business is a separate account type (company owners only) - it never shares a vendor identity */
 export const vendorSide = (me) => me.role === 'vendor'
@@ -34,7 +38,6 @@ export const TABS = {
     { id: 'v_dash', k: 'dashboard', icon: LayoutDashboard },
     { id: 'v_work', k: 'work', icon: Briefcase },
     { id: 'v_listings', k: 'listings', icon: Package },
-    { id: 'v_buy', k: 'buy', icon: ShoppingCart },
     { id: 'messages', k: 'messages', icon: MessageCircle },
     { id: 'v_more', k: 'more', icon: MoreHorizontal },
   ],

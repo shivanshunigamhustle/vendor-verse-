@@ -8,14 +8,16 @@ import { Info, CheckCheck } from 'lucide-react'
 import { P2Badge } from './blocks.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
+import { remoteInbox, useInbox } from '../useInbox.js'
 import { GEO, findCity } from '../geo.js'
-import { cat, CATS, ALL_CATS, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
+import { cat, CATS, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Badge, Rating, Banner, EmptyState, SearchBar,
   PriceBreakdown, KV, fmt, cx, Pill, IconBtn, StatusBadge, Stars, ListRow, Group, Timeline, Avatar, SOFT, Meta, DemoPhonePePayment,
 } from '../ui.jsx'
 import { ListingCard, VendorRow, VerifiedBadge, useGate, useStartChat } from './shared.jsx'
 import { useSignIn } from './auth.jsx'
+import { authService } from '../services/authService.js'
 
 const ME_NAME = 'Aarav Mehta'
 const dateAfterISO = (days = 1) => { const d = new Date(); d.setDate(d.getDate() + days); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
@@ -78,7 +80,7 @@ export function RfqNew({ params = {} }) {
   }
   return (
     <Screen title="Request quotation" subtitle={targetVendor ? `Direct to ${targetVendor.name}` : 'Structured request for eligible vendors'} footer={<Button full size="lg" onClick={submit}>Send RFQ</Button>}>
-      <Select label="Category" value={f.cat} onChange={(e) => setF({ ...f, cat: e.target.value, answers: {} })} options={(ALL_CATS || CATS).map((x) => ({ value: x.id, label: x.name }))} />
+      <Select label="Category" value={f.cat} onChange={(e) => setF({ ...f, cat: e.target.value, answers: {} })} options={CATS.map((x) => ({ value: x.id, label: x.name }))} />
       <Input label="What do you need?" required placeholder="e.g. Complete rewiring for a 3,200 sq ft office" value={f.title} onChange={set('title')} error={errs.title} />
       <Input label="Quantity / scope" required placeholder="e.g. 3,200 sq ft · 200 units" value={f.qty} onChange={set('qty')} error={errs.qty} />
       {qs.length > 0 && <div>
@@ -144,7 +146,7 @@ export function BookingNew({ params = {} }) {
   return <Screen title="Request a service" subtitle={v.name} footer={<Button full size="lg" icon={CalendarCheck} onClick={submit}>Send booking request</Button>}>
     <Card><p className="text-sm font-bold">{l.title}</p><p className="mt-1 text-xs text-ink-500">{l.duration} min · Indicative price {fmt(l.price)} · final price agreed with vendor</p></Card>
     <Segmented value={f.mode} onChange={(mode) => setF({ ...f, mode })} options={[{ id: 'instant', label: 'Instant' }, { id: 'scheduled', label: 'Scheduled' }, { id: 'recurring', label: 'Recurring' }]} />
-    {f.mode === 'instant' && <Banner tone="purple" title="Instant service">The next available slot will be requested immediately from the provider.</Banner>}
+    {f.mode === 'instant' && <Banner tone="teal" title="Instant service">The next available slot will be requested immediately from the provider.</Banner>}
     {f.mode !== 'instant' && <div className="flex gap-3"><Input label="Preferred date" required type="date" min={nextDate()} value={f.date} onChange={(e) => { const date = e.target.value; const occupied = bookings.filter((b) => b.vendorId === v.id && b.date === dateLabel(date) && ['requested', 'accepted', 'change_requested', 'in_progress'].includes(b.status)).map((b) => b.slot); const first = SLOTS.find((slot) => !occupied.includes(slot)) || ''; setF({ ...f, date, slot: occupied.includes(f.slot) ? first : f.slot }); setErrs({ ...errs, date: '', slot: '' }) }} error={errs.date} /><Select label="Preferred time" value={f.slot} onChange={(e) => { setF({ ...f, slot: e.target.value }); setErrs({ ...errs, slot: '' }) }} options={availableSlots.length ? availableSlots : [{ value: '', label: 'No times available' }]} error={errs.slot} /></div>}
     {f.mode === 'recurring' && <Select label="Repeat schedule" value={f.repeat} onChange={(e) => setF({ ...f, repeat: e.target.value })} options={['Weekly · 4 visits', 'Fortnightly · 3 visits', 'Monthly · 6 visits']} />}
     {!availableSlots.length && <Banner tone="amber">No preferred times are open on this date. Select another date.</Banner>}
@@ -183,7 +185,7 @@ export function BookingDetail({ params = {} }) {
   }
   const acceptChange = () => { update('accepted', 'Vendor accepted the proposed slot', { date: b.proposedDate, slot: b.proposedSlot, proposedDate: undefined, proposedSlot: undefined }); }
   return <Screen title={b.id} right={<StatusBadge s={b.status} className="mr-2" />} overlay={<Sheet open={change} onClose={() => setChange(false)} title="Request a booking change" footer={<Button full onClick={propose}>Send change request</Button>}><div className="space-y-3"><Input label="New preferred date" type="date" min={nextDate()} value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /><Select label="New preferred time" value={f.slot} onChange={(e) => setF({ ...f, slot: e.target.value })} options={SLOTS} /><Input label="Reason" required textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} /></div></Sheet>}>
-    <Card><div className="flex items-start gap-3"><Thumb tone={l?.tone || 'purple'} icon={CalendarCheck} size={48} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="font-bold">{l?.title || 'Service booking'}</p><p className="mt-1 text-sm text-ink-500">{v?.name || 'Vendor'} · {b.date} at {b.slot}</p></div></div><div className="mt-4"><KV rows={[["Booking status", b.status.replaceAll('_', ' ')], ['Journey', b.bookingType === 'instant' ? 'Instant service' : b.bookingType === 'recurring' ? `Recurring · ${b.recurrence}` : 'Scheduled service'], ['Address', b.address], ['Customer', b.customer], ['Indicative amount', fmt(b.total || 0)]]} /></div></Card>
+    <Card><div className="flex items-start gap-3"><Thumb tone={l?.tone || 'teal'} icon={CalendarCheck} size={48} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="font-bold">{l?.title || 'Service booking'}</p><p className="mt-1 text-sm text-ink-500">{v?.name || 'Vendor'} · {b.date} at {b.slot}</p></div></div><div className="mt-4"><KV rows={[["Booking status", b.status.replaceAll('_', ' ')], ['Journey', b.bookingType === 'instant' ? 'Instant service' : b.bookingType === 'recurring' ? `Recurring · ${b.recurrence}` : 'Scheduled service'], ['Address', b.address], ['Customer', b.customer], ['Indicative amount', fmt(b.total || 0)]]} /></div></Card>
     {b.notes && <Card><p className="text-xs font-bold uppercase tracking-wide text-ink-400">Service notes</p><p className="mt-1 text-sm text-ink-700">{b.notes}</p></Card>}
     {b.changeNote && <Banner tone="amber" title="Change requested">{b.changeNote}{b.proposedDate ? ` · ${b.proposedDate}, ${b.proposedSlot}` : ''}</Banner>}
     <Banner tone="blue" title="Payment is arranged directly">VendorVerse does not collect or settle payments for service bookings. Confirm the final price and terms with the other participant.</Banner>
@@ -254,7 +256,7 @@ export function OrderDetail({ params = {} }) {
   const update = (status, note, extra = {}) => { patchOrder(o.id, (x) => ({ ...x, ...extra, status, history: [...(x.history || []), { s: status, at: stamp(), note }] })); notify(isSupplier ? 'customer' : 'vendor', `Order ${status}`, `${o.id} · ${note}`, 'order'); toast(`Order ${status.replaceAll('_', ' ')}`) }
   const updatePayment = (pay, note) => { patchOrder(o.id, (x) => ({ ...x, pay, history: [...(x.history || []), { s: pay === 'paid' ? 'payment_confirmed' : 'payment_failed', at: stamp(), note }] })); notify('vendor', `Payment ${pay === 'paid' ? 'confirmed' : 'failed'}`, `${o.id} · ${note}`, 'payment'); toast(note, pay === 'paid' ? 'ok' : 'warn') }
   return <Screen title={o.id} right={<StatusBadge s={o.status} className="mr-2" />}>
-    <Card><div className="flex items-center gap-3"><Thumb tone={l?.tone || 'purple'} icon={Package} size={52} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="text-xs text-ink-500">{vendor(o.vendorId)?.name || 'Supplier'} · {o.qty} {l?.unit || 'units'}</p></div></div><div className="mt-4"><KV rows={[['Buyer', o.customer], ['Delivery', o.address], ['Commercial total', fmt(o.total || 0)], ['Payment', o.pay === 'paid' ? 'Demo payment captured' : o.pay === 'terms_confirmed' ? 'Terms confirmed' : o.pay === 'refund_pending' ? 'Refund pending' : o.pay === 'terms_pending' ? 'Terms pending' : o.pay]]} /></div></Card>
+    <Card><div className="flex items-center gap-3"><Thumb tone={l?.tone || 'teal'} icon={Package} size={52} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{l?.title || 'Supplier order'}</p><p className="text-xs text-ink-500">{vendor(o.vendorId)?.name || 'Supplier'} · {o.qty} {l?.unit || 'units'}</p></div></div><div className="mt-4"><KV rows={[['Buyer', o.customer], ['Delivery', o.address], ['Commercial total', fmt(o.total || 0)], ['Payment', o.pay === 'paid' ? 'Demo payment captured' : o.pay === 'terms_confirmed' ? 'Terms confirmed' : o.pay === 'refund_pending' ? 'Refund pending' : o.pay === 'terms_pending' ? 'Terms pending' : o.pay]]} /></div></Card>
     <Card><Timeline steps={(o.history || []).map((h) => ({ label: ORDER_STEPS.find((x) => x[0] === h.s)?.[1] || h.s, at: h.at, note: h.note, done: true }))} /></Card>
     <div className="flex flex-wrap gap-2">{isBuyer && o.pay === 'terms_pending' && ['placed', 'confirmed'].includes(o.status) && <><Button onClick={() => updatePayment('terms_confirmed', 'Commercial terms confirmed by buyer')}>Confirm payment / terms</Button><Button variant="dangerSoft" onClick={() => update('payment_failed', 'Demo purchase payment failed')}>Payment failed</Button></>}{isBuyer && ['placed', 'confirmed'].includes(o.status) && <Button variant="danger" onClick={() => update('cancelled', 'Cancelled by buyer', { pay: o.pay === 'paid' ? 'refund_pending' : o.pay })}>Cancel order</Button>}{isSupplier && o.status === 'placed' && <Button variant="dangerSoft" onClick={() => update('rejected', 'Supplier rejected the purchase order')}>Reject order</Button>}{isSupplier && next && <Button onClick={() => update(next[0], next[1])}>{next[1]}</Button>}{isBuyer && o.status === 'shipped' && <Button variant="dangerSoft" onClick={() => update('delivery_exception', 'Buyer reported a delivery exception')}>Delivery exception</Button>}{isBuyer && o.status === 'delivered' && <><Button onClick={() => update('completed', 'Buyer confirmed delivery')}>Confirm delivery</Button><Button variant="dangerSoft" onClick={() => update('disputed', 'Buyer disputed the delivered order')}>Dispute order</Button></>}<Button variant="secondary" icon={MessageCircle} onClick={() => nav.go('messages')}>Message supplier</Button></div>
     {o.status === 'cancelled' && <Banner tone="amber" title="Cancellation recorded">Refund or settlement status: {o.pay || 'pending'}.</Banner>}
@@ -427,10 +429,16 @@ export function Notifications() {
   const nav = useNav()
   const { me, notifs, setNotifs, prefs } = useApp()
   const role = me.role || 'customer'
-  const list = notifs[role] || []
+  const inbox = useInbox(role)
+  const list = remoteInbox ? inbox.rows : notifs[role] || []
   const fresh = list.filter((n) => !n.read)
   const old = list.filter((n) => n.read)
   const open = (n) => {
+    if (remoteInbox) {
+      if (!n.read) inbox.markRead(n.id)
+      if (n.to) nav.go(n.to[0], n.to[1] || {})
+      return
+    }
     setNotifs((s) => ({ ...s, [role]: s[role].map((x) => (x.id === n.id ? { ...x, read: true } : x)) }))
     const d = NDEST[role]?.[n.type]
     if (d) nav.go(d[0], d[1] || {})
@@ -446,10 +454,12 @@ export function Notifications() {
     )
   }
   return (
-    <Screen title="Notifications" right={fresh.length > 0 ? <button onClick={() => setNotifs((s) => ({ ...s, [role]: s[role].map((x) => ({ ...x, read: true })) }))} className="mr-2 text-[13px] font-bold text-brand-700">Mark all read</button> : null}>
-      {list.length === 0 && <EmptyState icon={Bell} title="You’re all caught up" />}
+    <Screen title="Notifications" right={fresh.length > 0 ? <button onClick={() => (remoteInbox ? inbox.markAll() : setNotifs((s) => ({ ...s, [role]: s[role].map((x) => ({ ...x, read: true })) })))} className="mr-2 text-[13px] font-bold text-brand-700">Mark all read</button> : null}>
+      {remoteInbox && inbox.error && <p className="text-center text-sm text-red-600">{inbox.error}</p>}
+      {list.length === 0 && !inbox.loading && !inbox.error && <EmptyState icon={Bell} title="You’re all caught up" />}
       {fresh.length > 0 && <Section title="New"><div className="space-y-2">{fresh.map((n) => <Row key={n.id} n={n} />)}</div></Section>}
       {old.length > 0 && <Section title="Earlier"><div className="space-y-2">{old.map((n) => <Row key={n.id} n={n} />)}</div></Section>}
+      {remoteInbox && inbox.more && <button onClick={inbox.loadMore} disabled={inbox.loading} className="mx-auto block text-[13px] font-bold text-brand-700">Load older</button>}
       <p className="text-center text-xs text-ink-400">In-app notifications are on. Email, SMS and WhatsApp depend on provider readiness.</p>
     </Screen>
   )
@@ -497,7 +507,7 @@ export function Profile() {
         <Card className="!p-4">
           <div className="flex items-center gap-3.5">
             <Avatar name={me.name || ME_NAME} size={60} />
-            <div className="min-w-0 flex-1"><p className="text-lg font-extrabold">{me.name || ME_NAME}</p><p className="text-sm text-ink-500">+91 98290 00001</p><Badge tone="purple" className="mt-1.5">Customer</Badge></div>
+            <div className="min-w-0 flex-1"><p className="text-lg font-extrabold">{me.name || ME_NAME}</p><p className="text-sm text-ink-500">{me.phone || (authService.isRemote ? '' : '+91 98290 00001')}</p><Badge tone="teal" className="mt-1.5">Customer</Badge></div>
             <Button size="sm" variant="soft" onClick={() => nav.go('c_profile_edit')}>Edit</Button>
           </div>
         </Card>
@@ -512,7 +522,8 @@ export function Profile() {
           <ListRow icon={FileText} tone="violet" title="Companies (Phase 2)" subtitle="Buy directly from verified companies" onClick={() => nav.go('c_companies')} />
           <ListRow icon={Star} tone="amber" title="My reviews" onClick={() => nav.go('c_reviews')} last />
         </Group>
-        {me.hasVendorAccount ? <Card onClick={() => { setMe({ ...me, role: 'vendor', name: me.vendorName || me.name, buyerMode: false }); nav.reset('v_dash') }} className="!p-4"><div className="flex items-center gap-3"><Thumb tone="purple" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">Open vendor workspace</p><p className="mt-0.5 text-xs text-ink-500">Manage {me.vendorName || 'your business'} and supplier work</p></div><ChevronRight size={17} className="text-ink-300" /></div></Card> : <Card onClick={() => nav.go('v_register')} className="!border-brand-200 !bg-brand-50/60 !p-4"><div className="flex items-center gap-3"><Thumb tone="purple" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-brand-900">Become a vendor</p><p className="mt-0.5 text-xs text-brand-800/75">Create a business account and start selling products or services</p></div><ChevronRight size={17} className="text-brand-500" /></div></Card>}
+        {me.hasVendorAccount && <Card onClick={() => nav.go('vb_home')} className="!p-4"><div className="flex items-center gap-3"><Thumb tone="violet" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">Buy from other vendors</p><p className="mt-0.5 text-xs text-ink-500">Find suppliers, send bulk RFQs and track purchases</p></div><ChevronRight size={17} className="text-ink-300" /></div></Card>}
+        {me.hasVendorAccount ? <Card onClick={() => { setMe({ ...me, role: 'vendor', name: me.vendorName || me.name, buyerMode: false }); nav.reset('v_dash') }} className="!p-4"><div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">Open vendor workspace</p><p className="mt-0.5 text-xs text-ink-500">Manage {me.vendorName || 'your business'} and supplier work</p></div><ChevronRight size={17} className="text-ink-300" /></div></Card> : <Card onClick={() => nav.go('v_register')} className="!border-brand-200 !bg-brand-50/60 !p-4"><div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-brand-900">Become a vendor</p><p className="mt-0.5 text-xs text-brand-800/75">Create a business account and start selling products or services</p></div><ChevronRight size={17} className="text-brand-500" /></div></Card>}
         <Group>
           <ListRow icon={Globe} tone="sky" title={t('language')} subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => { setLang(lang === 'en' ? 'hi' : 'en'); toast(lang === 'en' ? 'भाषा हिन्दी में बदली गई' : 'Language set to English') }} />
           <ListRow icon={Bell} tone="orange" title="Notifications" subtitle="Alerts & channels" onClick={() => nav.go('c_notif_prefs')} />
@@ -528,25 +539,63 @@ export function Profile() {
   )
 }
 
-export function ProfileEdit() {
+const fmtPhone = (p) => (/^\+91\d{10}$/.test(p || '') ? `+91 ${p.slice(3, 8)} ${p.slice(8)}` : p || '')
+
+export function ProfileEdit({ params = {} }) {
   const nav = useNav()
   const { me, setMe, toast, locale, setLocale } = useApp()
-  const [f, setF] = useState({ name: me.name || ME_NAME, email: 'aarav.mehta@gmail.com', city: locale.city || 'Jaipur', address: '24, Vaishali Nagar, Jaipur 302021' })
+  const remote = Boolean(authService.isRemote) // real API: name, email and address live on the server (F-ACC-06)
+  const [f, setF] = useState(remote ? { name: '', email: '', city: locale.city || 'Jaipur', address: '' } : { name: me.name || ME_NAME, email: 'aarav.mehta@gmail.com', city: locale.city || 'Jaipur', address: '24, Vaishali Nagar, Jaipur 302021' })
+  const [phone, setPhone] = useState(authService.isRemote ? (me.phone || '') : '+91 98290 00001')
+  const [emailOk, setEmailOk] = useState(false)
+  const [homeLoc, setHomeLoc] = useState(null)
+  const [loading, setLoading] = useState(remote)
+  const [saving, setSaving] = useState(false)
   const [errs, setErrs] = useState({})
-  const save = () => {
+  useEffect(() => {
+    if (!remote) return undefined
+    let live = true
+    ;(async () => {
+      const [p, l] = await Promise.all([authService.getProfile(), authService.listLocations()])
+      if (!live) return
+      if (p.ok) {
+        setF((x) => ({ ...x, name: p.profile.displayName || '', email: p.profile.email || '' }))
+        setEmailOk(Boolean(p.profile.emailVerified))
+        if (p.profile.phone) setPhone(fmtPhone(p.profile.phone))
+      } else toast(p.message)
+      const home = l.ok ? l.locations.find((x) => x.isDefault) : null
+      if (home) { setHomeLoc(home); setF((x) => ({ ...x, address: home.addressText })) }
+      setLoading(false)
+    })()
+    return () => { live = false }
+  }, [])
+  const save = async () => {
     const e = {}
     if (f.name.trim().length < 3) e.name = 'Name is required'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) e.email = 'Enter a valid email'
+    if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) e.email = 'Enter a valid email'
     setErrs(e)
     if (Object.keys(e).length) return
-    setMe({ ...me, name: f.name }); const place = findCity(f.city); if (place && f.city !== locale.city) setLocale({ ...locale, ...place, pincode: '' }); toast('Profile updated'); nav.back()
+    if (remote) {
+      setSaving(true)
+      const r = await authService.saveProfile({ displayName: f.name.trim(), email: f.email.trim() ? f.email.trim() : null })
+      const address = f.address.trim()
+      let loc = { ok: true }
+      if (r.ok && address && (!homeLoc || homeLoc.addressText !== address)) {
+        loc = homeLoc ? await authService.updateLocation(homeLoc.id, { addressText: address }) : await authService.addLocation({ label: 'Home', addressText: address, isDefault: true })
+      }
+      setSaving(false)
+      if (!r.ok || !loc.ok) { const msg = (r.ok ? loc : r).message; setErrs({ form: msg }); return toast(msg) }
+    }
+    setMe({ ...me, name: f.name.trim() }); const place = findCity(f.city); if (place && f.city !== locale.city) setLocale({ ...locale, ...place, pincode: '' }); toast('Profile updated')
+    if (params.firstRun) nav.reset('c_home'); else nav.back()
   }
   return (
-    <Screen title="Edit profile" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
+    <Screen title="Edit profile" footer={<Button full size="lg" disabled={loading || saving} onClick={save}>{saving ? 'Saving…' : 'Save changes'}</Button>}>
       <div className="flex justify-center py-2"><div className="relative"><Avatar name={f.name || 'A'} size={84} /><span className="absolute -bottom-1 -right-1 grid size-8 place-items-center rounded-full bg-brand-600 text-white ring-4 ring-ink-50"><ImagePlus size={15} /></span></div></div>
+      {errs.form && <p role="alert" className="text-center text-sm font-medium text-red-600">{errs.form}</p>}
       <Input label="Full name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} />
-      <Input label="Mobile number" value="+91 98290 00001" readOnly hint="Verified · contact support to change" />
-      <Input label="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} error={errs.email} />
+      <Input label="Mobile number" value={phone} readOnly hint="Verified · contact support to change" />
+      <Input label="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} error={errs.email} hint={remote && f.email ? (emailOk ? 'Verified' : 'Not verified yet — email verification is coming soon') : undefined} />
       <Select label="City" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} options={['Jaipur', 'Delhi NCR', 'Ajmer', 'Sikar']} />
       <Input label="Default address" textarea rows={2} value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} />
     </Screen>

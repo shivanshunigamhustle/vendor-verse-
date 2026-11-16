@@ -117,6 +117,18 @@ export const CATS_P3 = [
 
 export const ALL_CATS = [...CATS_P1, ...CATS_P2, ...CATS_P3]
 
+/* The landing catalog uses a compact, representative view of the managed taxonomy. */
+export const INDUSTRIES = ALL_CATS.map((category) => ({
+  id: `i_${category.id}`,
+  name: category.name,
+  icon: category.icon,
+  tone: category.tone,
+  cat: category.id,
+  cats: category.subs.length,
+  subs: category.subs,
+  phase: 'MVP',
+}))
+
 /* Later industries stay visible with a phase marker (F-TAX-06, F-TAX-07). */
 export const P2_INDUSTRIES = CATS_P2.map((c) => c.name)
 export const P3_INDUSTRIES = CATS_P3.map((c) => c.name)

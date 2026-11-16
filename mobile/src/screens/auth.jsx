@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Phone, Mail, ShieldCheck, Store, User, Building2, ArrowRight, Lock, CalendarCheck, FileText, Globe, Search, Ban, Hourglass, Trash2, CheckCircle2, XCircle } from 'lucide-react'
+import { authService, roleForMode } from '../services/authService.js'
+import { useEffect, useRef, useState } from 'react'
+import { Phone, Mail, ShieldCheck, Store, User, ArrowRight, Lock, CalendarCheck, FileText, Globe, Search, Ban, Hourglass, Trash2, CheckCircle2, XCircle } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { HOME, VISIBLE_ROLES } from '../roles.js'
@@ -131,7 +132,7 @@ export function Login() {
 }
 
 export function Otp({ params }) {
-  const { contact = '+91 98290 00001', role = 'customer', mode, name, biz } = params
+  const { contact = '+91 98290 00001', role = 'customer', mode, name, email, biz } = params
   const nav = useNav()
   const { setMe, toast } = useApp()
   const signIn = useSignIn()
@@ -139,16 +140,52 @@ export function Otp({ params }) {
   const [err, setErr] = useState('')
   const [step, setStep] = useState(0)
   const [secs, setSecs] = useState(30)
+  const [devCode, setDevCode] = useState('')
+  const [sending, setSending] = useState(true)
+  const [checking, setChecking] = useState(false)
+  const verifying = useRef(false)
+  const needsMfaStep = role === 'admin' && !authService.isRemote // real API: privileged sign-in is blocked server-side until MFA exists
+  const factor = step === 0 ? 'otp' : 'mfa'
+  const sendCode = async (f = factor) => {
+    setSending(true); setErr('')
+    const r = await authService.requestOtp(contact, { factor: f })
+    setSending(false)
+    if (!r.ok) return setErr(r.message)
+    setDevCode(r.devCode || '')
+    setSecs(30)
+  }
+  useEffect(() => { sendCode('otp') }, [])
   useEffect(() => {
     if (secs <= 0) return
     const t = setTimeout(() => setSecs((s) => s - 1), 1000)
     return () => clearTimeout(t)
   }, [secs])
-  const target = step === 0 ? '123456' : '654321'
-  const verify = () => {
-    if (code.length < 6) return setErr('Enter all 6 digits')
-    if (code !== target) return setErr(step === 0 ? 'Incorrect OTP. Please check and try again.' : 'Incorrect authenticator code.')
-    if (step === 0 && role === 'admin') { setStep(1); setCode(''); setErr(''); return }
+  const verify = async () => {
+    if (verifying.current) return
+    verifying.current = true
+    setChecking(true)
+    const r = await authService.verifyOtp(contact, code, { factor })
+    verifying.current = false
+    setChecking(false)
+    if (!r.ok) return setErr(r.message)
+    // F-ACC-06: the server holds the name and email. Sign-up saves what it collected (without overwriting an
+    // existing profile); plain sign-in reads the stored profile so an account with no name is asked for one.
+    let profile = null
+    if (authService.isRemote) {
+      const stored = await authService.getProfile()
+      profile = stored.ok ? stored.profile : null
+      if (mode === 'register' && stored.ok) {
+        const patch = {}
+        if (!profile.displayName && name) patch.displayName = name
+        if (!profile.email && email) patch.email = email
+        if (Object.keys(patch).length) {
+          const saved = await authService.saveProfile(patch)
+          if (saved.ok) profile = saved.profile
+          else toast('Account created, but your details were not saved. Add them from Edit profile.')
+        }
+      }
+    }
+    if (step === 0 && needsMfaStep) { setStep(1); setCode(''); setErr(''); sendCode('mfa'); return }
     if (mode === 'register') {
       if (role === 'business') {
         setMe({ role: 'business', loggedIn: true, guest: false, vendorId: null, hasVendor: false, bizId: 'biz-me', name: name || ME.business, biz })
@@ -165,8 +202,17 @@ export function Otp({ params }) {
       }
       return
     }
-    signIn(role)
-    toast('Signed in successfully')
+    const accountRole = r.account ? roleForMode(r.account.currentMode) : role
+    const same = accountRole === role
+    const needsName = authService.isRemote && accountRole === 'customer' && !profile?.displayName
+    const extra = { ...(r.account ? { userId: r.account.userId } : {}), ...(profile?.displayName ? { name: profile.displayName } : authService.isRemote ? { name: 'Customer' } : {}) }
+    signIn(accountRole, extra)
+    if (needsName) {
+      nav.reset('c_profile_edit', { firstRun: true })
+      toast('Welcome! Add your name to finish your profile.')
+      return
+    }
+    toast(same ? 'Signed in successfully' : `Signed in to your ${accountRole} account`)
   }
   return (
     <Screen title={step === 0 ? 'Verify OTP' : 'Two-step verification'} pad={false} bg="bg-white">
@@ -187,11 +233,11 @@ export function Otp({ params }) {
           <input autoFocus aria-label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setErr('') }} className="absolute inset-0 h-full w-full cursor-text opacity-0" />
         </div>
         {err && <p className="text-sm font-medium text-red-600">{err}</p>}
-        <Banner tone="blue" title="Demo mode">Use <b>{target}</b> as the {step === 0 ? 'OTP' : 'authenticator code'}. <button className="font-bold underline" onClick={() => { setCode(target); setErr('') }}>Auto-fill</button></Banner>
-        <Button full size="lg" onClick={verify}>{step === 0 && role === 'admin' ? 'Continue' : mode === 'register' ? 'Verify & create account' : 'Verify & log in'}</Button>
+        {devCode && <Banner tone="blue" title="Development mode: no SMS provider configured">The code for this request is <b>{devCode}</b>. A real provider replaces this banner. <button className="font-bold underline" onClick={() => { setCode(devCode); setErr('') }}>Auto-fill</button></Banner>}
+        <Button full size="lg" disabled={sending || checking} onClick={verify}>{step === 0 && needsMfaStep ? 'Continue' : mode === 'register' ? 'Verify & create account' : 'Verify & log in'}</Button>
         {step === 0 && (
           <p className="text-center text-sm text-ink-500">
-            {secs > 0 ? `Resend code in 0:${String(secs).padStart(2, '0')}` : <button onClick={() => { setSecs(30); toast('A new OTP has been sent') }} className="font-bold text-brand-700">Resend OTP</button>}
+            {secs > 0 ? `Resend code in 0:${String(secs).padStart(2, '0')}` : <button onClick={() => { sendCode().then(() => toast('A new OTP has been sent')) }} className="font-bold text-brand-700">Resend OTP</button>}
           </p>
         )}
       </div>
@@ -210,10 +256,9 @@ export function Register() {
     if (!isPhone(f.phone)) e.phone = 'Enter a valid 10-digit mobile number'
     if (f.email && !isEmail(f.email)) e.email = 'Enter a valid email address'
     if (role === 'vendor' && f.biz.trim().length < 3) e.biz = 'Enter your business name'
-    if (role === 'business' && f.biz.trim().length < 3) e.biz = 'Enter the registered company name'
     if (!f.agree) e.agree = 'Please accept to continue'
     setErrs(e)
-    if (Object.keys(e).length === 0) nav.go('otp', { contact: `+91 ${f.phone}`, role, mode: 'register', name: f.name, biz: f.biz })
+    if (Object.keys(e).length === 0) nav.go('otp', { contact: `+91 ${f.phone}`, role, mode: 'register', name: f.name, email: f.email, biz: f.biz })
   }
   return (
     <Screen title="Create account" pad={false} bg="bg-white">
@@ -222,8 +267,8 @@ export function Register() {
           <h2 className="text-2xl font-extrabold tracking-tight">Join VendorVerse</h2>
           <p className="mt-1 text-sm text-ink-500">Choose how you want to use the marketplace.</p>
         </div>
-        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
-          {[['customer', User, 'Customer', 'Find vendors, book services, request quotes'], ['vendor', Store, 'Customer + Vendor', 'Also list your services — one identity, switch modes anytime'], ['business', Building2, 'Business owner', 'Registered companies only — industries & manufacturers. A separate account']].map(([id, I, a, b]) => (
+        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+          {[['customer', User, 'Customer', 'Find vendors, book services, request quotes'], ['vendor', Store, 'Vendor', 'Sell your products or services — one identity, switch modes anytime']].map(([id, I, a, b]) => (
             <button key={id} onClick={() => setRole(id)} className={cx('rounded-2xl p-3.5 text-left ring-1 ring-inset transition', role === id ? 'bg-brand-50 ring-2 ring-brand-600' : 'bg-white ring-ink-200')}>
               <span className={cx('grid size-10 place-items-center rounded-xl', role === id ? 'bg-brand-600 text-white' : 'bg-ink-100 text-ink-500')}><I size={20} /></span>
               <p className="mt-2.5 text-sm font-bold">{a}</p>
@@ -233,14 +278,12 @@ export function Register() {
         </div>
         <Input label="Full name" required placeholder="As per ID" value={f.name} onChange={set('name')} error={errs.name} />
         {role === 'vendor' && <Input label="Business name" required placeholder="Registered business name" value={f.biz} onChange={set('biz')} error={errs.biz} />}
-        {role === 'business' && <Input label="Registered company name" required placeholder="As on incorporation certificate" value={f.biz} onChange={set('biz')} error={errs.biz} />}
         <Input label="Mobile number" required icon={Phone} inputMode="numeric" maxLength={10} placeholder="98290 00001" value={f.phone} onChange={(e) => set('phone')(e.target.value.replace(/\D/g, ''))} error={errs.phone} className="!pl-10" />
         <Input label="Email (optional)" icon={Mail} type="email" placeholder="you@company.com" value={f.email} onChange={set('email')} error={errs.email} />
         <div>
           <Checkbox checked={f.agree} onChange={(v) => set('agree')(v)}>I agree to the <b className="text-brand-700">Terms</b> and <b className="text-brand-700">Privacy Policy</b>. My phone and email stay hidden from vendors unless I choose to share them.</Checkbox>
           {errs.agree && <p className="mt-1 text-xs font-medium text-red-600">{errs.agree}</p>}
         </div>
-        {role === 'business' && <Banner tone="blue" title="Company owners only">A Business account is for the owner, founder, director or proprietor of a company that has operated for 3+ years. It is separate from a vendor account: vendors can message you, customers cannot reach you. Individual service providers should register as a vendor.</Banner>}
         {role === 'vendor' && <Banner tone="amber" title="Publication has gates">Your listings go public only when your account, a paid subscription, content review and any required verification all pass. Paying never skips a check.</Banner>}
         <Button full size="lg" onClick={submit}>Continue</Button>
         <p className="text-center text-sm text-ink-500">Already have an account? <button onClick={() => nav.replace('login')} className="font-bold text-brand-700">Log in</button></p>

@@ -6,6 +6,7 @@ import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { cat, serves, liveCats, coverageOf } from '../data.jsx'
 import { country, KIND_LABEL, INDUSTRIES, GEO } from '../globaldata.jsx'
+import { VENDOR_TYPES } from '../mvpdata.jsx'
 import { normLabel } from '../mvpdata.jsx'
 import {
   Screen, Card, Button, Chips, Segmented, Sheet, Input, Select, Toggle, Banner, EmptyState, ListRow, Pill, Thumb, SOFT, cx, SkeletonList,
@@ -45,13 +46,14 @@ function specMatch(l, field, val) {
 }
 
 /* grouped vendor-type filters used by the vendor Buy tab */
-const KIND_GROUPS = { goods: ['manufacturer', 'supplier'], services: ['service', 'contractor'] }
+// derived from each role's `offer` in VENDOR_TYPES (D-024), so a new role needs no change here
+const KIND_GROUPS = { goods: Object.keys(VENDOR_TYPES).filter((k) => VENDOR_TYPES[k].offer === 'products'), services: Object.keys(VENDOR_TYPES).filter((k) => VENDOR_TYPES[k].offer === 'services') }
 const KIND_GROUP_LABEL = { goods: 'Suppliers & manufacturers', services: 'Service providers' }
 
 export function Explore({ params = {} }) {
   const nav = useNav()
   const { listings, vendors, published, vendor, loc, toast, catsVer, me } = useApp()
-  const buying = me.role === 'vendor'
+  const buying = !!me.hasVendor // a vendor owner buying in Customer mode never sees their own listings (D-022)
   const [q, setQ] = useState(params.q || '')
   const [focus, setFocus] = useState(false)
   const [type, setType] = useState(params.mode === 'vendors' ? 'vendors' : params.kind === 'services' ? 'services' : params.kind && params.kind !== 'service' ? 'products' : 'all')
@@ -139,8 +141,8 @@ export function Explore({ params = {} }) {
 
   return (
     <Screen
-      title={buying ? 'Buy from vendors' : 'Explore'}
-      back={buying}
+      title="Explore"
+      back={false}
       pad={false}
       overlay={
         <Sheet open={open} onClose={() => setOpen(false)} title="Filters" footer={<div className="flex gap-2"><Button variant="secondary" className="flex-1" onClick={() => { setDraft(DEFAULT_F); setDsf({}) }}>Reset</Button><Button className="flex-[2]" onClick={() => { setF(draft); setSf(dsf); setShown(PAGE); setOpen(false) }}>Show results</Button></div>}>

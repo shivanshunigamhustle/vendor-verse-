@@ -5,6 +5,8 @@ import {
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
+import { remoteInbox, useInbox } from '../useInbox.js'
+import { authService } from '../services/authService.js'
 import { cat, CATS, REPORT_REASONS, serves, AVAIL_LABEL } from '../data.jsx'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, Toggle, Rating, Banner, EmptyState, SearchBar, KV, cx, Pill, IconBtn, StatusBadge, Stars, ListRow, Group, Timeline,
@@ -131,10 +133,16 @@ export function Notifications() {
   const nav = useNav()
   const { me, notifs, setNotifs } = useApp()
   const role = me.role || 'customer'
-  const list = notifs[role] || []
+  const inbox = useInbox(role)
+  const list = remoteInbox ? inbox.rows : notifs[role] || []
   const fresh = list.filter((n) => !n.read)
   const old = list.filter((n) => n.read)
   const open = (n) => {
+    if (remoteInbox) {
+      if (!n.read) inbox.markRead(n.id)
+      if (n.to) nav.go(n.to[0], n.to[1] || {})
+      return
+    }
     setNotifs((s) => ({ ...s, [role]: s[role].map((x) => (x.id === n.id ? { ...x, read: true } : x)) }))
     if (n.to) nav.go(n.to[0], n.to[1] || {})
   }
@@ -149,10 +157,12 @@ export function Notifications() {
     )
   }
   return (
-    <Screen title="Notifications" right={fresh.length > 0 ? <button onClick={() => setNotifs((s) => ({ ...s, [role]: s[role].map((x) => ({ ...x, read: true })) }))} className="mr-2 text-[13px] font-bold text-brand-700">Mark all read</button> : null}>
-      {list.length === 0 && <EmptyState icon={Bell} title="You’re all caught up" />}
+    <Screen title="Notifications" right={fresh.length > 0 ? <button onClick={() => (remoteInbox ? inbox.markAll() : setNotifs((s) => ({ ...s, [role]: s[role].map((x) => ({ ...x, read: true })) })))} className="mr-2 text-[13px] font-bold text-brand-700">Mark all read</button> : null}>
+      {remoteInbox && inbox.error && <p className="text-center text-sm text-red-600">{inbox.error}</p>}
+      {list.length === 0 && !inbox.loading && !inbox.error && <EmptyState icon={Bell} title="You’re all caught up" />}
       {fresh.length > 0 && <Section title="New"><div className="space-y-2">{fresh.map((n) => <Row key={n.id} n={n} />)}</div></Section>}
       {old.length > 0 && <Section title="Earlier"><div className="space-y-2">{old.map((n) => <Row key={n.id} n={n} />)}</div></Section>}
+      {remoteInbox && inbox.more && <button onClick={inbox.loadMore} disabled={inbox.loading} className="mx-auto block text-[13px] font-bold text-brand-700">Load older</button>}
       <p className="text-center text-xs text-ink-400">Transactional alerts are always sent. Lock-screen previews hide sensitive case details by default.</p>
     </Screen>
   )
@@ -452,6 +462,7 @@ export function Profile() {
           <ListRow icon={CalendarCheck} tone="sky" title="My bookings" onClick={() => nav.go('c_activity', { tab: 'bookings' })} />
           <ListRow icon={FileText} tone="violet" title="My quote requests" onClick={() => nav.go('c_activity', { tab: 'rfqs' })} />
           <ListRow icon={Package} tone="violet" title="Purchase orders" onClick={() => nav.go('c_orders')} />
+          {me.hasVendor && <ListRow icon={Repeat} tone="blue" title="Buy from other vendors" subtitle="Find suppliers, send bulk RFQs, track purchases" onClick={() => nav.go('v_buy')} />}
           <ListRow icon={Star} tone="amber" title="My reviews" subtitle="Given and pending" onClick={() => nav.go('c_reviews')} />
           <ListRow icon={FileSignature} tone="violet" title="My contracts" onClick={() => nav.go('c_activity', { tab: 'contracts' })} />
           <ListRow icon={FileText} tone="slate" title="Pricing & fees" subtitle="Free for customers — see exactly who pays what" onClick={() => nav.go('fees')} />
@@ -537,17 +548,48 @@ export function Settings() {
 export function DeleteAccount() {
   const nav = useNav()
   const { deletion, setDeletion, me, bookings, toast } = useApp()
+  const remote = Boolean(authService.isRemote) // real API: the request is stored on the server (F-ACC-04)
   const [step, setStep] = useState(deletion ? 3 : 0)
   const [code, setCode] = useState('')
   const [reason, setReason] = useState('I no longer use VendorVerse')
+  const [pending, setPending] = useState(null) // open server-side deletion request
+  const [busy, setBusy] = useState(false)
   const open = bookings.filter((b) => b.customer === me.name && ['requested', 'confirmed', 'in_progress', 'awaiting'].includes(b.state))
+  useEffect(() => {
+    if (!remote) return
+    authService.listDataRequests().then((r) => {
+      const found = r.ok && r.requests.find((x) => x.type === 'deletion' && ['requested', 'verified', 'in_progress'].includes(x.status))
+      if (found) { setPending(found); setStep(3) }
+    })
+  }, [remote])
+  const requestDeletion = async () => {
+    if (!remote) { setDeletion({ at: '19 Oct 2026' }); toast('Deletion requested'); return setStep(3) }
+    setBusy(true)
+    const r = await authService.requestDataRequest('deletion')
+    setBusy(false)
+    if (!r.ok) return toast(r.message, 'warn')
+    setPending(r.request)
+    toast('Deletion requested')
+    setStep(3)
+  }
+  const cancelDeletion = async () => {
+    if (!remote) { setDeletion(null); toast('Deletion request cancelled'); return nav.back() }
+    setBusy(true)
+    const r = await authService.cancelDataRequest(pending.id)
+    setBusy(false)
+    if (!r.ok) return toast(r.message, 'warn')
+    toast('Deletion request cancelled')
+    nav.back()
+  }
   return (
-    <Screen title="Delete account" footer={step < 3 ? <Button full size="lg" variant={step === 2 ? 'danger' : 'primary'} disabled={step === 1 && code !== '123456'} onClick={() => { if (step === 2) { setDeletion({ at: '19 Oct 2026' }); toast('Deletion requested'); setStep(3) } else setStep(step + 1) }}>{step === 0 ? 'Continue' : step === 1 ? 'Verify' : 'Request deletion'}</Button> : <Button full variant="secondary" onClick={() => { setDeletion(null); toast('Deletion request cancelled'); nav.back() }}>Cancel deletion request</Button>}>
+    <Screen title="Delete account" footer={step < 3 ? <Button full size="lg" variant={step === 2 ? 'danger' : 'primary'} disabled={busy || (step === 1 && !remote && code !== '123456')} onClick={() => { if (step === 2) requestDeletion(); else setStep(step + 1) }}>{step === 0 ? 'Continue' : step === 1 ? 'Verify' : 'Request deletion'}</Button> : <Button full variant="secondary" disabled={busy} onClick={cancelDeletion}>Cancel deletion request</Button>}>
       <Stepper steps={['Review', 'Verify', 'Confirm', 'Status']} current={step} />
       {step === 0 && (<><Banner tone="amber" title="Before you go">Deleting closes your customer account. Records that law or open disputes require us to keep are retained or anonymized — we don’t erase them without review.</Banner>
         {open.length > 0 && <Banner tone="red" title={`${open.length} open booking${open.length > 1 ? 's' : ''}`}>Complete or cancel them first, or they’ll be handled as part of the request.</Banner>}
         <Select label="Why are you leaving?" value={reason} onChange={(e) => setReason(e.target.value)} options={['I no longer use VendorVerse', 'Privacy concerns', 'Too many notifications', 'Other']} /></>)}
-      {step === 1 && (<><p className="text-sm text-ink-600">We’ll confirm it’s you. Enter the code sent to +91 98290 ••••1.</p><Input label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} hint="Demo code: 123456" /></>)}
+      {step === 1 && (remote
+        ? <Banner tone="amber" title="Identity check not automated yet">Your request is recorded and reviewed; your account stays active until it is processed. You can cancel it while it is pending.</Banner>
+        : <><p className="text-sm text-ink-600">We’ll confirm it’s you. Enter the code sent to +91 98290 ••••1.</p><Input label="One-time code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} hint="Demo code: 123456" /></>)}
       {step === 2 && <Card><p className="mb-2 text-sm font-bold">What happens</p>{['Your profile, favorites and saved preferences are removed or anonymized', 'Booking and quotation records needed by vendors or the law are kept without personal identifiers where possible', 'Support and audit evidence is retained for the legally required period', 'You’ll get status updates by email and in-app until it completes'].map((x) => <p key={x} className="flex gap-2 py-1 text-[13px] text-ink-700"><Check size={15} className="mt-0.5 shrink-0 text-emerald-600" />{x}</p>)}</Card>}
       {step === 3 && (<><Card className="text-center !p-6"><div className="mx-auto grid size-16 place-items-center rounded-full bg-amber-50 text-amber-600"><Hourglass size={30} /></div><h2 className="mt-3 text-lg font-extrabold">Deletion requested</h2><p className="mt-1 text-sm text-ink-600">Status: identity verified · retention check in progress.</p></Card><Card><Timeline steps={[{ label: 'Request received', at: '19 Oct 2026', done: true }, { label: 'Identity verified', at: '19 Oct 2026', done: true }, { label: 'Legal retention review', current: true, note: 'Records we must keep are retained or anonymized' }, { label: 'Deletion / anonymization complete' }]} /></Card></>)}
     </Screen>

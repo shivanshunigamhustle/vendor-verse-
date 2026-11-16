@@ -1,23 +1,28 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut, MapPin, ChevronDown } from 'lucide-react'
+﻿import { useEffect, useMemo, useState } from 'react'
+import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut, MapPin } from 'lucide-react'
 import { AppProvider, COUNTRY_SETTINGS, LOCATION_PRESETS, useApp } from './store.jsx'
 import { canOpenRoute } from './services/authorization.js'
+import { authService } from './services/authService.js'
 import { NavProvider, useNav } from './nav.jsx'
 import { HOME, TABS, ROLES, ADMIN_SIDEBAR } from './roles.js'
 import { SCREENS, GROUPS } from './registry.jsx'
 import { Logo } from './screens/auth.jsx'
 import { ApprovedSignInRoute } from './screens/ApprovedSignInRoute.jsx'
 import { Navbar } from './screens/landing/Navbar.jsx'
+import { VendorWorkspace } from './screens/vendor.jsx'
+import { ThemeToggle } from './components/ThemeToggle.jsx'
 import { FRS, NFR, MVP, PHASE2, ACCEPTANCE, DECISIONS, ROLE_TABLE } from './specs.js'
 import { cx } from './ui.jsx'
+import { ThemeProvider } from './hooks/useTheme.jsx'
 import './screens/website-home.css'
 import './screens/customer-visuals.css'
-import './screens/explore-visuals.css'
 import './screens/vendor-dashboard-visuals.css'
+import './screens/explore-visuals.css'
 import './screens/agent-dashboard-visuals.css'
 import './screens/admin-dashboard-visuals.css'
 import './screens/dashboard-reference.css'
 import './layout.css'
+import './workspace-themes.css'
 
 const INITIAL_SCREEN = window.location.hash.replace(/^#\/?/, '')
 
@@ -88,34 +93,36 @@ function Toast() {
   )
 }
 
-function ScreenHost() {
+function ScreenHost({ onMenu }) {
   const nav = useNav()
   const { me } = useApp()
   const reg = SCREENS[nav.id] || SCREENS.welcome
   const C = reg.C
   const customerRoute = reg.role === 'customer' || (reg.role === 'shared' && me.role === 'customer')
-  const vendorWorkspaceRoute = ['v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id)
+  const businessWorkspaceRoute = me.role === 'business' && ['b_home', 'b_company', 'b_services', 'b_messages', 'b_more'].includes(nav.id)
+  const vendorWorkspaceRoute = ['vendor', 'business'].includes(me.role) && (reg.role === 'vendor' || ['messages', 'chat'].includes(nav.id))
+  const workspaceRoute = vendorWorkspaceRoute || businessWorkspaceRoute
   const vendorMessagesRoute = nav.id === 'messages' && (me.role === 'vendor' || me.role === 'business')
-  const agentWorkspaceRoute = ['a_home', 'a_leads', 'a_followups', 'a_earnings', 'a_perf', 'a_profile'].includes(nav.id)
+  const agentWorkspaceRoute = me.role === 'agent' && (reg.role === 'agent' || nav.id === 'notifications')
   const adminWorkspaceRoute = ['ad_dash', 'ad_approvals', 'ad_users', 'ad_reports', 'ad_more'].includes(nav.id)
   const FORM_IDS = ['c_book_new', 'c_book_instant', 'c_book_series', 'c_book_modify', 'c_booking_done', 'c_rfq_new', 'c_rfq_edit', 'c_rfq_none', 'c_rfq_goods', 'c_order_new', 'c_order_exc', 'c_review', 'c_review_no', 'c_report', 'c_profile_edit', 'c_settings', 'c_notif_prefs', 'c_delete', 'c_export', 'c_sessions', 'c_contact_share', 'c_location', 'c_location_wait', 'c_cat_suggest', 'c_contract_new', 'c_company_order', 'acct_state', 'ui_states', 'v_register']
-  const formRoute = FORM_IDS.includes(nav.id) || (!customerRoute && !vendorWorkspaceRoute && !agentWorkspaceRoute && !adminWorkspaceRoute && !['auth'].includes(reg.role) && !['v_explore', 'vb_explore', 'c_explore_suppliers', 'messages', 'chat', 'ad_vendors', 'ad_listings', 'ad_cases', 'ad_agents', 'ad_categories', 'ad_audit', 'ad_customers', 'ad_analytics', 'ad_coupons'].includes(nav.id))
+  const formRoute = FORM_IDS.includes(nav.id) || (!customerRoute && !workspaceRoute && !agentWorkspaceRoute && !adminWorkspaceRoute && !['auth'].includes(reg.role) && !['v_explore', 'vb_explore', 'c_explore_suppliers', 'messages', 'chat', 'ad_vendors', 'ad_listings', 'ad_cases', 'ad_agents', 'ad_categories', 'ad_audit', 'ad_customers', 'ad_analytics', 'ad_coupons'].includes(nav.id))
   return (
-    <div key={nav.depth + nav.id} className={cx('h-full min-w-0', formRoute && 'vv-form-route', nav.dir === 'push' ? 'animate-slide-in' : 'animate-fade-in', customerRoute && 'vv-customer-route', ['c_explore', 'v_explore'].includes(nav.id) && 'vv-explore-route', nav.id === 'v_dash' && 'vv-vendor-dashboard-route', vendorWorkspaceRoute && 'vv-vendor-workspace-route', agentWorkspaceRoute && 'vv-agent-route', adminWorkspaceRoute && 'vv-admin-route', ['v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && 'vv-vendor-detail-route', vendorMessagesRoute && 'vv-vendor-message-route')}>
-      <C params={nav.params || {}} />
+    <div key={nav.depth + nav.id} className={cx('h-full min-w-0', formRoute && 'vv-form-route', nav.dir === 'push' ? 'animate-slide-in' : 'animate-fade-in', customerRoute && 'vv-customer-route', ['c_explore', 'v_explore'].includes(nav.id) && 'vv-explore-route', nav.id === 'v_dash' && 'vv-vendor-dashboard-route', workspaceRoute && 'vv-vendor-workspace-route', businessWorkspaceRoute && 'vv-business-workspace-route', agentWorkspaceRoute && 'vv-agent-route', adminWorkspaceRoute && 'vv-admin-route', ['v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && 'vv-vendor-detail-route', vendorMessagesRoute && 'vv-vendor-message-route')}>
+      {workspaceRoute ? <VendorWorkspace variant={businessWorkspaceRoute ? 'business' : 'vendor'} header={businessWorkspaceRoute ? ({ onWorkspaceToggle, mobile, mobileOpen, collapsed }) => <WebHeader onMenu={onMenu} hideTabs workspaceHeader blueBrand workspaceToggle={onWorkspaceToggle} workspaceMobile={mobile} workspaceMobileOpen={mobileOpen} workspaceCollapsed={collapsed} /> : undefined}><C params={nav.params || {}} /></VendorWorkspace> : <C params={nav.params || {}} />}
     </div>
   )
 }
 
-function Phone({ frame, scale, web = false }) {
+function Phone({ frame, scale, web = false, onMenu }) {
   const nav = useNav()
   const reg = SCREENS[nav.id] || SCREENS.welcome
   const inner = (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-white">
       {frame && <StatusBar tone={reg.bar} />}
       <div className={cx('relative flex min-h-0 flex-1 flex-col', frame && 'pt-11')}>
-        <div className="relative min-h-0 flex-1"><ScreenHost /><Toast /></div>
-        {!web && !['c_home', 'v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && <TabBar />}
+        <div className="relative min-h-0 flex-1"><ScreenHost onMenu={onMenu} /><Toast /></div>
+        {!web && !['v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && <TabBar />}
         {frame && <div className="h-5 shrink-0 bg-white" />}
       </div>
       {frame && <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-40 h-1.5 w-32 -translate-x-1/2 rounded-full bg-ink-900/85" />}
@@ -214,101 +221,30 @@ function SpecPanel() {
   )
 }
 
-function WebHeader({ onMenu, hideTabs }) {
+function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme = false, blueBrand = false, workspaceToggle, workspaceMobile = false, workspaceMobileOpen = false, workspaceCollapsed = false }) {
   const nav = useNav()
   const { lang, setLang, locale, setLocale, me, setMe, t } = useApp()
+  const [locationOpen, setLocationOpen] = useState(false)
+  const [locationQuery, setLocationQuery] = useState('')
   const screen = SCREENS[nav.id] || SCREENS.welcome
   const tabs = TABS[me.role || 'customer'] || TABS.customer
   const activeTab = nav.stack.slice().reverse().map((entry) => tabs.find((tab) => tab.id === entry.id)).find(Boolean)?.id || nav.id
   return (
-    <header className="sticky top-0 z-40 shrink-0 border-b border-[#d9ecf8] bg-white/95 shadow-[0_4px_20px_rgba(24,50,71,0.05)] backdrop-blur">
-      <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-8 lg:px-12">
-        <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 text-left" aria-label="VendorVerse home">
-          <Logo size={36} />
-          <div>
-            <span className="block text-[17px] font-black leading-none tracking-tight text-[#183247]">VendorVerse</span>
-            <span className="block text-[10.5px] font-semibold text-[#64748b] leading-tight mt-0.5">Global Marketplace</span>
-          </div>
-        </button>
-
-        <nav className={cx("no-scrollbar hidden min-w-0 items-center justify-center gap-1 overflow-x-auto rounded-2xl bg-[#f0f9ff] p-1 border border-[#d9ecf8]", hideTabs ? "" : "md:flex")} style={hideTabs ? { display: "none" } : undefined} aria-label="Main navigation">
-          {tabs.map((tab) => {
-            const on = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => nav.reset(tab.id)}
-                aria-current={on ? 'page' : undefined}
-                className={cx(
-                  'flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all',
-                  on ? 'bg-white text-[#0284c7] shadow-sm shadow-sky-900/10' : 'text-slate-700 hover:bg-white/60 hover:text-[#0284c7]'
-                )}
-              >
-                <tab.icon size={16} strokeWidth={on ? 2.5 : 2} />
-                <span>{t(tab.k)}</span>
-              </button>
-            )
-          })}
+    <header className={cx('sticky top-0 z-40 shrink-0 border-b border-ink-200 bg-white/95 shadow-[0_2px_10px_rgba(20,40,75,.04)] backdrop-blur', workspaceHeader && 'vv-workspace-global-header')}>
+      <div className="mx-auto flex h-[72px] max-w-[1600px] items-center gap-3 px-4 sm:px-7 lg:px-10">
+          <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 rounded-xl text-left" aria-label="VendorVerse home"><Logo size={42} blue={blueBrand} /><span className="hidden lg:block"><span className="block text-[18px] font-black leading-tight tracking-tight text-ink-900">VendorVerse</span><span className="block text-[11px] font-medium text-ink-500">Global Marketplace · products · services · quotes</span></span></button>
+        <nav className={cx("no-scrollbar ml-3 hidden min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto", hideTabs ? "" : "md:flex")} style={hideTabs ? { display: "none" } : undefined} aria-label="Main navigation">
+          {tabs.map((tab) => { const on = activeTab === tab.id; return <button key={tab.id} onClick={() => nav.reset(tab.id)} aria-current={on ? 'page' : undefined} className={cx('flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-[13px] font-bold transition', on ? 'bg-brand-50 text-brand-800' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900')}><tab.icon size={17} />{t(tab.k)}</button> })}
         </nav>
-
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-          <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 md:hidden">
-            <Menu size={18} />
-          </button>
-          {me.loggedIn && me.role !== 'business' && me.hasVendorAccount && (
-            <button
-              onClick={() => {
-                const nextRole = me.role === 'business' ? 'vendor' : me.role === 'vendor' ? 'customer' : 'vendor'
-                setMe({ ...me, role: nextRole, name: nextRole === 'customer' ? (me.customerName || me.name) : nextRole === 'vendor' && me.vendorOwnerName ? me.vendorOwnerName : (me.vendorName || me.name), buyerMode: false })
-                nav.reset(nextRole === 'customer' ? 'c_home' : 'v_dash')
-              }}
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-slate-100 px-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
-              title={me.role === 'business' ? 'Switch to vendor workspace' : me.role === 'vendor' ? 'Switch to customer' : 'Switch to vendor workspace'}
-            >
-              <ArrowLeftRight size={15} />
-              <span className="hidden sm:inline">{me.role === 'business' ? 'Vendor' : me.role === 'vendor' ? 'Customer' : 'Vendor'}</span>
-            </button>
-          )}
-
-          <div className="hidden lg:block h-4 w-px bg-slate-200 mx-0.5" />
-
-          <button
-            onClick={() => nav.go('c_location')}
-            className="hidden sm:flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition max-w-[210px] truncate"
-            title={t('searchLocation')}
-          >
-            <MapPin size={14} className="text-[#0284c7] shrink-0" />
-            <span className="truncate">{locale.city || 'Jaipur'}, {locale.state || 'Rajasthan'}, {locale.countryName || 'India'}</span>
-            <ChevronDown size={13} className="text-slate-400 shrink-0" />
-          </button>
-
-          <button
-            onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-            className="hidden sm:flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition"
-            aria-label="Switch language"
-          >
-            <Globe size={14} className="shrink-0" />
-            <span>{lang === 'en' ? 'EN' : 'हि'}</span>
-            <ChevronDown size={13} className="text-slate-400 shrink-0" />
-          </button>
-
-          <button
-            onClick={() => nav.go('notifications')}
-            className="relative grid size-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 transition"
-            aria-label="Notifications"
-          >
-            <Bell size={18} />
-            <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 ring-2 ring-white" />
-          </button>
-
-          {!me.loggedIn && (
-            <button
-              onClick={() => nav.go('login')}
-              className="h-9 rounded-full bg-[#0284c7] hover:bg-[#0369a1] px-4 sm:px-5 text-xs sm:text-sm font-bold text-white shadow-md shadow-sky-900/20 transition active:scale-95"
-            >
-              Sign in
-            </button>
-          )}
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          {workspaceHeader && <button type="button" onClick={workspaceToggle} aria-controls="business-workspace-navigation" aria-label={workspaceMobile ? workspaceMobileOpen ? 'Close business workspace menu' : 'Open business workspace menu' : workspaceCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={workspaceMobile ? workspaceMobileOpen : !workspaceCollapsed} className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50">{workspaceMobile ? workspaceMobileOpen ? <PanelLeftClose size={19} /> : <PanelLeftOpen size={19} /> : workspaceCollapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}</button>}
+          <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50"><Menu size={20} /></button>
+          {me.loggedIn && me.role !== 'business' && me.hasVendorAccount && <button onClick={() => { const nextRole = me.role === 'business' ? 'vendor' : me.role === 'vendor' ? 'customer' : 'vendor'; authService.switchMode?.(nextRole === 'customer' ? 'CUSTOMER' : 'VENDOR'); setMe({ ...me, role: nextRole, name: nextRole === 'customer' ? (me.customerName || me.name) : nextRole === 'vendor' && me.vendorOwnerName ? me.vendorOwnerName : (me.vendorName || me.name), buyerMode: false }); nav.reset(nextRole === 'customer' ? 'c_home' : 'v_dash') }} className="flex h-10 items-center gap-1.5 rounded-xl bg-brand-50 px-2.5 text-xs font-bold text-brand-800 hover:bg-brand-100" title={me.role === 'business' ? 'Switch to vendor workspace' : me.role === 'vendor' ? 'Switch to customer' : 'Switch to vendor workspace'}><ArrowLeftRight size={16} /><span className="hidden sm:inline">{me.role === 'business' ? 'Vendor' : me.role === 'vendor' ? 'Customer' : 'Vendor'}</span></button>}
+          <button onClick={() => nav.go('c_location')} className="hidden max-w-[210px] truncate rounded-xl bg-ink-50 px-3 py-2 text-left text-xs font-bold text-ink-700 hover:bg-brand-50 sm:block" title={t('searchLocation')}><MapPin size={14} className="mr-1 inline text-brand-700" />{locale.city || 'Jaipur'}{locale.pincode ? ` ${locale.pincode}` : ''}, {locale.state || 'Rajasthan'}, {locale.countryName || 'India'}</button>
+          <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>
+          <button onClick={() => nav.go('notifications')} className="relative grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50" aria-label="Notifications"><Bell size={19} /></button>
+          {(workspaceHeader || workspaceTheme) && <ThemeToggle className="vv-workspace-theme-toggle" />}
+          {!me.loggedIn && <button onClick={() => nav.go('login')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Sign in</button>}
         </div>
       </div>
       <div className="sr-only" aria-live="polite">{screen.title}</div>
@@ -320,7 +256,7 @@ function AgentSidebar({ collapsed, onToggle, onNavigate, onLogout, me, t, active
   return (
     <aside className={cx('vv-agent-sidebar', collapsed && 'is-collapsed')} aria-label="Sales Agent navigation">
       <div className="vv-agent-sidebar-brand">
-        <Logo size={40} />
+        <Logo size={40} blue />
         {!collapsed && <div className="vv-agent-sidebar-brand-copy"><b>VendorVerse</b><span>Sales workspace</span></div>}
         <button className="vv-agent-sidebar-toggle" type="button" onClick={onToggle} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
@@ -330,6 +266,8 @@ function AgentSidebar({ collapsed, onToggle, onNavigate, onLogout, me, t, active
         {TABS.agent.map((tab) => {
           const Icon = tab.icon
           const selected = activeId === tab.id
+            || (tab.id === 'a_leads' && ['a_lead', 'a_lead_new', 'a_log', 'a_onboard'].includes(activeId))
+            || (tab.id === 'a_profile' && ['a_tasks', 'a_perms', 'a_earnings'].includes(activeId))
           return <button key={tab.id} type="button" className={cx('vv-agent-sidebar-link', selected && 'is-active')} onClick={() => onNavigate(tab.id)} aria-current={selected ? 'page' : undefined} title={collapsed ? t(tab.k) : undefined}>
             <Icon size={19} />{!collapsed && <span>{t(tab.k)}</span>}
           </button>
@@ -372,10 +310,11 @@ function Shell() {
   const [agentSidebarCollapsed, setAgentSidebarCollapsed] = useState(false)
   const [adminSidebarCollapsed, setAdminSidebarCollapsed] = useState(false)
   const desktop = w >= 768
-  const publicWelcome = nav.id === 'welcome' || nav.id === 'auth'
-  const showAgentSidebar = me.role === 'agent' && ['a_home', 'a_leads', 'a_earnings', 'a_perf', 'a_followups', 'a_profile'].includes(nav.id)
+  const showAgentSidebar = me.role === 'agent' && ((SCREENS[nav.id] || {}).role === 'agent' || nav.id === 'notifications')
   const adminSidebarIds = ADMIN_SIDEBAR.flatMap((group) => group.items.map((item) => item.id)).concat(['ad_approvals', 'ad_more', 'ad_vendors', 'ad_vendor', 'ad_vendor_new', 'ad_listings', 'ad_listing', 'ad_users', 'ad_user', 'ad_roles', 'ad_category', 'ad_agent', 'ad_case', 'ad_sub', 'ad_cat_new'])
   const showAdminSidebar = me.role === 'admin' && adminSidebarIds.includes(nav.id)
+  const showBusinessWorkspace = me.role === 'business' && ['b_home', 'b_company', 'b_services', 'b_messages', 'b_more'].includes(nav.id)
+  const showVendorWorkspace = (['vendor', 'business'].includes(me.role) && ((SCREENS[nav.id] || {}).role === 'vendor' || ['messages', 'chat'].includes(nav.id))) || showBusinessWorkspace
   const agentLogout = () => {
     setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
     nav.reset('c_home')
@@ -410,26 +349,22 @@ function Shell() {
   if (['login', 'welcome'].includes(nav.id) || (nav.id === 'auth' && nav.params?.mode !== 'register')) return <ApprovedSignInRoute />
 
   return (
-    <div className={cx('flex h-full min-h-0 bg-white', showAgentSidebar ? 'vv-agent-shell' : showAdminSidebar ? 'vv-admin-shell' : 'flex-col')}>
+    <div className={cx('flex h-full min-h-0 bg-white', showAgentSidebar ? 'vv-agent-shell' : showAdminSidebar ? 'vv-admin-shell' : 'flex-col', showAgentSidebar && agentSidebarCollapsed && 'is-agent-sidebar-collapsed', showVendorWorkspace && 'vv-global-vendor-shell', showBusinessWorkspace && 'vv-business-shell')}>
       {showAgentSidebar && <AgentSidebar collapsed={agentSidebarCollapsed} onToggle={() => setAgentSidebarCollapsed((value) => !value)} onNavigate={(id) => nav.reset(id)} onLogout={agentLogout} me={me} t={t} activeId={nav.id} />}
       {showAdminSidebar && <AdminSidebar collapsed={adminSidebarCollapsed} onToggle={() => setAdminSidebarCollapsed((value) => !value)} onNavigate={jump} onLogout={adminLogout} me={me} t={t} activeId={nav.id} />}
       <div className={cx('flex min-h-0 min-w-0 flex-1 flex-col', showAgentSidebar && 'vv-agent-main', showAdminSidebar && 'vv-admin-main')}>
         {['auth', 'login', 'welcome', 'register', 'otp'].includes(nav.id) ? (
           <Navbar
             activeView={nav.id === 'login' ? 'login' : 'home'}
-            onNavigateView={(viewId) => {
-              nav.reset('c_home', { view: viewId })
-            }}
+            onNavigateView={(viewId) => nav.reset('c_home', { view: viewId })}
             onOpenAuth={(mode) => {
               if (mode === 'register') nav.go('register')
               else if (nav.id !== 'login') nav.go('login')
             }}
           />
-        ) : nav.id !== 'c_home' ? (
-          <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} />
-        ) : null}
-        <main className="relative flex min-h-0 flex-1 flex-col bg-white">
-          <Phone frame={false} scale={1} web={desktop} />
+        ) : !showVendorWorkspace ? <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} blueBrand={showAgentSidebar} workspaceTheme={showAgentSidebar} /> : null}
+        <main className={cx('relative flex min-h-0 flex-1 flex-col bg-white', showAgentSidebar && 'vv-agent-main-content')}>
+          <Phone frame={false} scale={1} web={desktop} onMenu={() => setDrawer(true)} />
         </main>
       </div>
       {drawer && <div className="fixed inset-0 z-[80] flex justify-start"><div className="absolute inset-0 animate-fade-in bg-ink-900/45" onClick={() => setDrawer(false)} /><div className="relative h-full w-[min(360px,92vw)] animate-slide-in border-r border-ink-200 shadow-2xl"><Directory onJump={jump} onClose={() => setDrawer(false)} /></div></div>}
@@ -448,9 +383,10 @@ function Root() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <Root />
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <Root />
+      </AppProvider>
+    </ThemeProvider>
   )
 }
-

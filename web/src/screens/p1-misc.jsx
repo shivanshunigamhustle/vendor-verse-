@@ -1,33 +1,46 @@
 import { useState } from 'react'
 import { Store, Factory, Wrench, Star, Trophy, ShieldCheck, FileText, Wallet, ClipboardList, Target, Clock, Receipt, RefreshCw, Landmark, CreditCard, Globe, WifiOff, SearchX } from 'lucide-react'
-import { Badge, Banner, Button, Card, Checkbox, EmptyState, Group, HBar, Input, ListRow, Section, Select, Stars, StatusBadge, Toggle, Stat, fmt, cx } from '../ui.jsx'
+import { Badge, Banner, Button, Card, Checkbox, Chips, EmptyState, Group, HBar, Input, ListRow, Section, Select, Stars, StatusBadge, Toggle, Stat, fmt, cx } from '../ui.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
+import { VENDOR_ROLES } from '../vendorRoles.js'
 import { P2Badge, Page, Facts, Links, Checklist, SampleBadge } from './blocks.jsx'
 import { AppealQueue } from './p1-depth.jsx'
+import { computePublicationGates } from '../services/publicationGates.js'
+import { TRUST_LEVELS as TRUST_LEVELS_SVC, levelBadges } from '../services/verification.js'
 
 /* ============ vendor onboarding by type (F-VND-01, F-VND-02) ============ */
+const COUNTRY_CODE = { India: 'IN' }
 export function RegisterType({ params = {} }) {
   const nav = useNav()
   const [country, setCountry] = useState('India')
   return <Page title="Become a vendor" subtitle="Tell us who you are">
     <Select label="Which country is your business in?" value={country} onChange={(e) => setCountry(e.target.value)} options={['India']} hint="Asked first, because verification evidence depends on it. Other countries open in Phase 2." />
     <Group>
-      <ListRow icon={Wrench} title="Service provider" subtitle="Electricians, cleaners, caterers and other services" onClick={() => nav.go('v_register_svc', { name: params.biz })} />
-      <ListRow icon={Factory} title="Manufacturer / supplier" subtitle="Goods, bulk supply and wholesale" onClick={() => nav.go('v_register_mfr', { name: params.biz })} last />
+      <ListRow icon={Wrench} title="Service provider" subtitle="Electricians, cleaners, caterers and other services" onClick={() => nav.go('v_register_svc', { name: params.biz, country: COUNTRY_CODE[country] })} />
+      <ListRow icon={Factory} title="Manufacturer / supplier" subtitle="Goods, bulk supply and wholesale" onClick={() => nav.go('v_register_mfr', { name: params.biz, country: COUNTRY_CODE[country] })} last />
     </Group>
     <p className="text-xs text-ink-500">Own a registered company for 3+ years? Open a <button className="font-bold text-brand-700" onClick={() => nav.go('b_eligibility')}>Business account</button> instead.</p>
   </Page>
 }
 
+/* The role a path starts with. Every vendor role comes from the shared registry (D-023, D-024); a vendor can hold several. */
+const DEFAULT_ROLE = { svc: 'SERVICE_PROVIDER', mfr: 'MANUFACTURER' }
 const IND_CAT = { 'Home & facilities': 'home', Construction: 'build', Events: 'event', 'Professional services': 'staff', 'Wholesale and distribution': 'elec' }
 function TypedRegister({ kind, params = {} }) {
   const nav = useNav()
   const { toast } = useApp()
   const svc = kind === 'svc'
-  const [f, setF] = useState({ name: params.name || '', cat: svc ? 'Home & facilities' : 'Wholesale and distribution', area: 'Jaipur', moq: '' })
-  return <Page title={svc ? 'Service provider' : 'Manufacturer / supplier'} subtitle="Business details" footer={<Button full onClick={() => { if (!f.name.trim()) return toast('Enter your business name', 'warn'); nav.go('v_register', { name: f.name, cat: IND_CAT[f.cat], vendorType: svc ? 'service_provider' : 'manufacturer_supplier' }) }}>Continue to verification</Button>}>
+  const [f, setF] = useState({ name: params.name || '', roles: [DEFAULT_ROLE[kind]], cat: svc ? 'Home & facilities' : 'Wholesale and distribution', area: 'Jaipur', moq: '' })
+  const next = () => {
+    if (!f.name.trim()) return toast('Enter your business name', 'warn')
+    if (!f.roles.length) return toast('Choose at least one vendor role', 'warn')
+    const goods = f.roles.some((r) => VENDOR_ROLES[r]?.offer === 'products')
+    nav.go('v_register', { name: f.name, cat: IND_CAT[f.cat], vendorType: goods ? 'manufacturer_supplier' : 'service_provider', country: params.country || 'IN', businessType: f.roles[0], roleCodes: f.roles.slice(1) })
+  }
+  return <Page title={svc ? 'Service provider' : 'Manufacturer / supplier'} subtitle="Business details" footer={<Button full onClick={next}>Continue to verification</Button>}>
     <Input label="Business name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+    <div><p className="mb-2 text-[13px] font-semibold text-ink-700">Your vendor roles</p><Chips multi value={f.roles} onChange={(roles) => setF({ ...f, roles })} options={Object.entries(VENDOR_ROLES).map(([id, r]) => ({ id, label: r.label }))} /><p className="mt-1.5 text-xs text-ink-500">Pick every role that applies. A role is shown publicly only after it is verified.</p></div>
     <Select label="Industry" value={f.cat} onChange={(e) => setF({ ...f, cat: e.target.value })} options={['Home & facilities', 'Construction', 'Events', 'Professional services', 'Wholesale and distribution']} />
     <Input label={svc ? 'Service areas' : 'Delivery regions'} value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} hint={svc ? 'Cities and radius you serve' : 'Where you can ship'} />
     {!svc && <Input label="Minimum order quantity" value={f.moq} onChange={(e) => setF({ ...f, moq: e.target.value })} />}
@@ -42,15 +55,8 @@ export function ListingGate() {
   const { me, vendor, listings } = useApp()
   const v = vendor(me.vendorId) || {}
   const mine = listings.filter((l) => l.vendorId === v.id)
-  const gates = [
-    ['Account state is active', me.accountState !== 'suspended' && me.accountState !== 'restricted', 'Restricted or suspended accounts cannot publish'],
-    ['Content review passed', mine.some((l) => l.status === 'approved'), 'At least one listing approved by an admin'],
-    ['Subscription allows another listing', !!v.plan, v.plan ? `${v.plan} plan` : 'Choose a plan'],
-    ['Category verification met', v.status === 'approved', 'Verification level required by the category'],
-    ['Required fields and service area set', (v.areas || []).length > 0, 'Category fields and at least one area'],
-    ['No holds on the account', true, 'Cases or compliance holds'],
-  ]
-  const ok = gates.filter((g) => g[1]).length
+  const { gates: liveGates, met: ok } = computePublicationGates({ me, vendor: v, listings })
+  const gates = liveGates.map((g) => [g.label, g.ok, g.hint])
   return <Page title="Publication checklist" subtitle={`${ok} of 6 gates met`}>
     <Banner tone={ok === 6 ? 'green' : 'amber'} title={ok === 6 ? 'You can publish' : 'Some gates are open'}>These are computed live each time. They are never stored, so they always reflect today.</Banner>
     <Checklist items={gates} />
@@ -85,16 +91,15 @@ export function Availability() {
 }
 
 /* ============ F-VND-09 / F-TRU-02 public profile with trust ============ */
-export const TRUST_LEVELS = [['L0', 'Registered'], ['L1', 'Contact verified'], ['L2', 'Business verified'], ['L3', 'Credential verified']]
+export const TRUST_LEVELS = TRUST_LEVELS_SVC
 export function PublicProfile({ params = {} }) {
   const { vendor, reviews } = useApp()
   const v = vendor(params.id || 'v-me')
   const rv = reviews.filter((r) => r.target === v.id)
-  const lvl = v.status === 'approved' ? 3 : 1
   return <Page title={v.name} subtitle="How customers see you">
     <Card className="space-y-3">
       <div className="flex items-center justify-between"><p className="text-sm font-bold">Trust</p>{rv.length ? <Badge tone="green">Trust score {Math.min(99, Math.round(v.rating * 20))}</Badge> : <Badge tone="gray">No reviews yet</Badge>}</div>
-      <div className="flex flex-wrap gap-2">{TRUST_LEVELS.slice(0, lvl + 1).map(([k, l]) => <Badge key={k} tone="purple"><ShieldCheck size={12} />{k} {l} · 06 Mar 2026</Badge>)}</div>
+      <div className="flex flex-wrap gap-2">{levelBadges(v).map(([k, l]) => <Badge key={k} tone="teal"><ShieldCheck size={12} />{k} {l} · 06 Mar 2026</Badge>)}</div>
       <div className="flex items-center gap-2 text-xs text-ink-500"><Badge tone="gray">L4 Third-party KYB</Badge><P2Badge /></div><p className="text-xs text-ink-500">Badges say what was verified and when. Trust is computed by the platform and cannot be bought.</p>
     </Card>
     <Facts rows={[['Since', v.since], ['Areas', (v.areas || []).join(', ')], ['Rating', v.rating ? `${v.rating} (${v.reviews})` : 'New']]} />
