@@ -422,3 +422,985 @@
 .vv-login-form [aria-label="Country calling code"]:focus { border-color: #0284c7; outline: 2px solid rgba(2, 132, 199, .18); outline-offset: -2px; }
 .vv-login-form [aria-label="Country calling code"] + div { border: 1px solid #d9ecf8; border-left: 0; border-radius: 0 12px 12px 0; box-sizing: border-box; }
 .vv-login-form [aria-label="Country calling code"]:focus + div { border-color: #0284c7; }
+
+/* ==========================================================================
+   VendorVerse Interactive Mascot & Glassmorphism Login Experience
+   (Based on attached HTML reference + 60% White / 40% Sky Blue design system)
+   ========================================================================== */
+
+:root {
+  --vv-auth-sky1: #bfe6ff;
+  --vv-auth-sky2: #eaf8ff;
+  --vv-auth-sky3: #fff6e0;
+  --vv-auth-hill-back-a: #c3e36b;
+  --vv-auth-hill-back-b: #a5d352;
+  --vv-auth-hill-front-a: #8fcf4a;
+  --vv-auth-hill-front-b: #6bb73b;
+  --vv-auth-bush-a: #6dbf45;
+  --vv-auth-bush-b: #4b9a30;
+  --vv-auth-bush-hi: #93d35f;
+  --vv-auth-grass: #3f8f2a;
+  --vv-auth-card: rgba(255, 255, 255, 0.86);
+  --vv-auth-card-border: rgba(20, 20, 40, 0.08);
+  --vv-auth-card-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 30px 60px -20px rgba(40,70,20,.35), 0 8px 20px -8px rgba(20,20,40,.18);
+  --vv-auth-fg: #0c0c14;
+  --vv-auth-muted: #5d6070;
+  --vv-auth-primary: #0284c7;
+  --vv-auth-primary-hover: #0369a1;
+  --vv-auth-ring: rgba(2, 132, 199, 0.22);
+}
+
+/* Fixed Animated Sky Background */
+.vv-auth-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--vv-auth-sky1) 0%, var(--vv-auth-sky2) 55%, var(--vv-auth-sky3) 100%);
+}
+
+.vv-auth-sun {
+  position: absolute;
+  top: 9%;
+  left: 9%;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  z-index: 1;
+  background: radial-gradient(circle at 40% 38%, #fff9c4, #ffd84d 60%, #ffb703);
+  box-shadow: 0 0 0 18px rgba(255, 214, 77, 0.18), 0 0 0 44px rgba(255, 214, 77, 0.10), 0 0 120px 40px rgba(255, 200, 60, 0.35);
+  animation: vv-auth-sunpulse 6s ease-in-out infinite;
+}
+
+@keyframes vv-auth-sunpulse {
+  50% {
+    box-shadow: 0 0 0 24px rgba(255, 214, 77, 0.16), 0 0 0 54px rgba(255, 214, 77, 0.08), 0 0 140px 54px rgba(255, 200, 60, 0.40);
+  }
+}
+
+.vv-auth-cloud {
+  position: absolute;
+  left: 0;
+  z-index: 1;
+  width: var(--w);
+  opacity: 0.94;
+  color: #ffffff;
+  animation: vv-auth-drift var(--t) linear infinite;
+  animation-delay: var(--dl);
+  filter: drop-shadow(0 8px 16px rgba(56, 189, 248, 0.16));
+}
+
+.vv-auth-cloud svg {
+  display: block;
+  width: 100%;
+  fill: currentColor;
+}
+
+@keyframes vv-auth-drift {
+  from { transform: translateX(-30vw); }
+  to { transform: translateX(110vw); }
+}
+
+/* Layered Landscape Meadow Scene */
+.vv-auth-scene {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: min(30vh, 260px);
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+
+.vv-auth-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: vv-auth-sway-anim var(--s, 4s) ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes vv-auth-sway-anim {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+/* Auth Stage and Interactive Wrap */
+.vv-auth-stage {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 200px 16px 60px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.vv-auth-wrap {
+  position: relative;
+  width: min(420px, 100%);
+  margin: auto;
+  z-index: 5;
+}
+
+/* Interactive Mascot (Puppy) */
+.vv-mascot {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 3px);
+  width: 200px;
+  height: auto;
+  margin-left: -100px;
+  overflow: hidden;
+  z-index: 6;
+  pointer-events: none;
+  animation: vv-mascot-pop 0.9s 0.2s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes vv-mascot-pop {
+  from {
+    transform: translateY(60px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.vv-mascot * {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vv-mascot .ol {
+  stroke: #5c3514;
+  stroke-width: 2.2;
+}
+
+#bob {
+  animation: vv-mascot-bob 3.6s ease-in-out infinite;
+  transform-origin: 100px 170px;
+}
+
+@keyframes vv-mascot-bob {
+  50% { transform: translateY(-2px) scale(1.01, 0.99); }
+}
+
+#head {
+  transform-origin: 100px 112px;
+  transition: transform 0.22s ease-out;
+}
+
+.pupil {
+  transition: transform 0.14s ease-out;
+}
+
+.eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vv-mascot-blink 5s infinite;
+}
+
+.eye.r {
+  animation-delay: 0.05s;
+}
+
+@keyframes vv-mascot-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.08); }
+}
+
+.ear {
+  animation: vv-mascot-ear 4.5s ease-in-out infinite;
+}
+
+.ear.l {
+  transform-origin: 62px 58px;
+}
+
+.ear.r {
+  transform-origin: 138px 58px;
+  animation-name: vv-mascot-ear-r;
+  animation-delay: 0.6s;
+}
+
+@keyframes vv-mascot-ear {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-3deg); }
+}
+
+@keyframes vv-mascot-ear-r {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(3deg); }
+}
+
+.rest-paws {
+  transition: transform 0.4s cubic-bezier(0.3, 1.2, 0.5, 1);
+}
+
+.cover-paws {
+  transform: translateY(100px);
+  transition: transform 0.5s cubic-bezier(0.3, 1.35, 0.5, 1);
+}
+
+.pads {
+  transition: opacity 0.25s 0.1s;
+}
+
+.vv-mascot.covering .cover-paws {
+  transform: translateY(0);
+}
+
+.vv-mascot.covering .rest-paws {
+  transform: translateY(46px);
+}
+
+.vv-mascot.peeking .cover-paws {
+  transform: translateY(30px);
+}
+
+.mouth-sad,
+.mouth-open {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.vv-mascot.sad .mouth-happy { opacity: 0; }
+.vv-mascot.sad .mouth-sad { opacity: 1; }
+.vv-mascot.sad .eye { animation: none; transform: scaleY(0.8); }
+.vv-mascot.sad #head { animation: vv-mascot-headshake 0.6s; }
+.vv-mascot.sad .tear { opacity: 1; }
+
+.tear {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.vv-mascot.happy #bob {
+  animation: vv-mascot-hop 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) 2;
+}
+
+.vv-mascot.happy .mouth-happy { opacity: 0; }
+.vv-mascot.happy .mouth-open { opacity: 1; }
+
+@keyframes vv-mascot-hop {
+  40% { transform: translateY(-14px); }
+}
+
+@keyframes vv-mascot-headshake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px) rotate(-4deg); }
+  40% { transform: translateX(7px) rotate(4deg); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Glassmorphism Auth Card */
+.vv-auth-card {
+  position: relative;
+  padding: 34px 28px 26px;
+  border-radius: 30px;
+  background: var(--vv-auth-card);
+  border: 1px solid var(--vv-auth-card-border);
+  box-shadow: var(--vv-auth-card-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  animation: vv-auth-card-in 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes vv-auth-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.vv-auth-card.shake {
+  animation: vv-auth-card-shake 0.5s ease-in-out;
+}
+
+@keyframes vv-auth-card-shake {
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+.vv-auth-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.vv-auth-title {
+  font-size: 1.6rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0c0c14;
+  margin: 0;
+}
+
+.vv-auth-title .vv-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.vv-auth-title .vv-brand-word {
+  margin-left: 0.28em;
+  color: #ec4899;
+  background: linear-gradient(100deg, #f97316 0%, #ec4899 52%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  font-weight: 900;
+}
+
+.vv-auth-sub {
+  margin-top: 8px;
+  font-size: 0.92rem;
+  color: #5d6070;
+  margin-bottom: 0;
+}
+
+/* Sign In Method Tabs */
+.vv-auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background: #eaf5fc;
+  border: 1px solid #cfe6f5;
+  border-radius: 14px;
+  margin-bottom: 18px;
+}
+
+.vv-auth-tab {
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #5d6070;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vv-auth-tab:hover {
+  color: #0c0c14;
+}
+
+.vv-auth-tab[aria-selected="true"] {
+  background: #ffffff;
+  color: #0284c7;
+  box-shadow: 0 2px 8px -2px rgba(2, 132, 199, 0.25);
+}
+
+/* Input Fields & Forms */
+.vv-auth-group {
+  margin-bottom: 15px;
+}
+
+.vv-auth-label {
+  display: block;
+  font-size: 0.90rem;
+  font-weight: 700;
+  color: #0c0c14;
+  margin-bottom: 7px;
+}
+
+.vv-auth-hint {
+  margin-top: 6px;
+  font-size: 0.80rem;
+  color: #5d6070;
+}
+
+.vv-auth-phone-box {
+  display: flex;
+  height: 48px;
+  background: #ffffff;
+  border: 1px solid #cfe6f5;
+  border-radius: 13px;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vv-auth-phone-box:hover {
+  border-color: #9ccbe8;
+}
+
+.vv-auth-phone-box:focus-within {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.20);
+}
+
+.vv-auth-phone-box[data-invalid="true"] {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.16);
+}
+
+.vv-auth-cc-select {
+  border: 0;
+  border-right: 1px solid #cfe6f5;
+  background: #f8fcff;
+  color: #0c0c14;
+  font-family: inherit;
+  font-weight: 750;
+  font-size: 0.85rem;
+  padding: 0 8px 0 12px;
+  cursor: pointer;
+  outline: none;
+  max-width: 108px;
+  flex-shrink: 0;
+}
+
+.vv-auth-phone-input-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 10px;
+  padding: 0 14px;
+  min-width: 0;
+}
+
+.vv-auth-phone-input-wrap svg {
+  width: 17px;
+  height: 17px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.vv-auth-phone-box:focus-within .vv-auth-phone-input-wrap svg {
+  color: #0284c7;
+}
+
+.vv-auth-phone-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #0c0c14;
+  height: 100%;
+}
+
+.vv-auth-phone-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Email & Password Input Fields */
+.vv-auth-field {
+  position: relative;
+}
+
+.vv-auth-field > svg.ic {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  width: 17px;
+  height: 17px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.vv-auth-field input {
+  width: 100%;
+  height: 48px;
+  padding: 0 44px 0 40px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #0c0c14;
+  background: #ffffff;
+  border: 1px solid #cfe6f5;
+  border-radius: 13px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.vv-auth-field input:hover {
+  border-color: #9ccbe8;
+}
+
+.vv-auth-field input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.20);
+}
+
+.vv-auth-field:focus-within > svg.ic {
+  color: #0284c7;
+}
+
+.vv-auth-field input[aria-invalid="true"] {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.16);
+}
+
+.vv-auth-eye-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: grid;
+  place-items: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.vv-auth-eye-btn:hover {
+  background-color: #eaf5fc;
+  color: #0284c7;
+}
+
+.vv-auth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0 16px;
+  font-size: 0.88rem;
+}
+
+.vv-auth-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.88rem;
+  color: #0c0c14;
+}
+
+.vv-auth-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vv-auth-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid #9ccbe8;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.vv-auth-check input:checked + .vv-auth-box {
+  background: #0284c7;
+  border-color: #0284c7;
+}
+
+.vv-auth-check input:checked + .vv-auth-box svg {
+  stroke-dashoffset: 0;
+}
+
+.vv-auth-box svg {
+  width: 12px;
+  height: 12px;
+  stroke: #ffffff;
+  stroke-width: 3;
+  fill: none;
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  transition: stroke-dashoffset 0.25s 0.05s ease;
+}
+
+.vv-auth-link {
+  color: #0284c7;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.vv-auth-link:hover {
+  color: #0369a1;
+  text-decoration: underline;
+}
+
+/* Action Button */
+.vv-auth-btn {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  border: 0;
+  border-radius: 14px;
+  font-family: inherit;
+  font-weight: 750;
+  font-size: 0.98rem;
+  cursor: pointer;
+  color: #ffffff;
+  background: #0284c7;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 24px -8px rgba(2, 132, 199, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vv-auth-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -6px rgba(2, 132, 199, 0.55);
+}
+
+.vv-auth-btn:active {
+  transform: scale(0.985);
+}
+
+.vv-auth-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+
+.vv-auth-btn:hover::after {
+  transform: translateX(120%);
+  transition: transform 0.8s ease;
+}
+
+.vv-auth-btn .lab,
+.vv-auth-btn .spin,
+.vv-auth-btn .done {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.25s, transform 0.35s;
+}
+
+.vv-auth-btn .spin,
+.vv-auth-btn .done {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.vv-auth-btn.loading .lab {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+.vv-auth-btn.loading .spin {
+  opacity: 1;
+  transform: none;
+}
+
+.vv-auth-btn.ok {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.vv-auth-btn.ok .lab {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+.vv-auth-btn.ok .done {
+  opacity: 1;
+  transform: none;
+}
+
+.vv-auth-spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: vv-auth-rot 0.7s linear infinite;
+}
+
+@keyframes vv-auth-rot {
+  to { transform: rotate(360deg); }
+}
+
+/* In-Card OTP Verification Step */
+.vv-auth-otp-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: #5d6070;
+  margin-bottom: 6px;
+}
+
+.vv-auth-otp-top strong {
+  color: #0c0c14;
+}
+
+.vv-auth-otp-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+
+.vv-auth-otp-input {
+  height: 52px;
+  min-width: 0;
+  text-align: center;
+  font-family: inherit;
+  font-size: 1.35rem;
+  font-weight: 850;
+  color: #0c0c14;
+  background: #ffffff;
+  border: 1.5px solid #cfe6f5;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.05);
+}
+
+.vv-auth-otp-input:hover {
+  border-color: #9ccbe8;
+}
+
+.vv-auth-otp-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.20);
+  background: #eaf5fc;
+}
+
+.vv-auth-otp-banner {
+  background: #eaf5fc;
+  border: 1px solid #9ccbe8;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  color: #0c0c14;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vv-auth-autofill-btn {
+  background: none;
+  border: 0;
+  color: #0284c7;
+  font-weight: 750;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* Workspace Selector */
+.vv-auth-ws-section {
+  margin-top: 18px;
+  padding: 16px;
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f3faff 0%, #e8f4fd 100%);
+  border: 1px solid rgba(2, 132, 199, 0.22);
+}
+
+.vv-auth-ws-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: #475569;
+  margin: 0 0 12px;
+}
+
+.vv-auth-ws-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.vv-auth-ws-btn {
+  min-width: 0;
+  padding: 0 8px;
+  box-sizing: border-box;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #cfe6f5;
+  background: #ffffff;
+  color: #0c0c14;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vv-auth-ws-btn:hover {
+  border-color: #9ccbe8;
+  background: #f8fcff;
+}
+
+.vv-auth-ws-btn[aria-pressed="true"] {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.28);
+}
+
+.vv-auth-ws-note {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #5d6070;
+  margin-bottom: 0;
+}
+
+/* Alert / Feedback Messages */
+.vv-auth-msg-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+}
+
+.vv-auth-msg-wrap.show {
+  grid-template-rows: 1fr;
+}
+
+.vv-auth-msg-wrap > div {
+  overflow: hidden;
+}
+
+.vv-auth-msg {
+  padding: 10px 14px 4px;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.3s 0.1s, transform 0.3s 0.1s;
+}
+
+.vv-auth-msg-wrap.show .vv-auth-msg {
+  opacity: 1;
+  transform: none;
+}
+
+.vv-auth-msg.err { color: #dc2626; }
+.vv-auth-msg.ok { color: #15803d; }
+.vv-auth-msg.info { color: #0284c7; }
+
+/* Footer Links */
+.vv-auth-footer {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.90rem;
+  color: #5d6070;
+}
+
+.vv-auth-browse-btn {
+  background: none;
+  border: 0;
+  color: #0284c7;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.vv-auth-browse-btn:hover {
+  color: #0369a1;
+  background-color: rgba(2, 132, 199, 0.08);
+  text-decoration: underline;
+}
+
+/* Confetti Burst Particles */
+.vv-auth-confetti {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 9px;
+  height: 14px;
+  z-index: 99;
+  pointer-events: none;
+  border-radius: 2px;
+  animation: vv-auth-conf 1.4s cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes vv-auth-conf {
+  to {
+    transform: translate(var(--x), var(--y)) rotate(var(--r));
+    opacity: 0;
+  }
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .vv-auth-stage {
+    padding-top: 190px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .vv-auth-card {
+    padding: 30px 18px 22px;
+    border-radius: 26px;
+  }
+  .vv-auth-sun {
+    left: 5%;
+    width: 65px;
+    height: 65px;
+  }
+  .vv-mascot {
+    width: 175px;
+    margin-left: -87.5px;
+  }
+  .vv-auth-otp-grid {
+    gap: 6px;
+  }
+  .vv-auth-otp-input {
+    height: 46px;
+    font-size: 1.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vv-auth-card,
+  .vv-mascot,
+  .vv-auth-sun,
+  .vv-auth-cloud,
+  .vv-auth-sway,
+  .vv-auth-confetti,
+  #bob,
+  #head,
+  .eye,
+  .ear {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+

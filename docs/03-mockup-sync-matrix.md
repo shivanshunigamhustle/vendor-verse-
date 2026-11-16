@@ -23,7 +23,7 @@ Maps every feature in [01-feature-spec.md](01-feature-spec.md) to the screens th
 
 | ID | Web screens | Web | Mobile screens | Mobile | Sync action |
 |---|---|---|---|---|---|
-| F-ACC-01 | `splash` `welcome` `login` `otp` `register` | Done | `splash` `welcome` `login` `otp` `register` | Done | Web 2026-10-30: one demo OTP 123456 for every role; admin signs in with the OTP once (owner request), which differs from mobile's admin second step; role picker kept (O-11). Web: remove the role picker and the per-role OTPs; use one login, one demo OTP and an admin second step, as mobile does. |
+| F-ACC-01 | `splash` `welcome` `login` `otp` `register` `auth` | Done | `splash` `welcome` `login` `otp` `register` | Done | Web 2026-10-30: one demo OTP 123456 for every role; admin signs in with the OTP once (owner request), which differs from mobile's admin second step; role picker kept (O-11). Web: remove the role picker and the per-role OTPs; use one login, one demo OTP and an admin second step, as mobile does. |
 | F-ACC-02 | `c_profile` | Partial | `c_profile` | Done | Web 2026-10-30: header role toggle and hasVendorAccount still in use; business is now a separate account (F-BIZ-01). Web: replace the role toggle / `hasVendorAccount` with the single-identity mode switch. |
 | F-ACC-03 | `acct_state` | Partial | `acct_state` | Done | Web 2026-10-30: status screen added; restricted/suspended banners are not yet shown across the app. Web: add account-state screen and restricted/suspended banners. |
 | F-ACC-04 | `c_settings` `c_delete` | Done | `c_delete` | Done | Web 2026-10-30: deletion request with OTP check, status timeline and cancel added. Web: add the deletion-request flow with status. |

@@ -6,6 +6,7 @@ import { NavProvider, useNav } from './nav.jsx'
 import { HOME, TABS, ROLES, ADMIN_SIDEBAR } from './roles.js'
 import { SCREENS, GROUPS } from './registry.jsx'
 import { Logo } from './screens/auth.jsx'
+import { ApprovedSignInRoute } from './screens/ApprovedSignInRoute.jsx'
 import { Navbar } from './screens/landing/Navbar.jsx'
 import { FRS, NFR, MVP, PHASE2, ACCEPTANCE, DECISIONS, ROLE_TABLE } from './specs.js'
 import { cx } from './ui.jsx'
@@ -405,6 +406,8 @@ function Shell() {
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [nav.id, me.role, me.loggedIn])
+
+  if (['login', 'welcome'].includes(nav.id) || (nav.id === 'auth' && nav.params?.mode !== 'register')) return <ApprovedSignInRoute />
 
   return (
     <div className={cx('flex h-full min-h-0 bg-white', showAgentSidebar ? 'vv-agent-shell' : showAdminSidebar ? 'vv-admin-shell' : 'flex-col')}>
