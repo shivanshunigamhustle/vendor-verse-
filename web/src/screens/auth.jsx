@@ -23,8 +23,16 @@ export function useSignIn() {
   const { setMe } = useApp()
   const nav = useNav()
   return (role, extra = {}, destination = HOME[role], destinationParams = {}) => {
-    setMe({ role, loggedIn: true, guest: false, vendorId: 'v-me', name: ME[role], ...extra })
-    nav.reset(destination || HOME[role], destinationParams)
+    const roleProps = {
+      customer: { role: 'customer', loggedIn: true, guest: false, vendorId: 'v-me', name: ME.customer },
+      vendor: { role: 'vendor', loggedIn: true, guest: false, vendorId: 'v-me', name: ME.vendor, vendorName: ME.vendor, hasVendorAccount: true, buyerMode: false },
+      business: { role: 'business', loggedIn: true, guest: false, vendorId: 'v-me', name: ME.business, businessName: ME.business, bizId: 'biz-me', businessWorkspace: true, buyerMode: false },
+      agent: { role: 'agent', loggedIn: true, guest: false, agentId: 'a-me', name: ME.agent },
+      admin: { role: 'admin', loggedIn: true, guest: false, adminId: 'ad-me', name: ME.admin },
+    }
+    const base = roleProps[role] || { role, loggedIn: true, guest: false, vendorId: 'v-me', name: ME[role] || 'User' }
+    setMe({ ...base, ...extra })
+    nav.reset(destination || HOME[role] || 'c_home', destinationParams)
   }
 }
 

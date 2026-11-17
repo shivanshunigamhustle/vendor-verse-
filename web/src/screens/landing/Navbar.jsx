@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNav } from '../../nav.jsx'
 import { useApp } from '../../store.jsx'
+import { HOME, ROLES } from '../../roles.js'
+import { ME } from '../../data.jsx'
 import '../website-home.css'
 
 export function Navbar({
@@ -10,15 +12,17 @@ export function Navbar({
   onOpenVendorApply,
 }) {
   const nav = useNav()
-  const { locale, setLocale, lang, setLang } = useApp()
+  const { locale, setLocale, lang, setLang, me, setMe, toast } = useApp()
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const headerRef = useRef(null)
   const langRef = useRef(null)
   const cityRef = useRef(null)
+  const userMenuRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +40,7 @@ export function Navbar({
     const handleClickOutside = (e) => {
       if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false)
       if (cityRef.current && !cityRef.current.contains(e.target)) setCityOpen(false)
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false)
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
@@ -226,20 +231,129 @@ export function Navbar({
             )}
           </div>
 
-          {/* Login Button */}
-          <button
-            type="button"
-            className={`nav-login-btn ${(activeView === 'login' || nav.id === 'login' || (nav.id === 'auth' && nav.params?.mode === 'login')) ? 'active-btn' : ''}`}
-            onClick={() => {
-              if (onOpenAuth) {
-                onOpenAuth('login')
-              } else if (nav.id !== 'login') {
-                nav.go('login')
-              }
-            }}
-          >
-            Login
-          </button>
+          {/* Login Button or Logged-in User Pill */}
+          {me?.loggedIn ? (
+            <div className="nav-dropdown-item" ref={userMenuRef}>
+              <button
+                type="button"
+                className="nav-user-pill"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setUserMenuOpen((v) => !v)
+                }}
+                aria-expanded={userMenuOpen}
+                title={`Logged in as ${me.name || 'User'}`}
+              >
+                <span className="nav-user-avatar">
+                  {(me.name || 'User').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                </span>
+                <span className="nav-user-name">{me.name || 'Account'}</span>
+                <span className="nav-user-badge">
+                  {ROLES.find((r) => r.id === me.role)?.short || me.role}
+                </span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {userMenuOpen && (
+                <div className="nav-dropdown-panel user-menu-panel" role="menu">
+                  <div className="user-menu-header">
+                    <div className="nav-user-avatar large">
+                      {(me.name || 'User').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                    </div>
+                    <div className="user-menu-meta">
+                      <div className="user-menu-name">{me.name}</div>
+                      <div className="user-menu-role">{ROLES.find((r) => r.id === me.role)?.label || me.role}</div>
+                    </div>
+                  </div>
+
+                  <div className="user-menu-divider" />
+
+                  <button
+                    type="button"
+                    className="dropdown-item user-menu-primary"
+                    onClick={() => {
+                      setUserMenuOpen(false)
+                      nav.reset(HOME[me.role] || 'c_home')
+                    }}
+                  >
+                    <span>📊</span>
+                    <span>Go to {ROLES.find((r) => r.id === me.role)?.short || 'Workspace'} Dashboard</span>
+                  </button>
+
+                  <div className="user-menu-divider" />
+                  <div className="panel-header-sub">Switch Workspace</div>
+                  <div className="user-ws-grid">
+                    {ROLES.map((r) => {
+                      const isActive = me.role === r.id
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          className={`user-ws-chip ${isActive ? 'active' : ''}`}
+                          onClick={() => {
+                            setUserMenuOpen(false)
+                            const roleProps = {
+                              customer: { role: 'customer', loggedIn: true, guest: false, vendorId: 'v-me', name: ME.customer },
+                              vendor: { role: 'vendor', loggedIn: true, guest: false, vendorId: 'v-me', name: ME.vendor, vendorName: ME.vendor, hasVendorAccount: true, buyerMode: false },
+                              business: { role: 'business', loggedIn: true, guest: false, vendorId: 'v-me', name: ME.business, businessName: ME.business, bizId: 'biz-me', businessWorkspace: true, buyerMode: false },
+                              agent: { role: 'agent', loggedIn: true, guest: false, agentId: 'a-me', name: ME.agent },
+                              admin: { role: 'admin', loggedIn: true, guest: false, adminId: 'ad-me', name: ME.admin },
+                            }
+                            const updated = roleProps[r.id] || { role: r.id, loggedIn: true, guest: false, name: ME[r.id] || 'User' }
+                            setMe(updated)
+                            nav.reset(HOME[r.id] || 'c_home')
+                            toast(`Switched to ${r.label}`)
+                          }}
+                        >
+                          {r.short}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <div className="user-menu-divider" />
+
+                  <button
+                    type="button"
+                    className="dropdown-item user-menu-logout"
+                    onClick={() => {
+                      setUserMenuOpen(false)
+                      setMe({
+                        role: 'customer',
+                        loggedIn: false,
+                        guest: true,
+                        vendorId: 'v-me',
+                        name: 'Guest',
+                        accountState: 'active',
+                        buyerMode: false,
+                      })
+                      nav.reset('c_home')
+                      toast('Logged out successfully')
+                    }}
+                  >
+                    <span>🚪</span>
+                    <span>Log out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={`nav-login-btn ${(activeView === 'login' || nav.id === 'login' || (nav.id === 'auth' && nav.params?.mode === 'login')) ? 'active-btn' : ''}`}
+              onClick={() => {
+                if (onOpenAuth) {
+                  onOpenAuth('login')
+                } else if (nav.id !== 'login') {
+                  nav.go('login')
+                }
+              }}
+            >
+              Login
+            </button>
+          )}
 
           {/* Mobile Hamburger Toggle */}
           <button
@@ -290,17 +404,61 @@ export function Navbar({
             </div>
 
             <div className="mobile-drawer-actions">
-              <button
-                type="button"
-                className="nav-login-btn full-width"
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  if (onOpenAuth) onOpenAuth('login')
-                  else if (nav.id !== 'login') nav.go('login')
-                }}
-              >
-                Login
-              </button>
+              {me?.loggedIn ? (
+                <div className="mobile-user-drawer-section">
+                  <div className="mobile-user-card">
+                    <div className="nav-user-avatar large">
+                      {(me.name || 'User').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-800">{me.name}</div>
+                      <div className="text-xs font-semibold text-sky-600">{ROLES.find((r) => r.id === me.role)?.label || me.role}</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="nav-login-btn full-width mt-2"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      nav.reset(HOME[me.role] || 'c_home')
+                    }}
+                  >
+                    Go to Dashboard
+                  </button>
+                  <button
+                    type="button"
+                    className="mobile-logout-btn full-width mt-2"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setMe({
+                        role: 'customer',
+                        loggedIn: false,
+                        guest: true,
+                        vendorId: 'v-me',
+                        name: 'Guest',
+                        accountState: 'active',
+                        buyerMode: false,
+                      })
+                      nav.reset('c_home')
+                      toast('Logged out successfully')
+                    }}
+                  >
+                    Log out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="nav-login-btn full-width"
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    if (onOpenAuth) onOpenAuth('login')
+                    else if (nav.id !== 'login') nav.go('login')
+                  }}
+                >
+                  Login
+                </button>
+              )}
             </div>
           </div>
         </div>
