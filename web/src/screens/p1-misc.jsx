@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Store, Factory, Wrench, Star, Trophy, ShieldCheck, FileText, Wallet, ClipboardList, Target, Clock, Receipt, RefreshCw, Landmark, CreditCard, Globe, WifiOff, SearchX } from 'lucide-react'
+import { Store, Factory, Wrench, Star, Trophy, ShieldCheck, FileText, Wallet, ClipboardList, Target, Clock, Receipt, RefreshCw, Landmark, CreditCard, Globe, WifiOff, SearchX, ShoppingBag, FileSignature, Building2 } from 'lucide-react'
 import { Badge, Banner, Button, Card, Checkbox, Chips, EmptyState, Group, HBar, Input, ListRow, Section, Select, Stars, StatusBadge, Toggle, Stat, fmt, cx } from '../ui.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
@@ -178,7 +178,14 @@ export function CustomerDashboard() {
   const { bookings, rfqs, orders, me } = useApp()
   const nav = useNav()
   return <Page title="Dashboard" subtitle={me.name}>
-    <div className="grid grid-cols-2 gap-3"><Stat label="Open bookings" icon={Clock} value={bookings.filter((b) => ['requested', 'accepted'].includes(b.status)).length} onClick={() => nav.go('c_activity')} /><Stat label="Active RFQs" icon={ClipboardList} value={rfqs.filter((r) => r.mine && ['open', 'quoted'].includes(r.status)).length} onClick={() => nav.go('c_activity')} /><Stat label="Purchase orders" icon={Receipt} value={orders.length} onClick={() => nav.go('c_orders')} /><Stat label="Contracts" icon={FileText} value={2} onClick={() => nav.go('c_activity')} /></div>
+    <div className="grid grid-cols-2 gap-3"><Stat label="Open bookings" icon={Clock} value={bookings.filter((b) => ['requested', 'accepted'].includes(b.status)).length} onClick={() => nav.go('c_activity')} /><Stat label="Active RFQs" icon={ClipboardList} value={rfqs.filter((r) => r.mine && ['open', 'quoted'].includes(r.status)).length} onClick={() => nav.go('c_activity')} /><Stat label="Purchase orders" icon={Receipt} value={orders.length} onClick={() => nav.go('c_orders')} /><Stat label="Contracts" icon={FileText} value={2} onClick={() => nav.go('c_contract')} /></div>
+    <Section title="Your account">
+      <Group>
+        <ListRow icon={ShoppingBag} title="Orders" subtitle="Track purchases and bookings" onClick={() => nav.go('c_orders')} />
+        <ListRow icon={FileSignature} title="Contracts" subtitle="Review your agreements" onClick={() => nav.go('c_contract')} />
+        <ListRow icon={Building2} title="Companies" subtitle="Buy directly from verified companies" onClick={() => nav.go('c_companies')} last />
+      </Group>
+    </Section>
     <Links title="Quick actions" items={[[ClipboardList, 'Request a quotation', 'Services or goods', 'c_rfq_new'], [Store, 'Find a supplier', 'Suppliers and manufacturers', 'c_explore_suppliers'], [Star, 'My reviews', '', 'c_reviews']]} />
   </Page>
 }

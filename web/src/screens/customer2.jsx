@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Package, CalendarCheck, FileText, Truck, Phone, MessageCircle, Send, Paperclip, Plus, X, Star, Download, Receipt, RotateCcw, ShieldAlert,
   User, Heart, Globe, Bell, Lock, LogOut, ChevronRight, Check, GitCompare, CreditCard, HelpCircle, Smartphone, Trash2, CircleDollarSign,
-  Clock, Wallet, Store, BadgeCheck, TrendingDown, Zap, ImagePlus,
+  Clock, Wallet, Store, BadgeCheck, TrendingDown, Zap, ImagePlus, ShieldCheck, UserRoundX,
 } from 'lucide-react'
 import { Info, CheckCheck } from 'lucide-react'
 import { P2Badge } from './blocks.jsx'
@@ -503,35 +503,55 @@ export function Profile() {
   if (!me.loggedIn) return <GuestWall title={t('profile')} />
   return (
     <Screen title={t('profile')} back={false} pad={false}>
-      <div className="space-y-4 p-4">
-        <Card className="!p-4">
+      <div className="mx-auto w-full max-w-7xl space-y-5 p-4 sm:p-6">
+        <Card className="!p-5 sm:!p-6">
           <div className="flex items-center gap-3.5">
             <Avatar name={me.name || ME_NAME} size={60} />
             <div className="min-w-0 flex-1"><p className="text-lg font-extrabold">{me.name || ME_NAME}</p><p className="text-sm text-ink-500">{me.phone || (authService.isRemote ? '' : '+91 98290 00001')}</p><Badge tone="teal" className="mt-1.5">Customer</Badge></div>
             <Button size="sm" variant="soft" onClick={() => nav.go('c_profile_edit')}>Edit</Button>
           </div>
         </Card>
-        <Group>
-          <ListRow icon={Heart} tone="rose" title="Saved & compare" subtitle={`${saved.length} saved items`} onClick={() => nav.go('c_saved')} />
-          <ListRow icon={FileText} tone="violet" title="My quote requests" subtitle="RFQs and quotations" onClick={() => nav.go('c_activity')} />
-          <ListRow icon={Star} tone="amber" title="Rate a vendor" subtitle="After you have talked to them" onClick={() => nav.go('c_review')} />
-          <ListRow icon={ShieldAlert} tone="violet" title="Cases" subtitle="Report and track problems" onClick={() => nav.go('c_cases')} />
-          <ListRow icon={FileText} tone="violet" title="Dashboard" onClick={() => nav.go('c_dash')} />
-          <ListRow icon={FileText} tone="violet" title="Purchase orders" onClick={() => nav.go('c_orders')} />
-          <ListRow icon={FileText} tone="violet" title="Contracts" onClick={() => nav.go('c_contract')} />
-          <ListRow icon={FileText} tone="violet" title="Companies (Phase 2)" subtitle="Buy directly from verified companies" onClick={() => nav.go('c_companies')} />
-          <ListRow icon={Star} tone="amber" title="My reviews" onClick={() => nav.go('c_reviews')} last />
-        </Group>
+        <Card onClick={() => nav.go('v_register')} className="!border-brand-200 !bg-brand-50/60 !p-4">
+          <div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-brand-900">Become a vendor</p><p className="mt-0.5 text-xs text-brand-800/75">Create a business account and start selling products or services</p></div><ChevronRight size={17} className="text-brand-500" /></div>
+        </Card>
+        <Section title="Your workspace">
+          <Group>
+            <ListRow icon={FileText} tone="violet" title="Dashboard" subtitle="Orders, contracts and companies" onClick={() => nav.go('c_dash')} last />
+          </Group>
+        </Section>
+        <Section title="Saved, compared & reviewed">
+          <Group>
+            <ListRow icon={Heart} tone="rose" title="Saved & compare" subtitle={`${saved.length} saved items`} onClick={() => nav.go('c_saved')} />
+            <ListRow icon={Star} tone="amber" title="Rate a vendor" subtitle="Share your experience after working with a vendor" onClick={() => nav.go('c_review')} />
+            <ListRow icon={BadgeCheck} tone="violet" title="My reviews" onClick={() => nav.go('c_reviews')} last />
+          </Group>
+        </Section>
+        <Section title="Support">
+          <Group>
+            <ListRow icon={FileText} tone="violet" title="My quote requests" subtitle="RFQs and quotations" onClick={() => nav.go('c_activity')} />
+            <ListRow icon={ShieldAlert} tone="violet" title="Cases" subtitle="Report and track problems" onClick={() => nav.go('c_cases')} last />
+          </Group>
+        </Section>
         {me.hasVendorAccount && <Card onClick={() => nav.go('vb_home')} className="!p-4"><div className="flex items-center gap-3"><Thumb tone="violet" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">Buy from other vendors</p><p className="mt-0.5 text-xs text-ink-500">Find suppliers, send bulk RFQs and track purchases</p></div><ChevronRight size={17} className="text-ink-300" /></div></Card>}
-        {me.hasVendorAccount ? <Card onClick={() => { setMe({ ...me, role: 'vendor', name: me.vendorName || me.name, buyerMode: false }); nav.reset('v_dash') }} className="!p-4"><div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">Open vendor workspace</p><p className="mt-0.5 text-xs text-ink-500">Manage {me.vendorName || 'your business'} and supplier work</p></div><ChevronRight size={17} className="text-ink-300" /></div></Card> : <Card onClick={() => nav.go('v_register')} className="!border-brand-200 !bg-brand-50/60 !p-4"><div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-brand-900">Become a vendor</p><p className="mt-0.5 text-xs text-brand-800/75">Create a business account and start selling products or services</p></div><ChevronRight size={17} className="text-brand-500" /></div></Card>}
-        <Group>
-          <ListRow icon={Globe} tone="sky" title={t('language')} subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => { setLang(lang === 'en' ? 'hi' : 'en'); toast(lang === 'en' ? 'भाषा हिन्दी में बदली गई' : 'Language set to English') }} />
-          <ListRow icon={Bell} tone="orange" title="Notifications" subtitle="Alerts & channels" onClick={() => nav.go('c_notif_prefs')} />
-          <ListRow icon={Lock} tone="slate" title="Privacy, security & sessions" subtitle="Data export, delete account" onClick={() => nav.go('c_sessions')} />
-          <ListRow icon={Lock} tone="slate" title="Your data & account deletion" onClick={() => nav.go('c_export')} />
-          <ListRow icon={Lock} tone="slate" title="Account status" onClick={() => nav.go('acct_state')} />
-          <ListRow icon={Lock} tone="red" title="Delete account" onClick={() => nav.go('c_delete')} last />
-        </Group>
+        {me.hasVendorAccount && <Card onClick={() => { setMe({ ...me, role: 'vendor', name: me.vendorName || me.name, buyerMode: false }); nav.reset('v_dash') }} className="!p-4"><div className="flex items-center gap-3"><Thumb tone="teal" icon={Store} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-sm font-bold">Open vendor workspace</p><p className="mt-0.5 text-xs text-ink-500">Manage {me.vendorName || 'your business'} and supplier work</p></div><ChevronRight size={17} className="text-ink-300" /></div></Card>}
+        <Section title="Your data & account">
+          <Group>
+            <ListRow icon={ShieldCheck} tone="teal" title="Account status" onClick={() => nav.go('acct_state')} />
+            <ListRow icon={Download} tone="sky" title="Your data" subtitle="Export a copy of your information" onClick={() => nav.go('c_export')} />
+            <ListRow icon={UserRoundX} tone="red" title="Delete account" subtitle="Request account and data deletion" onClick={() => nav.go('c_delete')} last />
+          </Group>
+        </Section>
+        <Section title="Privacy, security & sessions">
+          <Group>
+            <ListRow icon={Lock} tone="slate" title="Sessions & devices" subtitle="Review where you are signed in" onClick={() => nav.go('c_sessions')} last />
+          </Group>
+        </Section>
+        <Section title="Preferences">
+          <Group>
+            <ListRow icon={Bell} tone="orange" title="Notifications" subtitle="Alerts & channels" onClick={() => nav.go('c_notif_prefs')} />
+            <ListRow icon={Globe} tone="sky" title={t('language')} subtitle={lang === 'en' ? 'English' : 'हिन्दी'} onClick={() => { setLang(lang === 'en' ? 'hi' : 'en'); toast(lang === 'en' ? 'भाषा हिन्दी में बदली गई' : 'Language set to English') }} last />
+          </Group>
+        </Section>
         <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest' }); nav.reset('c_home') }}>{t('logout')}</Button>
         <p className="text-center text-xs text-ink-400">VendorVerse v1.0 · ADRSTECHNO PRIVATE LIMITED</p>
       </div>
