@@ -318,7 +318,7 @@ export function Explore({ params = {}, supplierOnlyOverride, hideVendorMode = fa
       <div className="vv-explore-results space-y-4 p-4">
         <div className="flex items-center justify-between text-xs text-ink-500">
           <span>{(showItems ? items.length : 0) + (showVendors ? vs.length : 0)} results{q && <> for “<b className="text-ink-800">{q}</b>”</>}</span>
-          {(applied > 0 || c !== 'all' || q) && <button className="font-bold text-brand-700" onClick={() => { setF(DEFAULT_F); setC('all'); setQ(''); setCoverage('local') }}>{t('clearAll')}</button>}
+          {(applied > 0 || c !== 'all' || q) && <button className="vv-explore-clear-button" onClick={() => { setF(DEFAULT_F); setC('all'); setQ(''); setCoverage('local') }}>{t('clearAll')}</button>}
         </div>
         {showVendors && vs.length > 0 && (
           <Section title={mode === 'vendors' ? undefined : supplierOnly ? 'Business suppliers' : 'Vendors'}><div className="vv-explore-card-grid vv-explore-vendor-grid">{vs.map((v) => <VendorRow key={v.id} v={v} showProfileAction={hideVendorMode} />)}</div></Section>

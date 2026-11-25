@@ -51,47 +51,47 @@ const MARKETPLACE_CATEGORIES = [
 function MarketplaceCategoriesMenu({ nav }) {
   const [open, setOpen] = useState(false)
   const [activeId, setActiveId] = useState(INDUSTRIES[0]?.id)
-  const menuRef = useRef(null)
-  const activeIndustry = INDUSTRIES.find((industry) => industry.id === activeId) || INDUSTRIES[0]
 
-  useEffect(() => {
-    const closeOnOutsideClick = (event) => { if (menuRef.current && !menuRef.current.contains(event.target)) setOpen(false) }
-    document.addEventListener('mousedown', closeOnOutsideClick)
-    return () => document.removeEventListener('mousedown', closeOnOutsideClick)
-  }, [])
-
-  return <div ref={menuRef} className={cx('vv-category-menu', open && 'is-open')}>
-    <button
-      type="button"
-      className="is-featured"
-      aria-haspopup="true"
-      aria-expanded={open}
-      onClick={() => { setOpen((value) => !value); setActiveId((value) => value || INDUSTRIES[0]?.id) }}
-    >
-      <LayoutGrid size={15} aria-hidden="true" />
-      <span>Categories</span>
+  return <div className="vv-marketplace-category-menu">
+    <button type="button" className="vv-marketplace-categories-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+      <LayoutGrid size={17} aria-hidden="true" /><span>Categories</span><ChevronRight size={16} aria-hidden="true" className={cx('vv-marketplace-toggle-chevron', open && 'is-open')} />
     </button>
-    <div className="vv-category-mega" role="menu">
-      <div className="vv-category-mega-heading">
-        <div><strong>All categories</strong><span>Hover over a category to see its subcategories</span></div>
-      </div>
-      <div className="vv-category-browser">
-        <div className="vv-category-browser-list" role="menu" aria-label="All categories">
-          {INDUSTRIES.map((industry) => <button key={industry.id} type="button" role="menuitem" aria-current={activeIndustry?.id === industry.id ? 'true' : undefined} className={cx(activeIndustry?.id === industry.id && 'is-selected')} onMouseEnter={() => setActiveId(industry.id)} onFocus={() => setActiveId(industry.id)} onClick={() => { setOpen(false); nav.go('c_explore', { group: industry.name }) }}>
-            <span>{industry.name}</span><small>{industry.cats}</small><ChevronRight size={14} aria-hidden="true" />
-          </button>)}
-        </div>
-        <div className="vv-category-browser-detail" role="menu" aria-label={`${activeIndustry?.name || 'Category'} subcategories`}>
-          {activeIndustry && <>
-            <div className="vv-category-browser-detail-heading"><strong>{activeIndustry.name}</strong><span>{activeIndustry.cats} sample categories</span></div>
-            <div className="vv-category-browser-subs">
-              {activeIndustry.subs.map((subcategory) => <button key={subcategory} type="button" role="menuitem" onClick={() => { setOpen(false); nav.go('c_explore', { group: activeIndustry.name, q: subcategory }) }}>{subcategory}</button>)}
-            </div>
-          </>}
-        </div>
-      </div>
-    </div>
+    {open && <div className="vv-marketplace-all-categories" aria-label="All categories">
+      {INDUSTRIES.map((industry) => {
+        const Icon = industry.icon
+        const expanded = activeId === industry.id
+        const selected = nav.id === 'c_explore' && nav.params?.group === industry.name
+        return <section key={industry.id} className="vv-marketplace-industry">
+          <div className="vv-marketplace-industry-row">
+            <button type="button" className={cx('vv-marketplace-industry-link', selected && 'is-active')} aria-current={selected ? 'page' : undefined} onMouseEnter={() => setActiveId(industry.id)} onFocus={() => setActiveId(industry.id)} onClick={() => nav.go('c_explore', { group: industry.name })}>
+              <Icon size={16} aria-hidden="true" /><span>{industry.name}</span><small>{industry.cats}</small>
+            </button>
+            <button type="button" className="vv-marketplace-industry-toggle" aria-label={`${expanded ? 'Hide' : 'Show'} ${industry.name} subcategories`} aria-expanded={expanded} onClick={() => setActiveId(expanded ? null : industry.id)}>
+              <ChevronRight size={15} aria-hidden="true" className={cx(expanded && 'is-open')} />
+            </button>
+          </div>
+          {expanded && <div className="vv-marketplace-industry-subs">
+            {industry.subs.map((subcategory) => <button key={subcategory} type="button" onClick={() => nav.go('c_explore', { group: industry.name, q: subcategory })}>{subcategory}</button>)}
+          </div>}
+        </section>
+      })}
+    </div>}
   </div>
+}
+
+function MarketplaceExploreSidebar({ nav }) {
+  return <aside className="vv-marketplace-sidebar" aria-label="Explore">
+    <h2>Explore</h2>
+    <MarketplaceCategoriesMenu nav={nav} />
+    <nav className="vv-marketplace-category-links" aria-label="Browse by category">
+      {MARKETPLACE_CATEGORIES.map(([category, icon]) => {
+        const selected = nav.id === 'c_explore' && nav.params?.group === category
+        return <button key={category} type="button" className={cx('vv-marketplace-category-link', selected && 'is-active')} aria-current={selected ? 'page' : undefined} onClick={() => nav.go('c_explore', { group: category })}>
+          <FontAwesomeIcon icon={icon} aria-hidden="true" /><span>{category}</span>
+        </button>
+      })}
+    </nav>
+  </aside>
 }
 
 function useViewport() {
@@ -161,7 +161,7 @@ function Toast() {
   )
 }
 
-function ScreenHost({ onMenu }) {
+function ScreenHost({ onMenu, naturalHeight = false }) {
   const nav = useNav()
   const { me } = useApp()
   const reg = SCREENS[nav.id] || SCREENS.welcome
@@ -182,27 +182,27 @@ function ScreenHost({ onMenu }) {
   const persistentShell = workspaceRoute || agentWorkspaceRoute || adminWorkspaceRoute
   const shellKey = workspaceRoute ? `workspace-${businessWorkspaceRoute ? 'business' : customerWorkspaceRoute ? 'customer' : 'vendor'}` : nav.depth + nav.id
   return (
-    <div key={shellKey} className={cx('h-full min-w-0', formRoute && 'vv-form-route', nav.id === 'v_register' && 'vv-vendor-register-route', !persistentShell && (nav.dir === 'push' ? 'animate-slide-in' : 'animate-fade-in'), customerRoute && 'vv-customer-route', customerPortalRoute && 'vv-customer-portal', ['c_explore', 'v_explore', 'c_explore_suppliers', 'vb_explore'].includes(nav.id) && 'vv-explore-route',           ['c_explore_suppliers', 'vb_explore'].includes(nav.id) && 'vv-supplier-route', nav.id === 'v_dash' && 'vv-vendor-dashboard-route', workspaceRoute && 'vv-vendor-workspace-route', businessWorkspaceRoute && 'vv-business-workspace-route', agentWorkspaceRoute && 'vv-agent-route', adminWorkspaceRoute && 'vv-admin-route', ['v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && 'vv-vendor-detail-route', vendorMessagesRoute && 'vv-vendor-message-route')}>
+    <div key={shellKey} className={cx(naturalHeight ? 'vv-marketplace-content-screen min-w-0' : 'h-full min-w-0', formRoute && 'vv-form-route', nav.id === 'v_register' && 'vv-vendor-register-route', !persistentShell && (nav.dir === 'push' ? 'animate-slide-in' : 'animate-fade-in'), customerRoute && 'vv-customer-route', customerPortalRoute && 'vv-customer-portal', ['c_explore', 'v_explore', 'c_explore_suppliers', 'vb_explore'].includes(nav.id) && 'vv-explore-route',           ['c_explore_suppliers', 'vb_explore'].includes(nav.id) && 'vv-supplier-route', nav.id === 'v_dash' && 'vv-vendor-dashboard-route', workspaceRoute && 'vv-vendor-workspace-route', businessWorkspaceRoute && 'vv-business-workspace-route', agentWorkspaceRoute && 'vv-agent-route', adminWorkspaceRoute && 'vv-admin-route', ['v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && 'vv-vendor-detail-route', vendorMessagesRoute && 'vv-vendor-message-route')}>
       {workspaceRoute ? <VendorWorkspace variant={businessWorkspaceRoute ? 'business' : customerWorkspaceRoute ? 'customer' : 'vendor'} header={businessWorkspaceRoute ? ({ onWorkspaceToggle, mobile, mobileOpen, collapsed }) => <WebHeader onMenu={onMenu} hideTabs workspaceHeader blueBrand workspaceToggle={onWorkspaceToggle} workspaceMobile={mobile} workspaceMobileOpen={mobileOpen} workspaceCollapsed={collapsed} /> : undefined}><C key={nav.depth + nav.id} params={nav.params || {}} /></VendorWorkspace> : <C params={nav.params || {}} />}
     </div>
   )
 }
 
-function Phone({ frame, scale, web = false, onMenu }) {
+function Phone({ frame, scale, web = false, onMenu, naturalHeight = false }) {
   const nav = useNav()
   const reg = SCREENS[nav.id] || SCREENS.welcome
   const inner = (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-white">
+    <div className={cx('relative flex w-full flex-col bg-white', naturalHeight ? 'vv-marketplace-phone' : 'h-full overflow-hidden')}>
       {frame && <StatusBar tone={reg.bar} />}
-      <div className={cx('relative flex min-h-0 flex-1 flex-col', frame && 'pt-11')}>
-        <div className="relative min-h-0 flex-1"><ScreenHost onMenu={onMenu} /><Toast /></div>
+      <div className={cx('relative flex flex-col', !naturalHeight && 'min-h-0 flex-1', frame && 'pt-11')}>
+        <div className={cx('relative', !naturalHeight && 'min-h-0 flex-1')}><ScreenHost onMenu={onMenu} naturalHeight={naturalHeight} /><Toast /></div>
         {!web && !['v_dash', 'v_explore', 'v_listings', 'v_work', 'v_orders', 'v_more', 'v_profile', 'v_reviews', 'v_verify', 'v_perf'].includes(nav.id) && <TabBar />}
         {frame && <div className="h-5 shrink-0 bg-white" />}
       </div>
       {frame && <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-40 h-1.5 w-32 -translate-x-1/2 rounded-full bg-ink-900/85" />}
     </div>
   )
-  if (!frame) return <div className="h-full w-full">{inner}</div>
+  if (!frame) return <div className={cx('w-full', !naturalHeight && 'h-full')}>{inner}</div>
   return (
     <div data-phone style={{ width: 410 * scale, height: 864 * scale }}>
       <div style={{ width: 410, height: 864, transform: `scale(${scale})`, transformOrigin: 'top left' }} className="rounded-[56px] border-[10px] border-ink-900 bg-ink-900 shadow-[0_30px_80px_-20px_rgba(20,40,75,0.55)]">
@@ -295,7 +295,7 @@ function SpecPanel() {
   )
 }
 
-function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme = false, blueBrand = false, workspaceToggle, workspaceMobile = false, workspaceMobileOpen = false, workspaceCollapsed = false, marketplaceCategories = true, marketplaceAnnouncement = true }) {
+function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme = false, blueBrand = false, workspaceToggle, workspaceMobile = false, workspaceMobileOpen = false, workspaceCollapsed = false, marketplaceAnnouncement = true }) {
   const nav = useNav()
   const { lang, setLang, locale, setLocale, me, setMe, t, toast } = useApp()
   const [locationOpen, setLocationOpen] = useState(false)
@@ -329,7 +329,7 @@ function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme =
     nav.go('c_explore', { ...(nav.params?.group ? { group: nav.params.group } : {}), ...(value ? { q: value } : {}) })
   }
   return (
-    <header className={cx('sticky top-0 z-40 shrink-0 border-b border-ink-200 bg-white/95 shadow-[0_2px_10px_rgba(20,40,75,.04)] backdrop-blur', workspaceHeader && 'vv-workspace-global-header', mockMarketplaceHeader && 'vv-mock-global-header')}>
+    <header className={cx(mockMarketplaceHeader ? 'relative z-40 shrink-0 border-b border-ink-200 bg-white/95 shadow-[0_2px_10px_rgba(20,40,75,.04)] backdrop-blur' : 'sticky top-0 z-40 shrink-0 border-b border-ink-200 bg-white/95 shadow-[0_2px_10px_rgba(20,40,75,.04)] backdrop-blur', workspaceHeader && 'vv-workspace-global-header', mockMarketplaceHeader && 'vv-mock-global-header')}>
       {mockMarketplaceHeader && marketplaceAnnouncement && <div className="vv-mock-announcement">Discover and work with verified vendors worldwide.</div>}
       <div className="mx-auto flex h-[72px] max-w-[1600px] items-center gap-3 px-4 sm:px-7 lg:px-10">
         {mockMarketplaceHeader ? <>
@@ -359,7 +359,6 @@ function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme =
         </div>
         </>}
       </div>
-      {mockMarketplaceHeader && marketplaceCategories && <nav className="vv-mock-category-nav" aria-label="Categories"><div className="vv-category-nav-items"><MarketplaceCategoriesMenu nav={nav} />{MARKETPLACE_CATEGORIES.map(([category, icon]) => <button key={category} className={cx(nav.id === 'c_explore' && nav.params?.group === category && 'is-active')} onClick={() => nav.go('c_explore', { group: category })}><FontAwesomeIcon icon={icon} aria-hidden="true" /><span>{category}</span></button>)}</div></nav>}
       <div className="sr-only" aria-live="polite">{screen.title}</div>
       {authService.isRemote && <LocationDialog open={locationOpen} onClose={() => setLocationOpen(false)} />}
       {authDialog && <MarketplaceAuthDialog mode={authDialog.mode} initialRole={authDialog.role} next={authDialog.next} nextParams={authDialog.nextParams} onClose={() => setAuthDialog(null)} onChangeMode={(mode) => setAuthDialog((current) => ({ ...current, mode }))} />}
@@ -434,6 +433,10 @@ function Shell() {
   const showVendorWorkspace = (['vendor', 'business'].includes(me.role) && ((SCREENS[nav.id] || {}).role === 'vendor' || ['messages', 'chat'].includes(nav.id))) || showBusinessWorkspace
   const customerPortalRoute = me.role === 'customer' && ['c_profile', 'c_profile_edit', 'c_dash', 'c_activity', 'c_saved', 'c_cases', 'c_case', 'c_orders', 'c_reviews', 'c_settings', 'messages', 'chat'].includes(nav.id)
   const showCustomerWorkspace = me.role === 'customer' && CUSTOMER_WORKSPACE_IDS.includes(nav.id)
+  const showWebHeader = !showVendorWorkspace && !showCustomerWorkspace && (!customerPortalRoute || ['c_profile', 'c_profile_edit', 'c_dash', 'c_activity', 'c_saved', 'c_orders'].includes(nav.id))
+  const marketplaceCategories = !['c_profile', 'c_profile_edit', 'c_dash', 'c_activity', 'c_saved', 'c_orders', 'v_register'].includes(nav.id)
+  const showMarketplaceCategorySidebar = showWebHeader && marketplaceCategories && !showAgentSidebar && !showAdminSidebar
+    && (['customer', 'vendor', 'business'].includes(me.role) || (!me.loggedIn && PUBLIC_MARKETPLACE_ROUTES.has(nav.id)))
   const agentLogout = () => {
     setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
     nav.reset('c_home')
@@ -500,10 +503,20 @@ function Shell() {
       {showAgentSidebar && <AgentSidebar collapsed={agentSidebarCollapsed} onToggle={() => setAgentSidebarCollapsed((value) => !value)} onNavigate={(id) => nav.reset(id)} onLogout={agentLogout} me={me} t={t} activeId={nav.id} />}
       {showAdminSidebar && <AdminSidebar collapsed={adminSidebarCollapsed} onToggle={() => setAdminSidebarCollapsed((value) => !value)} onNavigate={jump} onLogout={adminLogout} me={me} t={t} activeId={nav.id} />}
       <div className={cx('flex min-h-0 min-w-0 flex-1 flex-col', showAgentSidebar && 'vv-agent-main', showAdminSidebar && 'vv-admin-main')}>
-        {!showVendorWorkspace && !showCustomerWorkspace && (!customerPortalRoute || ['c_profile', 'c_profile_edit', 'c_dash', 'c_activity', 'c_saved', 'c_orders'].includes(nav.id)) && <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} blueBrand={showAgentSidebar} workspaceTheme={showAgentSidebar} marketplaceCategories={!['c_profile', 'c_profile_edit', 'c_dash', 'c_activity', 'c_saved', 'c_orders', 'v_register'].includes(nav.id)} marketplaceAnnouncement={!['c_profile', 'c_profile_edit', 'c_dash', 'c_activity', 'c_saved', 'c_orders', 'v_register'].includes(nav.id)} />}
-        <main className={cx('relative flex min-h-0 flex-1 flex-col bg-white', showAgentSidebar && 'vv-agent-main-content')}>
-          <Phone frame={false} scale={1} web={desktop} onMenu={() => setDrawer(true)} />
-        </main>
+        {showMarketplaceCategorySidebar ? <div className={cx('vv-marketplace-page-scroll', nav.id === 'c_explore' && 'is-explore')}>
+          <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} blueBrand={showAgentSidebar} workspaceTheme={showAgentSidebar} marketplaceAnnouncement={marketplaceCategories} />
+          <div className={cx('vv-marketplace-layout', nav.id === 'c_explore' && 'is-explore')}>
+            <MarketplaceExploreSidebar nav={nav} />
+            <main className="vv-marketplace-main-content">
+              <Phone frame={false} scale={1} web={desktop} onMenu={() => setDrawer(true)} naturalHeight />
+            </main>
+          </div>
+        </div> : <>
+          {showWebHeader && <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} blueBrand={showAgentSidebar} workspaceTheme={showAgentSidebar} marketplaceAnnouncement={marketplaceCategories} />}
+          <main className={cx('relative flex min-h-0 flex-1 flex-col bg-white', showAgentSidebar && 'vv-agent-main-content')}>
+            <Phone frame={false} scale={1} web={desktop} onMenu={() => setDrawer(true)} />
+          </main>
+        </>}
       </div>
       {drawer && <div className="fixed inset-0 z-[80] flex justify-start"><div className="absolute inset-0 animate-fade-in bg-ink-900/45" onClick={() => setDrawer(false)} /><div className="relative h-full w-[min(360px,92vw)] animate-slide-in border-r border-ink-200 shadow-2xl"><Directory onJump={jump} onClose={() => setDrawer(false)} /></div></div>}
     </div>

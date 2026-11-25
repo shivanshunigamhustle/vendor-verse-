@@ -1,11 +1,11 @@
 .vv-c-home {
-  --vh-teal: #0f5c63;
-  --vh-teal-dark: #0b4a50;
-  --vh-ink: #12303a;
-  --vh-muted: #6b7c85;
-  --vh-line: #e3edf0;
+  --vh-teal: var(--vv-accent);
+  --vh-teal-dark: var(--vv-accent-hover);
+  --vh-ink: var(--vv-ink);
+  --vh-muted: var(--vv-muted);
+  --vh-line: var(--vv-border);
   color: var(--vh-ink);
-  background: linear-gradient(180deg, #f2f9fa, #f8fcfc 40%, #eef7f8);
+  background: linear-gradient(180deg, #fff, var(--vv-canvas) 40%, #fff);
   font-family: "DM Sans", "Segoe UI", system-ui, Arial, sans-serif;
   font-size: 14px;
 }
@@ -1142,7 +1142,7 @@
 .vv-c-home .vv-market-content .border-brand-100 { border-color: #c6ecdc; }
 .vv-c-home .vv-market-content .bg-brand-50\/60 { background: rgba(229,247,239,.72); }
 .vv-mock-home {
-  --mock-ink: #0e1b2c; --mock-bg: #f7f4ee; --mock-line: #e4ddd0; --mock-muted: #5b5f6b; --mock-accent: #8a6420;
+  --mock-ink: var(--vv-ink); --mock-bg: var(--vv-canvas); --mock-line: var(--vv-border); --mock-muted: var(--vv-muted); --mock-accent: var(--vv-accent);
   color: var(--mock-ink); background: var(--mock-bg); font: 15px/1.55 "DM Sans", system-ui, sans-serif;
 }
 .vv-mock-home h1,.vv-mock-home h2,.vv-mock-home h3 { font-family: "Playfair Display", Georgia, serif; font-weight: 500; letter-spacing: -.025em; }
@@ -1190,10 +1190,11 @@
 .vv-mock-waitlist>div>span,.vv-mock-eyebrow { color:var(--mock-accent); font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
 .vv-mock-waitlist h2 { margin-top:5px; }.vv-mock-waitlist p { margin:4px 0 0; color:var(--mock-muted); }
 .vv-mock-product-rail article { flex:0 0 270px; scroll-snap-align:start; }
-.vv-mock-footer { display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:30px; margin:24px calc(-1 * max(28px, (100vw - 1320px)/2)) -48px; padding:48px max(28px, calc((100vw - 1264px)/2)) 26px; color:#c9c3b6; background:#12233a; }
+.vv-mock-footer { display:grid; grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr)); gap:28px 24px; width:100%; min-width:0; box-sizing:border-box; margin:24px 0 0; padding:34px clamp(18px,3vw,40px) 20px; border:1px solid #263a53; border-top:3px solid #b68b3b; border-radius:20px; color:#d5d0c6; background:#12233a; box-shadow:0 14px 32px rgba(14,27,44,.12); }
 .vv-mock-footer>div:first-child>b { color:#fff; font:500 20px "Playfair Display",Georgia,serif; letter-spacing:.25em; }.vv-mock-footer>div:first-child>b span { color:#d9b66a; }
 .vv-mock-footer p { max-width:280px; }.vv-mock-footer h3 { margin:0 0 10px; color:#d9b66a; font:700 12px "DM Sans",sans-serif; letter-spacing:.1em; text-transform:uppercase; }
-.vv-mock-footer button { display:block; padding:5px 0; border:0; color:#c9c3b6; background:none; text-align:left; font-size:13px; }.vv-mock-footer button:hover { color:#fff; text-decoration:underline; }
+.vv-mock-footer button { display:block; padding:5px 0; border:0; color:#c9c3b6; background:none; text-align:left; font-size:13px; line-height:1.5; cursor:pointer; transition:color .16s ease; }.vv-mock-footer button:hover { color:#fff; text-decoration:underline; }
+.vv-mock-footer button:focus-visible { outline:2px solid #d9b66a; outline-offset:3px; border-radius:3px; }
 .vv-mock-footer small { grid-column:1/-1; padding-top:16px; border-top:1px solid #ffffff24; font-size:12px; }
 @media(max-width:850px) { .vv-mock-hero { grid-template-columns:1fr; }.vv-mock-hero-art { min-height:280px; }.vv-mock-hero-art:after { background:linear-gradient(180deg,#12233a 0%,transparent 38%); }.vv-mock-intro { grid-template-columns:1fr; gap:22px; }.vv-mock-vendors { grid-template-columns:repeat(2,minmax(0,1fr)); }.vv-mock-footer { grid-template-columns:1fr 1fr; }.vv-mock-footer>div:first-child { grid-column:1/-1; } }
 @media(max-width:560px) { .vv-mock-content { padding:0 18px 32px; }.vv-mock-hero-copy { padding:42px 20px; }.vv-mock-hero h1 { font-size:42px; }.vv-mock-search { border-radius:22px; flex-wrap:wrap; }.vv-mock-search label { flex-basis:calc(50% - 25px); padding:0 9px; }.vv-mock-search label+label { border-left:1px solid var(--mock-line); }.vv-mock-search input { font-size:12px; }.vv-mock-search>button { margin-left:auto; }.vv-mock-vendors { grid-template-columns:1fr; }.vv-mock-waitlist { align-items:flex-start; flex-direction:column; }.vv-mock-footer { margin-right:-18px; margin-left:-18px; padding:36px 18px 22px; gap:24px 14px; }.vv-mock-footer>div:first-child { grid-column:1/-1; }.vv-mock-footer button { font-size:12px; }.vv-mock-section-heading { align-items:center; flex-wrap:wrap; }.vv-mock-section-heading>div:first-child { flex-basis:100%; }.vv-mock-section-heading .vv-mock-text-button { margin-left:auto; } }
@@ -1303,9 +1304,8 @@
 .vv-mock-product-price { margin-top:10px; font:500 24px/1.3 "Playfair Display",Georgia,serif; }
 .vv-mock-product-price small { color:#5B5F6B; font:400 13px "DM Sans",sans-serif; }
 .vv-mock-product-heart { top:auto; right:14px; bottom:14px; }
-.vv-mock-footer { width:100vw; margin:24px 0 -48px; margin-left:50%; transform:translateX(-50%); padding:56px max(28px,calc((100vw - 1264px)/2)) 28px; }
 .vv-mock-footer-bottom { grid-column:1/-1; display:flex; align-items:center; flex-wrap:wrap; gap:12px 28px; margin-top:14px; padding-top:20px; border-top:1px solid #ffffff24; font-size:13px; }
-.vv-mock-footer-bottom span { flex:1; }
+.vv-mock-footer-bottom span { flex:1; color:#aeb8c4; }
 .vv-mock-footer-bottom button { display:inline-block; }
 .vv-mock-dialog-backdrop { position:fixed; inset:0; z-index:100; display:grid; place-items:center; padding:16px; background:#0e1b2c8c; }
 .vv-mock-dialog { display:grid; width:min(760px,100%); max-height:min(90vh,760px); grid-template-columns:minmax(200px,.8fr) minmax(300px,1.2fr); overflow:auto; border-radius:20px; background:#fff; box-shadow:0 25px 80px #0e1b2c55; }
@@ -1322,7 +1322,7 @@
 .vv-mock-how-heading>p { max-width:430px; margin:0 0 3px; color:#5B5F6B; font-size:16px; }
 .vv-mock-how-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
 .vv-mock-how-grid article { position:relative; min-height:210px; padding:24px; overflow:hidden; border:1px solid #E4DDD0; border-radius:20px; background:#fff; box-shadow:0 10px 28px #0e1b2c0a; }
-.vv-mock-step-icon { display:grid; width:42px; height:42px; place-items:center; border-radius:13px; color:#087F5B; background:#E1EFE9; }
+.vv-mock-step-icon { display:grid; width:42px; height:42px; place-items:center; border-radius:13px; color:var(--vv-accent); background:var(--vv-accent-soft); }
 .vv-mock-step-number { position:absolute; top:20px; right:22px; color:#D8D1C4; font:500 40px/1 "Playfair Display",Georgia,serif; }
 .vv-mock-how-grid h3 { margin:28px 0 6px; font-size:21px; }
 .vv-mock-how-grid p { max-width:300px; margin:0; color:#5B5F6B; font-size:14px; }
