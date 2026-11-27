@@ -234,6 +234,7 @@ export function createApiAuthService({ baseUrl, fetchImpl = (...args) => globalT
 
   /** Authenticated call with one transparent refresh-and-retry on 401. `body` may be a function of the current session. */
   async function authed(path, { method = 'POST', body, headers } = {}) {
+    const hadSession = Boolean(store.get())
     const attempt = () => {
       const session = store.get()
       if (!session) return Promise.resolve({ status: 401, data: null })
@@ -241,7 +242,7 @@ export function createApiAuthService({ baseUrl, fetchImpl = (...args) => globalT
     }
     let r = await attempt()
     if (r.status === 401 && (await refresh())) r = await attempt()
-    if (r.status === 401) notifySessionExpired()
+    if (r.status === 401 && hadSession) notifySessionExpired()
     return r
   }
 

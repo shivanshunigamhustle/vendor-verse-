@@ -13,6 +13,7 @@ import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { authService } from '../services/authService.js'
 import { openAuthDialog } from '../components/MarketplaceAuthDialog.jsx'
+import { openVendorDm } from './directQuote.js'
 import { SAMPLE_GROUPS, SAMPLE_LISTINGS } from '../data/exploreSamples.js'
 import { INDUSTRIES, VENDORS0 } from '../data.jsx'
 import { FIELD_CATEGORY_MAP, getPopularSubcategories, matchesSearchText, vendorMatchesSubcategory } from '../data/vendorSeed.js'
@@ -81,10 +82,66 @@ export function useLoad(load, deps = []) {
   return { ...state, reload: run }
 }
 
-export const Loading = ({ compact = false } = {}) => <div className={cx('vv-loading-state', compact && 'is-compact')} role="status" aria-live="polite">
-  <span className="vv-loading-spinner" aria-hidden="true" />
-  <span>Loading results…</span>
-</div>
+export const Loading = ({ compact = false, variant = 'cards' } = {}) => {
+  if (compact) {
+    return (
+      <div className="vv-skeleton-compact" role="status" aria-live="polite" aria-busy="true">
+        <span className="vv-sk-bar vv-sk-line-md" />
+        <span className="vv-sk-bar vv-sk-line-sm" />
+        <span className="sr-only">Loading</span>
+      </div>
+    )
+  }
+  if (variant === 'rows') {
+    return (
+      <div className="vv-skeleton-rows" role="status" aria-live="polite" aria-busy="true">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="vv-skeleton-row" aria-hidden="true">
+            <span className="vv-sk-bar vv-sk-thumb" />
+            <div className="vv-skeleton-row-lines">
+              <span className="vv-sk-bar vv-sk-line-md" />
+              <span className="vv-sk-bar vv-sk-line-sm" />
+            </div>
+            <span className="vv-sk-bar vv-sk-pill" />
+          </div>
+        ))}
+        <span className="sr-only">Loading</span>
+      </div>
+    )
+  }
+  if (variant === 'detail') {
+    return (
+      <div className="vv-skeleton-detail" role="status" aria-live="polite" aria-busy="true">
+        <div className="vv-skeleton-box" aria-hidden="true">
+          <span className="vv-sk-bar vv-sk-title" />
+          <span className="vv-sk-bar vv-sk-line-lg" />
+          <span className="vv-sk-bar vv-sk-line-md" />
+        </div>
+        <div className="vv-skeleton-box" aria-hidden="true">
+          <span className="vv-sk-bar vv-sk-line-md" />
+          <span className="vv-sk-bar vv-sk-line-lg" />
+          <span className="vv-sk-bar vv-sk-line-sm" />
+        </div>
+        <span className="sr-only">Loading</span>
+      </div>
+    )
+  }
+  return (
+    <div className="vv-skeleton-grid" role="status" aria-live="polite" aria-busy="true">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="vv-skeleton-card" aria-hidden="true">
+          <span className="vv-sk-bar vv-sk-cover" />
+          <div className="vv-skeleton-card-body">
+            <span className="vv-sk-bar vv-sk-line-md" />
+            <span className="vv-sk-bar vv-sk-line-sm" />
+            <span className="vv-sk-bar vv-sk-pill" />
+          </div>
+        </div>
+      ))}
+      <span className="sr-only">Loading</span>
+    </div>
+  )
+}
 export const ErrorBox = ({ message, onRetry }) => <Banner tone="red" title="Could not load" action={onRetry && <Button size="sm" variant="secondary" onClick={onRetry}>Try again</Button>}>{message}</Banner>
 
 /* ================= SEARCH (F-DSC-02, F-DSC-03, F-DSC-04) ================= */
@@ -249,7 +306,7 @@ function vendorsFromListings(listings) {
 
 function VendorCard({ vendor, sample }) {
   const nav = useNav()
-  const { me } = useApp()
+  const { me, setThreads } = useApp()
   const listing = vendor.listing
   const city = listing?.city || vendor.city
   const rating = Number(vendor.ratingAvg ?? vendor.rating)
@@ -293,6 +350,23 @@ function VendorCard({ vendor, sample }) {
       <div className="vv-vendor-directory-foot">
         <div className="vv-vendor-directory-actions">
           <button type="button" onClick={() => nav.go('c_vendor', { id: vendor.id })} className="vv-vendor-btn-secondary">View profile</button>
+          <button
+            type="button"
+            onClick={() => openVendorDm({
+              me,
+              nav,
+              setThreads,
+              vendorId: vendor.id,
+              vendorName: vendor.name,
+              cat: vendor.cat,
+              city,
+              isDirectory: true,
+            })}
+            className="vv-vendor-btn-secondary"
+          >
+            <MessageCircle size={14} aria-hidden="true" />
+            Message
+          </button>
           <button type="button" onClick={() => (me?.loggedIn ? nav.go('c_rfq_new', { cat: vendor.cat }) : openAuthDialog('signin'))} className="vv-vendor-btn-primary">Request quote</button>
         </div>
       </div>
@@ -633,7 +707,7 @@ export function RemoteListingDetail({ params = {} }) {
               <span>Back</span>
             </button>
           </div>
-          <div className="vv-listing-state-card"><Loading /></div>
+          <div className="vv-listing-state-card"><Loading variant="detail" /></div>
         </div>
       </div>
     )
@@ -860,7 +934,7 @@ export function RemoteBookNew({ params = {} }) {
   const key = useRef(newKey()) // one key per user action: a double tap or retry makes one booking (F-BKG-08)
   const scrollRef = useRef(null)
 
-  if (listing.loading) return <Screen title="Request a booking"><Loading /></Screen>
+  if (listing.loading) return <Screen title="Request a booking"><Loading variant="detail" /></Screen>
   if (listing.error) return <Screen title="Request a booking"><ErrorBox message={listing.error} onRetry={listing.reload} /></Screen>
   const l = listing.data.listing
   const windows = (l.bookableWindows || []).filter((window) => new Date(window.startsAt) > new Date() && window.placesLeft > 0)
@@ -956,7 +1030,7 @@ export function RemoteBookingDetail({ params = {} }) {
   const [panel, setPanel] = useState(null) // 'decline' | 'cancel' | 'modify'
   const [change, setChange] = useState({ start: '', end: '', note: '' })
 
-  if (loading && !data) return <Screen title="Booking"><Loading /></Screen>
+  if (loading && !data) return <Screen title="Booking"><Loading variant="detail" /></Screen>
   if (error) return <Screen title="Booking"><ErrorBox message={error} onRetry={reload} /></Screen>
   const b = data.booking
   const isVendor = b.viewerRole === 'vendor'
@@ -1066,7 +1140,7 @@ export function BookingRows({ state, empty, detail }) {
     <>
       <div className="bg-white px-3 py-2.5 sm:px-4 sm:py-3"><Chips scroll={false} value={filter} onChange={setFilter} options={FILTERS} /></div>
       <div className="space-y-3 p-4">
-        {loading && !data && <Loading />}
+        {loading && !data && <Loading variant="rows" />}
         {error && <ErrorBox message={error} onRetry={reload} />}
         {!loading && !error && rows.length === 0 && <EmptyState icon={CalendarClock} title="No bookings" body={empty} />}
         {rows.map((b) => (
@@ -1104,7 +1178,7 @@ export function RemoteVendorBookings() {
   const mine = useLoad(() => authService.listMyVendors(), [])
   const vendorId = mine.data?.vendors?.[0]?.id
   const load = useCallback(() => (vendorId ? authService.listVendorBookings(vendorId) : Promise.resolve({ ok: true, bookings: [] })), [vendorId])
-  if (mine.loading) return <Screen title="Work" back={false}><Loading /></Screen>
+  if (mine.loading) return <Screen title="Work" back={false}><Loading variant="rows" /></Screen>
   if (mine.error) return <Screen title="Work" back={false}><ErrorBox message={mine.error} onRetry={mine.reload} /></Screen>
   return <BookingList title="Work" back={false} load={load} detail="v_booking" empty={vendorId ? 'Booking requests for your listings appear here.' : 'Register your business to receive bookings.'} />
 }

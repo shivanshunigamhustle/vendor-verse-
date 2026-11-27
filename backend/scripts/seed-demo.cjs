@@ -36,7 +36,7 @@ const INDUSTRY = {
 };
 
 const USERS = [
-  { key: "admin", phone: "+919000000001", name: "Demo Admin", mode: "customer", role: "SUPER_ADMIN" },
+  { key: "admin", phone: "+919000000001", name: "Admin", mode: "customer", role: "SUPER_ADMIN" },
   { key: "agent", phone: "+919000000002", name: "Demo Sales Agent", mode: "customer", role: "SALES_AGENT" },
   { key: "riya", phone: "+919000000010", name: "Riya Sharma", mode: "customer" },
   { key: "arjun", phone: "+919000000011", name: "Arjun Mehta", mode: "customer" },

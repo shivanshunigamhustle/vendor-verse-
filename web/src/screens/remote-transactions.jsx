@@ -73,7 +73,7 @@ export function WorkOrderRows({ items, detail, empty }) {
 export function RemoteWorkOrder({ params = {}, side = 'customer' }) {
   const { loading, error, data, reload } = useLoad(() => authService.getWorkOrder(params.id), [params.id])
   const { busy, failure, run } = useAct(reload)
-  if (loading && !data) return <Screen title="Work order"><Loading /></Screen>
+  if (loading && !data) return <Screen title="Work order"><Loading variant="detail" /></Screen>
   if (error) return <Screen title="Work order"><ErrorBox message={error} onRetry={reload} /></Screen>
   const w = data.workOrder
   const act = (action, done) => () => run(() => authService.workOrderAction(w.id, action), done)
@@ -124,7 +124,7 @@ export function RemoteOrders({ side = 'customer' }) {
   const detail = side === 'vendor' ? 'v_order' : 'c_order'
   return (
     <Screen title="Purchase orders" subtitle={side === 'vendor' ? 'Orders placed with you' : 'Orders you placed'} headerClass="vv-purchase-orders-header" scrollClass="vv-purchase-orders-scroll" bg="bg-[#f8f5ee]">
-      {(orders.loading || (side === 'vendor' && mine.loading)) && !orders.data && <Loading />}
+      {(orders.loading || (side === 'vendor' && mine.loading)) && !orders.data && <Loading variant="rows" />}
       {orders.error && <ErrorBox message={orders.error} onRetry={orders.reload} />}
       {orders.data && <OrderRows items={orders.data.purchaseOrders} detail={detail} empty={side === 'vendor' ? 'Orders from accepted goods quotes appear here.' : 'Accept a goods quote on an RFQ to create an order.'} />}
     </Screen>
@@ -136,7 +136,7 @@ export function RemoteOrderDetail({ params = {} }) {
   const { loading, error, data, reload } = useLoad(() => authService.getPurchaseOrder(params.id), [params.id])
   const { busy, failure, run } = useAct(reload)
   const [ship, setShip] = useState(null)
-  if ((loading && !data) || mine.loading) return <Screen title="Purchase order"><Loading /></Screen>
+  if ((loading && !data) || mine.loading) return <Screen title="Purchase order"><Loading variant="detail" /></Screen>
   if (error) return <Screen title="Purchase order"><ErrorBox message={error} onRetry={reload} /></Screen>
   const o = data.purchaseOrder
   const supplier = mine.ids.includes(o.supplierVendorId)
@@ -186,7 +186,7 @@ export function RemoteContractDetail({ params = {} }) {
   const [decline, setDecline] = useState(null)
   const [ms, setMs] = useState(null)
   const [counter, setCounter] = useState(null)
-  if ((loading && !data) || mine.loading) return <Screen title="Contract"><Loading /></Screen>
+  if ((loading && !data) || mine.loading) return <Screen title="Contract"><Loading variant="detail" /></Screen>
   if (error) return <Screen title="Contract"><ErrorBox message={error} onRetry={reload} /></Screen>
   const c = data.contract
   const vendorSide = mine.ids.includes(c.vendorId)
@@ -255,7 +255,7 @@ export function RemoteContractNew({ params = {} }) {
   const vendorId = params.vendorId || l?.vendor?.id
   const categoryId = params.categoryId || l?.categoryId
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }))
-  if (listing.loading && !listing.data) return <Screen title="Propose a contract"><Loading /></Screen>
+  if (listing.loading && !listing.data) return <Screen title="Propose a contract"><Loading variant="detail" /></Screen>
   const submit = async () => {
     if (!vendorId || !categoryId) return setFailure('Open this from a vendor listing so the vendor and category are known.')
     if (!f.title.trim() || !f.description.trim()) return toast('Add a title and the scope', 'warn')

@@ -22,8 +22,12 @@ export function useInbox(role, enabled = true) {
   }, [enabled])
 
   useEffect(() => {
+    if (!remoteInbox || !enabled) {
+      setState({ items: [], loading: false, error: '', more: false })
+      return
+    }
     load()
-  }, [load, role])
+  }, [load, role, enabled])
 
   const markRead = async (id) => {
     const r = await authService.markNotificationRead(id)
@@ -41,15 +45,18 @@ export function useInbox(role, enabled = true) {
 }
 
 /** Unread count for the bell badge. Zero while signed out or against the mock. */
-export function useUnreadCount(role) {
+export function useUnreadCount(role, enabled = true) {
   const [count, setCount] = useState(0)
   useEffect(() => {
-    if (!remoteInbox) return
+    if (!remoteInbox || !enabled) {
+      setCount(0)
+      return undefined
+    }
     let live = true
     authService.getUnreadNotificationCount().then((r) => live && setCount(r.ok ? r.count : 0))
     return () => {
       live = false
     }
-  }, [role])
+  }, [role, enabled])
   return count
 }

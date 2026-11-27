@@ -10,7 +10,9 @@ import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { remoteInbox, useInbox } from '../useInbox.js'
 import { GEO, findCity } from '../geo.js'
-import { cat, CATS, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
+import { cat, CATS, INDUSTRIES, calcPrice, listing as findListing, SLOTS } from '../data.jsx'
+import { resolveIndustryCat } from './rfqCategories.js'
+import { formatDirectQuoteMessage } from './directQuote.js'
 import {
   Screen, Card, Section, Button, Thumb, Chips, Segmented, Sheet, Dialog, Input, Select, CategorySelect, Toggle, Badge, Rating, Banner, EmptyState, SearchBar,
   PriceBreakdown, KV, fmt, cx, Pill, IconBtn, StatusBadge, Stars, ListRow, Group, Timeline, Avatar, SOFT, Meta, DemoPhonePePayment,
@@ -65,15 +67,20 @@ export function RfqNew({ params = {} }) {
   const nav = useNav()
   const { me, vendor, vendors, rfqs, setRfqs, notify, toast, locale } = useApp()
   const targetVendor = params.vendorId ? vendor(params.vendorId) : null
-  const [f, setF] = useState({ cat: params.cat || '', kind: 'service', title: params.title ? `Bulk quote: ${params.title}` : '', scope: '', quantity: '', budget: '', timeline: '', deadline: dateAfterISO(7), city: locale.city || '', answers: {} })
+  const initialCat = params.cat
+    ? (INDUSTRIES.some((ind) => ind.id === params.cat) ? params.cat : (INDUSTRIES.find((ind) => ind.cat === params.cat)?.id || params.cat))
+    : ''
+  const [f, setF] = useState({ cat: initialCat, kind: 'service', title: params.title ? `Bulk quote: ${params.title}` : '', scope: '', quantity: '', budget: '', timeline: '', deadline: dateAfterISO(7), city: locale.city || '', answers: {} })
   const [gx, setGx] = useState({ dest: locale.countryName || 'India', inco: '', target: '', samples: false })
   const [files, setFiles] = useState([])
   const [errs, setErrs] = useState({})
-  const c = cat(f.cat)
+  const selectedIndustry = INDUSTRIES.find((x) => x.id === f.cat) || null
+  const resolvedCatId = selectedIndustry ? resolveIndustryCat(selectedIndustry) : f.cat
+  const c = cat(resolvedCatId)
   const qs = f.cat ? (c.rfq || []).filter((k) => !['Budget range', 'Quantity', 'Delivery location'].includes(k)) : []
   const set = (k) => (e) => { setF({ ...f, [k]: e?.target ? e.target.value : e }); setErrs({ ...errs, [k]: '' }) }
-  const cities = [...new Set(GEO.find((g) => g.code === 'IN').states.flatMap((st) => st.cities.map((x) => x.n)))]
-  const eligible = targetVendor ? [targetVendor] : vendors.filter((v) => v.status === 'approved' && v.cat === f.cat && (v.areas || []).some((a) => a === f.city || a === 'Remote' || a === 'India'))
+  const cities = [...new Set([...(locale.city ? [locale.city] : []), ...GEO.find((g) => g.code === 'IN').states.flatMap((st) => st.cities.map((x) => x.n))])]
+  const eligible = targetVendor ? [targetVendor] : vendors.filter((v) => v.status === 'approved' && (selectedIndustry?.id === 'i_manu' ? (v.group === 'Manufacturing and supply' || v.cat === 'elec') : v.cat === resolvedCatId) && (!f.city || v.city === f.city || (v.areas || []).some((a) => a === f.city || a === 'Remote' || a === 'India')))
   const submit = () => {
     const e = {}
     if (!f.cat) e.cat = 'Choose a category'
@@ -91,21 +98,20 @@ export function RfqNew({ params = {} }) {
     const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
     const specs = [...qs.map((k) => `${k}: ${f.answers[k]}`), `Scope: ${f.scope}`, `Timeline: ${f.timeline}`, ...(gx.target ? [`Target unit price: ${gx.target}`] : []), ...(gx.inco ? [`Incoterm: ${gx.inco}`] : []), ...(gx.dest !== 'India' ? [`Destination: ${gx.dest}`] : []), ...(gx.samples ? ['Samples needed first'] : [])]
     const buyerName = me.role === 'vendor' ? (vendor(me.vendorId)?.name || me.name || 'Business buyer') : ME_NAME
-    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, targetVendorId: params.vendorId || undefined, targetVendorName: targetVendor?.name, customer: buyerName, title: f.title, cat: f.cat, kind: f.kind, cats: [f.cat], categoryBudgets: {}, qty: f.quantity, budget: f.budget, deadline: `${d} ${mon} ${y}`, location: `${f.city}${place ? `, ${place.state}, ${place.countryName}` : ''}`, country: place?.countryName || 'India', state: place?.state || '', city: f.city, pincode: locale.pincode || '', desc: specs.join('\n'), files, status: 'submitted', created: '19 Oct 2026', recipients: eligible.length, history: [{ s: 'submitted', at: 'Just now', note: `Sent to ${eligible.length} eligible vendor${eligible.length === 1 ? '' : 's'}` }], quotes: [], chat: [] }, ...r])
+    setRfqs((r) => [{ id, mine: true, buyerType: me.role === 'vendor' ? 'vendor' : 'customer', buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined, targetVendorId: params.vendorId || undefined, targetVendorName: targetVendor?.name, customer: buyerName, title: f.title, cat: resolvedCatId, industryId: selectedIndustry?.id, categoryName: selectedIndustry?.name || c.name, kind: f.kind, cats: [resolvedCatId], categoryBudgets: {}, qty: f.quantity, budget: f.budget, deadline: `${d} ${mon} ${y}`, location: `${f.city}${place ? `, ${place.state}, ${place.countryName}` : ''}`, country: place?.countryName || 'India', state: place?.state || '', city: f.city, pincode: locale.pincode || '', desc: specs.join('\n'), files, status: 'submitted', created: '19 Oct 2026', recipients: eligible.length, history: [{ s: 'submitted', at: 'Just now', note: `Sent to ${eligible.length} eligible vendor${eligible.length === 1 ? '' : 's'}` }], quotes: [], chat: [] }, ...r])
     notify('vendor', me.role === 'vendor' ? 'Vendor buyer RFQ published' : 'RFQ matches your category', `${id} · ${f.title}`, 'rfq')
     toast(`RFQ sent to ${eligible.length} eligible vendor${eligible.length === 1 ? '' : 's'}`)
     nav.replace('c_rfq', { id })
   }
   return (
     <Screen title="Request quotation" subtitle={targetVendor ? `Direct to ${targetVendor.name}` : 'Structured request for eligible vendors'} headerClass="bg-[#fffdf8]" bg="bg-[#f4efe6]" footer={<Button className="!border !border-[#d8cdbb] !bg-[#e7dfd1] !text-[#0e1b2c] hover:!border-[#0e1b2c] hover:!bg-[#0e1b2c] hover:!text-white" full size="lg" icon={Send} onClick={submit}>Send RFQ</Button>}>
-      <CategorySelect label="Category" required value={f.cat} error={errs.cat} onChange={(e) => { setF({ ...f, cat: e.target.value, answers: {} }); setErrs({ ...errs, cat: '' }) }} options={[{ value: '', label: 'Choose a category' }, ...CATS.map((x) => ({ value: x.id, label: x.name }))]} />
+      <CategorySelect label="Category" required value={f.cat} error={errs.cat} onChange={(e) => { setF({ ...f, cat: e.target.value, answers: {} }); setErrs({ ...errs, cat: '' }) }} options={[{ value: '', label: 'Choose a category' }, ...INDUSTRIES.map((x) => ({ value: x.id, label: x.name }))]} />
       <Segmented value={f.kind} onChange={(kind) => setF({ ...f, kind })} options={[{ id: 'service', label: 'Service' }, { id: 'goods', label: 'Goods' }]} />
       <Input label="What do you need?" required placeholder="e.g. Repair kitchen pipe leak" value={f.title} onChange={set('title')} error={errs.title} />
       <Input label="Scope" required textarea placeholder="Describe the work or the items" value={f.scope} onChange={set('scope')} error={errs.scope} />
-      <div className="flex gap-3"><Input label="Quantity" value={f.quantity} onChange={set('quantity')} /><Input label="Budget (optional)" value={f.budget} onChange={set('budget')} /></div>
-      <div className="flex gap-3"><Input label="Timeline (optional)" value={f.timeline} onChange={set('timeline')} /><Input label="Quotes needed by" required type="date" min={dateAfterISO(0)} value={f.deadline} onChange={set('deadline')} error={errs.deadline} /></div>
+      <Input label="Quantity" value={f.quantity} onChange={set('quantity')} />
       {qs.length > 0 && <div>
-        <p className="mb-2 text-[13px] font-semibold text-ink-700">{c.name}: specific questions</p>
+        <p className="mb-2 text-[13px] font-semibold text-ink-700">{selectedIndustry?.name || c.name}: specific questions</p>
         <div className="space-y-3">{qs.map((k) => <Input key={k} label={k} required value={f.answers[k] || ''} onChange={(e) => { setF({ ...f, answers: { ...f.answers, [k]: e.target.value } }); setErrs({ ...errs, ['a_' + k]: '' }) }} error={errs['a_' + k]} />)}</div>
         <p className="mt-1.5 text-xs text-ink-500">These fields come from the category's RFQ schema and can differ per category.</p>
       </div>}
@@ -796,15 +802,19 @@ export function Messages() {
 
 export function Chat({ params }) {
   const nav = useNav()
-  const { me, threads, setThreads, listings, vendors, toast } = useApp()
+  const { me, threads, setThreads, listings, vendors, rfqs, setRfqs, notify, locale, toast } = useApp()
   const role = me.role === 'vendor' ? 'vendor' : me.role === 'business' ? 'business' : 'customer'
   const th = threads[role].find((t) => (params.id ? t.id === params.id : t.vendorId === params.vendorId)) || threads[role][0]
   const [text, setText] = useState('')
   const [menu, setMenu] = useState(false)
   const [typing, setTyping] = useState(false)
+  const [quoteOpen, setQuoteOpen] = useState(() => params.quote === '1')
+  const [quoteForm, setQuoteForm] = useState({ kind: 'service', title: '', scope: '', quantity: '', budget: '', deadline: '' })
+  const [quoteErrs, setQuoteErrs] = useState({})
   const end = useRef(null)
   const l = th?.listingId ? listings.find((x) => x.id === th.listingId) : null
   const v = th?.vendorId ? vendors.find((x) => x.id === th.vendorId) : null
+  useEffect(() => { if (params.quote === '1') setQuoteOpen(true) }, [params.quote])
   useEffect(() => { if (th) setThreads((t) => ({ ...t, [role]: t[role].map((x) => (x.id === th.id ? { ...x, unread: 0 } : x)) })) }, [])
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }) }, [th?.msgs.length, typing])
   if (!th) return <Screen title="Chat"><EmptyState icon={MessageCircle} title="No conversation" /></Screen>
@@ -812,6 +822,49 @@ export function Chat({ params }) {
   const add = (f, t, file) => setThreads((s) => { const next = { ...s, [role]: s[role].map((x) => (x.id === th.id ? { ...x, msgs: [...x.msgs, { f, t, file, at: 'Now' }] } : x)) }; const pr = th.pair; if (pr && next[pr.role]) next[pr.role] = next[pr.role].map((x) => (x.id === pr.id ? { ...x, unread: f === 'me' ? (x.unread || 0) + 1 : x.unread, msgs: [...x.msgs, { f: f === 'me' ? 'them' : 'me', t, file, at: 'Now' }] } : x)); return next })
   const reply = () => { setTyping(true); setTimeout(() => { setTyping(false); add('them', role === 'business' ? 'Thanks for the enquiry. We will share terms shortly.' : role === 'customer' || th.bizId ? 'Thanks for reaching out! Let me check and get back to you shortly.' : 'Noted, thank you. I will confirm shortly.') }, 1500) }
   const send = (m = text) => { if (!m.trim()) return; add('me', m.trim()); setText(''); reply() }
+  const sendDirectQuote = () => {
+    const e = {}
+    if (quoteForm.title.trim().length < 5) e.title = 'Add a short title (min 5 characters)'
+    if (!quoteForm.scope.trim()) e.scope = 'Describe what you need'
+    if (!quoteForm.deadline || quoteForm.deadline < new Date().toISOString().slice(0, 10)) e.deadline = 'Choose a current or future date'
+    setQuoteErrs(e)
+    if (Object.keys(e).length) return toast('Please complete the required quote fields', 'warn')
+    const id = 'RFQ-' + (315 + rfqs.length)
+    const [y, m, d] = quoteForm.deadline.split('-')
+    const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
+    setRfqs((r) => [{
+      id,
+      mine: true,
+      deliveryMode: 'direct',
+      targetVendorId: v?.id || th.vendorId,
+      targetVendorName: th.name,
+      customer: ME_NAME,
+      title: quoteForm.title.trim(),
+      cat: v?.cat || 'elec',
+      kind: quoteForm.kind,
+      cats: [v?.cat || 'elec'],
+      categoryBudgets: {},
+      qty: quoteForm.quantity.trim(),
+      budget: quoteForm.budget.trim(),
+      deadline: `${d} ${mon} ${y}`,
+      location: locale?.city || v?.city || 'India',
+      desc: `Direct quote to ${th.name}\nScope: ${quoteForm.scope.trim()}`,
+      files: [],
+      status: 'submitted',
+      created: 'Just now',
+      recipients: 1,
+      history: [{ s: 'submitted', at: 'Just now', note: `Sent directly to ${th.name}` }],
+      quotes: [],
+      chat: [],
+    }, ...r])
+    notify('vendor', 'Direct quote request', `${id} · ${quoteForm.title.trim()}`, 'rfq')
+    add('me', formatDirectQuoteMessage(quoteForm))
+    setQuoteOpen(false)
+    setQuoteForm({ kind: 'service', title: '', scope: '', quantity: '', budget: '', deadline: '' })
+    setQuoteErrs({})
+    toast(`Direct quote sent to ${th.name}`)
+    reply()
+  }
   const attach = () => { add('me', '', role === 'customer' ? 'Site-photo.jpg' : 'Price-list.pdf'); reply() }
   const quick = role === 'business' ? ['Please share your GST details', 'We can offer 30-day credit', 'Sending our price list', 'Can we talk on a call?'] : th.bizId ? ['Do you supply in bulk?', 'What is the MOQ?', 'Share your price list', 'Do you offer credit terms?'] : role === 'vendor' ? ['Yes, available ✅', 'Sharing a quotation shortly', 'Can we talk on a call?', 'Please share your location'] : ['Is this available?', 'What is the price for bulk?', 'Can you visit for a site survey?', 'Please share your best quote']
   return (
@@ -819,14 +872,14 @@ export function Chat({ params }) {
       title={th.name}
       back
       subtitle={typing ? 'typing…' : role === 'customer' ? 'Online · usually replies within 1 hr' : role === 'business' ? 'Vendor · ' + th.ctx : th.bizId ? th.ctx : 'Customer · ' + th.ctx}
-      right={<><IconBtn label="Call" onClick={() => toast(`Calling ${th.name}…`)}><Phone size={19} /></IconBtn><IconBtn label="More" onClick={() => setMenu(true)}><Info size={19} /></IconBtn></>}
+      right={<>{role === 'customer' && <Button size="sm" variant={quoteOpen ? 'primary' : 'secondary'} onClick={() => setQuoteOpen((o) => !o)}>{quoteOpen ? 'Close' : 'Send quote req'}</Button>}<IconBtn label="Call" onClick={() => toast(`Calling ${th.name}…`)}><Phone size={19} /></IconBtn><IconBtn label="More" onClick={() => setMenu(true)}><Info size={19} /></IconBtn></>}
       pad={false}
       bg="bg-ink-100"
       overlay={
         <Sheet open={menu} onClose={() => setMenu(false)} title={th.name}>
           <div className="space-y-1 pb-2">
             {role === 'customer' && v && <ListRow icon={Store} title="View vendor profile" onClick={() => { setMenu(false); nav.go('c_vendor', { id: v.id }) }} />}
-            {role === 'customer' && <ListRow icon={FileText} tone="violet" title="Request a quotation" onClick={() => { setMenu(false); nav.go('c_rfq_new', { cat: v?.cat }) }} />}
+            {role === 'customer' && <ListRow icon={FileText} tone="violet" title="Direct quote in DM" onClick={() => { setMenu(false); setQuoteOpen(true) }} />}
             {role === 'customer' && v && <ListRow icon={Star} tone="amber" title="Rate this vendor" onClick={() => { setMenu(false); nav.go('c_review', { vendorId: v.id }) }} />}
             <ListRow icon={ShieldAlert} tone="rose" title="Report this conversation" onClick={() => { setMenu(false); nav.go('c_report', { ref: v?.id || 'general' }) }} last />
           </div>
@@ -843,6 +896,26 @@ export function Chat({ params }) {
         </div>
       }
     >
+      {quoteOpen && role === 'customer' && (
+        <div className="border-b border-ink-200 bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div><p className="text-xs font-bold uppercase tracking-wide text-brand-700">Requirements &amp; Quote Request</p><p className="text-sm font-bold text-ink-900">Send requirements / quote request to {th.name}</p></div>
+            <button type="button" onClick={() => setQuoteOpen(false)} aria-label="Close quote request form" className="p-1 text-ink-400"><X size={16} /></button>
+          </div>
+          <Segmented value={quoteForm.kind} onChange={(kind) => setQuoteForm((q) => ({ ...q, kind }))} options={[{ id: 'service', label: 'Service' }, { id: 'goods', label: 'Goods' }]} />
+          <Input label="What do you need?" required value={quoteForm.title} onChange={(e) => { setQuoteForm((q) => ({ ...q, title: e.target.value })); setQuoteErrs((x) => ({ ...x, title: '' })) }} error={quoteErrs.title} />
+          <Input label="Scope" required textarea rows={2} value={quoteForm.scope} onChange={(e) => { setQuoteForm((q) => ({ ...q, scope: e.target.value })); setQuoteErrs((x) => ({ ...x, scope: '' })) }} error={quoteErrs.scope} />
+          <div className="flex gap-2">
+            <Input label="Quantity" value={quoteForm.quantity} onChange={(e) => setQuoteForm((q) => ({ ...q, quantity: e.target.value }))} />
+            <Input label="Budget (optional)" value={quoteForm.budget} onChange={(e) => setQuoteForm((q) => ({ ...q, budget: e.target.value }))} />
+          </div>
+          <Input label="Quotes needed by" required type="date" min={dateAfterISO(0)} value={quoteForm.deadline} onChange={(e) => { setQuoteForm((q) => ({ ...q, deadline: e.target.value })); setQuoteErrs((x) => ({ ...x, deadline: '' })) }} error={quoteErrs.deadline} />
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="secondary" onClick={() => setQuoteOpen(false)}>Cancel</Button>
+            <Button size="sm" icon={Send} onClick={sendDirectQuote}>Send direct quote</Button>
+          </div>
+        </div>
+      )}
       <div className="space-y-2 p-4">
         {l && (
           <Card onClick={() => nav.go('c_listing', { id: l.id })} className="!p-3"><div className="flex items-center gap-3"><Thumb tone={l.tone} icon={cat(l.cat).icon} size={46} round="rounded-xl" /><div className="min-w-0 flex-1"><p className="text-[11px] font-bold uppercase tracking-wide text-ink-400">Enquiry about</p><p className="truncate text-sm font-bold">{l.title}</p><p className="text-xs text-ink-500">From {fmt(l.price)} / {l.unit}</p></div><ChevronRight size={16} className="text-ink-300" /></div></Card>

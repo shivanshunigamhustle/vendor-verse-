@@ -119,69 +119,399 @@
 }
 
 /* Slate & Emerald Pro theme for the existing authenticated workspaces. */
-.vv-agent-shell,
-.vv-admin-shell { background: #f1f5f3; }
-.vv-agent-shell .vv-agent-sidebar,
-.vv-admin-shell .vv-agent-sidebar {
+.vv-agent-shell { background: #f1f5f3; }
+.vv-agent-shell .vv-agent-sidebar {
   border-right-color: #245443;
   background: #12352b;
   box-shadow: 6px 0 22px rgba(18,53,43,.12);
 }
-.vv-agent-shell .vv-agent-sidebar-brand-copy b,
-.vv-admin-shell .vv-agent-sidebar-brand-copy b { color: #fff; }
-.vv-agent-shell .vv-agent-sidebar-brand-copy span,
-.vv-admin-shell .vv-agent-sidebar-brand-copy span { color: #b9d4c7; }
-.vv-agent-shell .vv-agent-sidebar-toggle,
-.vv-admin-shell .vv-agent-sidebar-toggle { border-color: #356452; background: #245443; color: #d9eee4; }
-.vv-agent-shell .vv-agent-sidebar-toggle:hover,
-.vv-admin-shell .vv-agent-sidebar-toggle:hover { border-color: #63c79b; background: #2d644f; color: #fff; }
-.vv-agent-shell .vv-agent-sidebar-link,
-.vv-admin-shell .vv-agent-sidebar-link { color: #b9d4c7; }
-.vv-agent-shell .vv-agent-sidebar-link svg,
-.vv-admin-shell .vv-agent-sidebar-link svg { background: #245443; color: #b9e2cf; }
-.vv-agent-shell .vv-agent-sidebar-link:hover,
-.vv-admin-shell .vv-agent-sidebar-link:hover { background: #1b4638; color: #fff; }
-.vv-agent-shell .vv-agent-sidebar-link.is-active,
-.vv-admin-shell .vv-agent-sidebar-link.is-active { background: #245443; color: #fff; box-shadow: inset 3px 0 #63c79b; }
-.vv-agent-shell .vv-agent-sidebar-link.is-active svg,
-.vv-admin-shell .vv-agent-sidebar-link.is-active svg { background: #087f5b; color: #fff; box-shadow: 0 5px 12px rgba(0,0,0,.16); }
-.vv-agent-shell .vv-agent-sidebar-user,
-.vv-admin-shell .vv-agent-sidebar-user { border-color: #356452; background: #1b4638; box-shadow: none; }
-.vv-agent-shell .vv-agent-sidebar-user b,
-.vv-admin-shell .vv-agent-sidebar-user b { color: #fff; }
-.vv-agent-shell .vv-agent-sidebar-user small,
-.vv-admin-shell .vv-agent-sidebar-user small { color: #b9d4c7; }
-.vv-agent-shell .vv-agent-sidebar-avatar,
-.vv-admin-shell .vv-agent-sidebar-avatar { background: #087f5b; }
-.vv-agent-shell .vv-agent-sidebar-logout,
-.vv-admin-shell .vv-agent-sidebar-logout { background: rgba(220,38,38,.14); color: #fecaca; }
-.vv-agent-shell .vv-agent-sidebar-logout:hover,
-.vv-admin-shell .vv-agent-sidebar-logout:hover { background: #b42318; color: #fff; }
-.vv-agent-main > header,
-.vv-admin-main > header { border-color: #dde6e0; background: rgba(255,255,255,.94); box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 5px 18px rgba(23,41,35,.04); }
-.vv-agent-main .vv-screen-layout,
-.vv-admin-main .vv-screen-layout { background: #f1f5f3; }
-.vv-agent-main .vv-screen-scroll,
-.vv-admin-main .vv-screen-scroll { background: #f1f5f3; }
-.vv-agent-main .vv-screen-scroll > div,
-.vv-admin-main .vv-screen-scroll > div { color: #1c2b25; }
-.vv-agent-main .vv-screen-scroll .rounded-2xl.bg-white,
-.vv-admin-main .vv-screen-scroll .rounded-2xl.bg-white,
-.vv-agent-main .vv-screen-scroll .vv-admin-reference-panel,
-.vv-admin-main .vv-screen-scroll .vv-admin-reference-panel {
+.vv-agent-shell .vv-agent-sidebar-brand-copy b { color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-brand-copy span { color: #b9d4c7; }
+.vv-agent-shell .vv-agent-sidebar-toggle { border-color: #356452; background: #245443; color: #d9eee4; }
+.vv-agent-shell .vv-agent-sidebar-toggle:hover { border-color: #63c79b; background: #2d644f; color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-link { color: #b9d4c7; }
+.vv-agent-shell .vv-agent-sidebar-link svg { background: #245443; color: #b9e2cf; }
+.vv-agent-shell .vv-agent-sidebar-link:hover { background: #1b4638; color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-link.is-active { background: #245443; color: #fff; box-shadow: inset 3px 0 #63c79b; }
+.vv-agent-shell .vv-agent-sidebar-link.is-active svg { background: #087f5b; color: #fff; box-shadow: 0 5px 12px rgba(0,0,0,.16); }
+.vv-agent-shell .vv-agent-sidebar-user { border-color: #356452; background: #1b4638; box-shadow: none; }
+.vv-agent-shell .vv-agent-sidebar-user b { color: #fff; }
+.vv-agent-shell .vv-agent-sidebar-user small { color: #b9d4c7; }
+.vv-agent-shell .vv-agent-sidebar-avatar { background: #087f5b; }
+.vv-agent-shell .vv-agent-sidebar-logout { background: rgba(220,38,38,.14); color: #fecaca; }
+.vv-agent-shell .vv-agent-sidebar-logout:hover { background: #b42318; color: #fff; }
+
+/* Admin sidebar & pages: match the warm ivory, white & brown/gold palette used across customer and vendor workspaces. */
+.vv-admin-shell {
+  background: #f5f5f4;
+  --color-brand-50: #f7f4ee;
+  --color-brand-100: #efeae0;
+  --color-brand-200: #e4d6b8;
+  --color-brand-300: #d3bb84;
+  --color-brand-400: #b98f3e;
+  --color-brand-500: #a67a2c;
+  --color-brand-600: #8a6420;
+  --color-brand-700: #6f5018;
+  --color-brand-800: #583f13;
+  --color-brand-900: #3f2d0d;
+  --color-emerald-50: #f7f4ee;
+  --color-emerald-100: #efeae0;
+  --color-emerald-200: #e4d6b8;
+  --color-emerald-300: #d3bb84;
+  --color-emerald-400: #b98f3e;
+  --color-emerald-500: #a67a2c;
+  --color-emerald-600: #8a6420;
+  --color-emerald-700: #6f5018;
+  --color-emerald-800: #583f13;
+  --color-emerald-900: #3f2d0d;
+  --color-teal-50: #f7f4ee;
+  --color-teal-100: #efeae0;
+  --color-teal-200: #e4d6b8;
+  --color-teal-300: #d3bb84;
+  --color-teal-400: #b98f3e;
+  --color-teal-500: #a67a2c;
+  --color-teal-600: #8a6420;
+  --color-teal-700: #6f5018;
+  --color-teal-800: #583f13;
+  --color-teal-900: #3f2d0d;
+  --color-green-50: #f7f4ee;
+  --color-green-100: #efeae0;
+  --color-green-200: #e4d6b8;
+  --color-green-300: #d3bb84;
+  --color-green-400: #b98f3e;
+  --color-green-500: #a67a2c;
+  --color-green-600: #8a6420;
+  --color-green-700: #6f5018;
+  --color-green-800: #583f13;
+  --color-green-900: #3f2d0d;
+  --color-ink-50: #f8f6f2;
+  --color-ink-100: #efeae0;
+  --color-ink-200: #e4ddd0;
+  --color-ink-300: #cbc4b6;
+  --color-ink-400: #9a9588;
+  --color-ink-500: #737b86;
+  --color-ink-600: #5b5f6b;
+  --color-ink-700: #3b4350;
+  --color-ink-800: #1f2a3a;
+  --color-ink-900: #0e1b2c;
+}
+.vv-admin-shell .vv-agent-sidebar.vv-admin-sidebar {
+  width: clamp(248px, 16vw, 272px);
+  min-width: 248px;
+  height: 100%;
+  min-height: 0;
+  gap: 6px;
+  padding: 16px 12px 12px;
+  overflow: hidden;
+  border: 0;
+  border-right: 1px solid #e4ddd0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  font-family: "Figtree", "DM Sans", Inter, system-ui, sans-serif;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-brand {
+  flex: none;
+  min-height: 40px;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: 2px 6px 12px;
+  border-bottom: 1px solid #efeae0;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-brand > svg {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-brand-copy b {
+  color: #0e1b2c;
+  font: 700 15px/1.2 "Bricolage Grotesque", "Figtree", Inter, system-ui, sans-serif;
+  letter-spacing: -.015em;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-brand-copy span {
+  margin-top: 2px;
+  color: #737b86;
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 2px;
+  padding: 4px 2px 10px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 100, 32, .3) transparent;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-nav::-webkit-scrollbar { display: block; width: 5px; height: 0; }
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-nav::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(138, 100, 32, .3); }
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-group {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-group:last-child { margin-bottom: 0; }
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-label {
+  margin: 8px 10px 3px;
+  color: #737b86;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-admin-sidebar-group:first-child .vv-admin-sidebar-label { margin-top: 2px; }
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-link {
+  min-height: 33px;
+  gap: 10px;
+  margin: 0;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: transparent;
+  color: #5b5f6b;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: none;
+  transform: none;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-link span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-link svg {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #8a6420;
+  box-shadow: none;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-link:hover {
+  transform: none;
+  background: #efeae0;
+  color: #0e1b2c;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-link.is-active,
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-link.is-active:hover {
+  background: #f3ead6;
+  color: #6f5018;
+  font-weight: 600;
+  box-shadow: none;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-link.is-active svg {
+  background: transparent;
+  color: #8a6420;
+  box-shadow: none;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-bottom {
+  flex: none;
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #efeae0;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-user {
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e4ddd0;
+  border-radius: 12px;
+  background: #fbf9f5;
+  box-shadow: none;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #8a6420, #b98f3e);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-user b {
+  color: #0e1b2c;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-user small {
+  margin-top: 1px;
+  color: #737b86;
+  font-size: 11px;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-logout {
+  min-height: 34px;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #5b5f6b;
+  font-size: 13px;
+  font-weight: 550;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-logout svg {
+  width: 16px;
+  height: 16px;
+  color: #8a6420;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-logout:hover {
+  transform: none;
+  background: rgba(220, 38, 38, .08);
+  color: #b42318;
+}
+.vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-logout:hover svg {
+  color: #b42318;
+}
+.vv-agent-main > header { border-color: #dde6e0; background: rgba(255,255,255,.94); box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 5px 18px rgba(23,41,35,.04); }
+.vv-admin-main > header {
+  border-color: #e4ddd0;
+  background: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.vv-admin-main > header.sticky[class*="top-0"] > div[class*="h-[72px]"] {
+  height: 58px;
+  max-width: none;
+  padding-inline: 18px;
+  gap: 10px;
+}
+.vv-admin-main > header.sticky[class*="top-0"] > div[class*="h-[72px]"] > .vv-admin-header-search {
+  flex: 1 1 200px;
+  max-width: 440px;
+  min-width: 0;
+  margin: 0 auto;
+}
+@media (min-width: 1024px) {
+  .vv-admin-main > header.sticky[class*="top-0"] > div[class*="h-[72px]"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 440px) minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+  .vv-admin-main > header.sticky[class*="top-0"] > div[class*="h-[72px]"] > .vv-admin-header-search {
+    grid-column: 2;
+    width: 100%;
+    max-width: 440px;
+    margin: 0;
+    justify-self: center;
+  }
+  .vv-admin-main > header.sticky[class*="top-0"] > div[class*="h-[72px]"] > div:last-child {
+    grid-column: 3;
+    justify-self: end;
+    margin-left: 0;
+  }
+}
+.vv-admin-main > header .vv-admin-header-search .vv-nav-search-form {
+  height: 38px;
+  padding: 0 5px 0 12px;
+  gap: 8px;
+  border-radius: 12px;
+}
+.vv-admin-main > header .vv-admin-header-search .vv-nav-search-form input {
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+.vv-admin-main > header .vv-admin-header-search .vv-nav-search-clear,
+.vv-admin-main > header .vv-admin-header-search .vv-nav-search-submit {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+}
+.vv-admin-main > header .vv-mock-header-select {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 11px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  gap: 5px;
+}
+.vv-admin-main > header .vv-mock-language select {
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+.vv-admin-main > header .vv-mock-header-notifications {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+.vv-admin-main > header .vv-mock-suggestions-empty {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: #6f6452;
+}
+@media (max-width: 640px) {
+  .vv-admin-main > header.sticky[class*="top-0"] > div[class*="h-[72px]"] > .vv-admin-header-search {
+    flex: 1 1 140px;
+  }
+}
+.vv-agent-main .vv-screen-layout { background: #f1f5f3; }
+.vv-agent-main .vv-screen-scroll { background: #f1f5f3; }
+.vv-agent-main .vv-screen-scroll > div { color: #1c2b25; }
+.vv-agent-main .vv-screen-scroll .rounded-2xl.bg-white {
   border-color: #dde6e0;
   box-shadow: 0 2px 10px rgba(23,41,35,.04);
 }
-.vv-agent-main .vv-screen-scroll .rounded-2xl.bg-white:hover,
-.vv-admin-main .vv-screen-scroll .rounded-2xl.bg-white:hover { box-shadow: 0 8px 24px rgba(23,41,35,.08); }
-.vv-admin-reference-dashboard { background: #f1f5f3; color: #1c2b25; }
+.vv-agent-main .vv-screen-scroll .rounded-2xl.bg-white:hover { box-shadow: 0 8px 24px rgba(23,41,35,.08); }
+
+.vv-admin-main .vv-screen-layout,
+.vv-admin-main .vv-screen-scroll,
+.vv-admin-shell .vv-admin-route,
+.vv-admin-shell .vv-admin-route .vv-screen-scroll {
+  background: #f5f5f4;
+  scrollbar-color: rgba(138, 100, 32, .35) #f5f5f4;
+}
+.vv-admin-shell .vv-admin-route .vv-screen-scroll::-webkit-scrollbar-track { background: #f5f5f4; }
+.vv-admin-shell .vv-admin-route .vv-screen-scroll::-webkit-scrollbar-thumb { border-color: #f5f5f4; background: rgba(138, 100, 32, .35); }
+.vv-admin-main .vv-screen-layout > header,
+.vv-admin-shell .vv-admin-route .vv-screen-layout > header {
+  border-color: transparent;
+  background: #f5f5f4;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.vv-admin-main .vv-screen-scroll > div { color: #0e1b2c; }
+.vv-admin-main .vv-screen-scroll .rounded-2xl.bg-white,
+.vv-admin-main .vv-screen-scroll .vv-admin-reference-panel,
+.vv-admin-shell .vv-admin-route .vv-screen-scroll [class*="shadow-[0_1px"] {
+  border-color: #e4ddd0;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(60, 45, 20, .04), 0 8px 20px -12px rgba(60, 45, 20, .1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.vv-admin-main .vv-screen-scroll button.rounded-2xl.bg-white:hover,
+.vv-admin-shell .vv-admin-route .vv-screen-scroll button[class*="shadow-[0_1px"]:hover {
+  border-color: #d3bb84;
+  box-shadow: 0 8px 24px rgba(60, 45, 20, .08);
+}
+.vv-admin-reference-dashboard { background: #f5f5f4; color: #0e1b2c; }
 .vv-admin-reference-kpis > *,
 .vv-admin-reference-panel,
-.vv-admin-reference-footer-stats button { border-color: #dde6e0; box-shadow: 0 2px 10px rgba(23,41,35,.04); }
+.vv-admin-reference-footer-stats button {
+  border-color: #e4ddd0;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(60, 45, 20, .04), 0 8px 20px -12px rgba(60, 45, 20, .1);
+}
+.vv-admin-reference-footer-stats button:hover { border-color: #d3bb84; }
 .vv-admin-reference-heading h1,
 .vv-admin-reference-panel h2,
-.vv-admin-reference-footer-stats b { color: #1c2b25; }
-.vv-admin-reference-row:hover { background: #f1faf5; }
+.vv-admin-reference-footer-stats b { color: #0e1b2c; }
+.vv-admin-reference-row:hover { background: #f7f4ee; }
+.vv-admin-shell .vv-admin-route svg path[stroke="#00857c"] { stroke: #8a6420; }
+.vv-admin-shell .vv-admin-route svg path[fill="#00857c"] { fill: #8a6420; }
 
 .vv-vendor-workspace-route,
 .vv-vendor-message-route { background: #f1f5f3; color: #1c2b25; }

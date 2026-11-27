@@ -6,8 +6,6 @@ import {
   LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, ChevronLeft, ChevronDown, Sun, Moon, UsersRound, MessageSquare, PackageCheck, UserRound,
   Compass, Heart, Home, ClipboardList, ShieldAlert, ArrowLeft, Menu,
 } from 'lucide-react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGaugeHigh, faHeart, faClipboardList, faBoxOpen, faFileSignature, faComments, faStar, faShieldHalved, faGear, faUser, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { authService } from '../services/authService.js'
@@ -51,11 +49,6 @@ const VX_CSS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakar
 .vx-pill { position:absolute; left:0; right:0; top:0; z-index:0; border-radius:14px; opacity:0; pointer-events:none; background:var(--grad); box-shadow:0 10px 24px rgba(18,180,143,.35); transition:transform .55s var(--ease), height .45s var(--ease), opacity .3s; }
 .vx-nav-item { position:relative; z-index:1; display:flex; align-items:center; gap:11px; width:100%; padding:10px 12px; border-radius:14px; border:0; background:none; text-align:left; white-space:nowrap; font-size:12.5px; font-weight:600; color:var(--soft); transition:background .2s, color .25s, padding .5s var(--ease), gap .5s var(--ease); }
 .vx-nav-item:hover { background:rgba(18,180,143,.09); color:var(--ink); }
-.vv-customer-contract-menu { margin:-3px 0 5px 36px; border-left:1px solid rgba(138,100,32,.2); padding:2px 0 2px 8px; }
-.vv-customer-contract-item { display:block; width:100%; overflow:hidden; padding:7px 8px; border:0; border-radius:9px; background:none; color:#6b562c; text-align:left; font-size:10.5px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
-.vv-customer-contract-item:hover { background:rgba(138,100,32,.09); color:#3b2b12; }
-.vv-customer-contract-muted { padding:7px 8px; color:#8d8068; font-size:10.5px; }
-.vx-shell.is-collapsed .vv-customer-contract-menu { display:none; }
 .vx-nav-item svg { flex:none; opacity:.8; transition:transform .3s var(--ease), color .3s; }
 .vx-nav-item:hover svg { transform: scale(1.15); }
 .vx-nav-item.is-active, .vx-nav-item.is-active:hover { background:none; color:#fff; }
@@ -743,14 +736,16 @@ function VendorSidebar({ active, vendor, collapsed, onNavigate }) {
 
 /* Customer workspace: the same shell as the vendor one, with the customer's own pages in the sidebar (web). */
 export const CUSTOMER_NAV = [
-  ['Overview', [[faGaugeHigh, 'Dashboard', 'c_dash']]],
-  ['Deals & orders', [[faHeart, 'Saved & compare', 'c_saved'], [faComments, 'Messages', 'messages'], [faClipboardList, 'Quote requests', 'c_activity'], [faBoxOpen, 'Purchase orders', 'c_orders'], [faFileSignature, 'Contracts', 'c_contract']]],
-  ['Support & trust', [[faStar, 'Rate a vendor', 'c_review'], [faShieldHalved, 'Cases', 'c_cases']]],
-  ['Account', [[faUser, 'Profile', 'c_profile_edit'], [faGear, 'Account settings', 'c_settings']]],
+  ['Overview', [[LayoutDashboard, 'Dashboard', 'c_dash']]],
+  ['Deals & orders', [[Heart, 'Saved & compare', 'c_saved'], [MessageCircle, 'Messages', 'messages'], [ClipboardList, 'Activity', 'c_activity'], [Package, 'Purchase orders', 'c_orders']]],
+  ['Support & trust', [[Star, 'Rate a vendor', 'c_review'], [ShieldAlert, 'Cases', 'c_cases']]],
+  ['Account', [[Settings, 'Account settings', 'c_settings']]],
 ]
 /** Pages that stay inside the customer workspace but have no sidebar entry of their own highlight their parent. */
 const CUSTOMER_PARENT = {
+  c_contract: 'c_activity',
   c_profile: 'c_settings',
+  c_profile_edit: 'c_settings',
   c_notif_prefs: 'c_settings',
   c_sessions: 'c_settings',
   c_export: 'c_settings',
@@ -771,9 +766,6 @@ function CustomerSidebar({ active, collapsed, onNavigate }) {
   const { setMe, threads } = useApp()
   const unread = authService.isRemote ? 0 : (threads?.customer || []).reduce((sum, thread) => sum + thread.unread, 0)
   const current = CUSTOMER_PARENT[active] || active
-  const [contractsOpen, setContractsOpen] = useState(active === 'c_contract' || (active === 'c_activity' && nav.params?.tab === 'contracts'))
-  const [contracts, setContracts] = useState(null)
-  const [contractsError, setContractsError] = useState('')
   const navRef = useRef(null)
   const [pill, setPill] = useState(null)
 
@@ -782,17 +774,6 @@ function CustomerSidebar({ active, collapsed, onNavigate }) {
     setPill(activeElement ? { y: activeElement.offsetTop, h: activeElement.offsetHeight } : null)
   }, [current, collapsed])
 
-  useEffect(() => {
-    if (!contractsOpen || contracts) return
-    let cancelled = false
-    authService.listMyContracts().then((result) => {
-      if (cancelled) return
-      if (result.ok) setContracts(result.contracts || [])
-      else setContractsError(result.message || 'Could not load contracts')
-    })
-    return () => { cancelled = true }
-  }, [contractsOpen, contracts])
-
   const logout = () => {
     setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
     nav.reset('c_home')
@@ -800,39 +781,23 @@ function CustomerSidebar({ active, collapsed, onNavigate }) {
 
   return (
     <aside className="vx-side">
-      <div className="vx-brand"><span className="vx-logo" style={{ background: '#ffffff', border: '1px solid rgba(22, 41, 68, 0.12)', boxShadow: '0 4px 12px rgba(22, 41, 68, 0.08)' }}><BrandLogoMark size={26} /></span><div className="vx-bt"><b>VendorVerse</b><small>Customer workspace</small></div><button type="button" className="vx-home-back" aria-label="Back to home" title="Back to home" onClick={() => nav.go('c_home')}><ArrowLeft size={18} /></button></div>
+      <div className="vx-brand"><span className="vx-logo" style={{ background: '#ffffff', border: '1px solid rgba(22, 41, 68, 0.12)', boxShadow: '0 4px 12px rgba(22, 41, 68, 0.08)' }}><BrandLogoMark size={22} /></span><div className="vx-bt"><b>VendorVerse</b><small>Customer workspace</small></div></div>
+      <button type="button" className="vx-home-back" aria-label="Back to home" title={collapsed ? 'Back to home' : undefined} onClick={() => { nav.go('c_home'); onNavigate?.() }}><ArrowLeft size={14} strokeWidth={2} aria-hidden="true" /><span className="vx-lbl">Back to home</span></button>
       <nav id="customer-workspace-navigation" className="vx-nav" ref={navRef} aria-label="Customer workspace">
         <span className="vx-pill" aria-hidden="true" style={pill ? { transform: `translateY(${pill.y}px)`, height: pill.h, opacity: 1 } : undefined} />
         {CUSTOMER_NAV.map(([group, items]) => (
           <Fragment key={group}>
             <div className="vx-group">{group}</div>
-            {items.map(([I, text, id]) => {
-              const isContracts = id === 'c_contract'
-              const isContractPage = current === id || (isContracts && active === 'c_activity' && nav.params?.tab === 'contracts')
-              return <Fragment key={id}>
-                <button type="button" title={collapsed ? text : undefined} aria-label={collapsed ? id === 'messages' && unread > 0 ? `${text}, ${unread} unread` : text : undefined} aria-current={isContractPage ? 'page' : undefined} aria-expanded={isContracts ? contractsOpen : undefined} className={cx('vx-nav-item', isContractPage && 'is-active')} onClick={() => {
-                  if (isContracts) {
-                    setContractsOpen((open) => !open)
-                    nav.go('c_activity', { tab: 'contracts' })
-                  } else nav.go(id)
-                  onNavigate?.()
-                }}>
-                  <FontAwesomeIcon icon={I} className="vx-fa-icon" /><span className="vx-lbl">{text}</span>
-                  {isContracts && <ChevronDown size={13} className={cx('ml-auto transition-transform', contractsOpen && 'rotate-180')} />}
-                  {id === 'messages' && unread > 0 && <span className="vx-badge">{unread}</span>}
-                </button>
-                {isContracts && contractsOpen && <div className="vv-customer-contract-menu" aria-label="Contracts">
-                  {contractsError && <div className="vv-customer-contract-muted">{contractsError}</div>}
-                  {!contracts && !contractsError && <div className="vv-customer-contract-muted">Loading…</div>}
-                  {contracts && !contracts.length && <div className="vv-customer-contract-muted">No contracts yet</div>}
-                  {contracts?.map((contract) => <button type="button" className="vv-customer-contract-item" key={contract.id} title={contract.version?.scope?.title || 'Contract'} onClick={() => { nav.go('c_contract', { id: contract.id }); onNavigate?.() }}>{contract.version?.scope?.title || `Contract ${String(contract.id).slice(0, 8)}`}</button>)}
-                </div>}
-              </Fragment>
-            })}
+            {items.map(([I, text, id]) => (
+              <button key={id} type="button" title={collapsed ? text : undefined} aria-label={collapsed ? id === 'messages' && unread > 0 ? `${text}, ${unread} unread` : text : undefined} aria-current={current === id ? 'page' : undefined} className={cx('vx-nav-item', current === id && 'is-active')} onClick={() => { nav.go(id); onNavigate?.() }}>
+                <I size={15} strokeWidth={1.85} aria-hidden="true" /><span className="vx-lbl">{text}</span>
+                {id === 'messages' && unread > 0 && <span className="vx-badge">{unread}</span>}
+              </button>
+            ))}
           </Fragment>
         ))}
       </nav>
-      <button type="button" className="vx-nav-item vx-logout" title={collapsed ? 'Log out' : undefined} onClick={logout}><FontAwesomeIcon icon={faRightFromBracket} className="vx-fa-icon" /><span className="vx-lbl">Log out</span></button>
+      <button type="button" className="vx-nav-item vx-logout" title={collapsed ? 'Log out' : undefined} onClick={logout}><LogOut size={15} strokeWidth={1.85} aria-hidden="true" /><span className="vx-lbl">Log out</span></button>
     </aside>
   )
 }

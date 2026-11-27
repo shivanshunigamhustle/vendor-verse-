@@ -101,7 +101,7 @@ export function RemoteCustomerSettings() {
       </Section>
 
       <Section title="Active sessions">
-        {sessions.loading && !sessions.data && <Loading />}
+        {sessions.loading && !sessions.data && <Loading variant="rows" />}
         {sessions.error && <ErrorBox message={sessions.error} onRetry={sessions.reload} />}
         {sessions.data && <>
           <Group>{list.map((s, i) => <ListRow key={s.id} icon={Laptop} tone="slate" title={deviceName(s.device)} subtitle={`Signed in ${new Date(s.createdAt).toLocaleString()}`} last={i === list.length - 1} right={s.current ? <Badge tone="green">Current</Badge> : <button type="button" onClick={() => signOut(s.id)} className="text-[13px] font-bold text-red-600">Sign out</button>} />)}</Group>

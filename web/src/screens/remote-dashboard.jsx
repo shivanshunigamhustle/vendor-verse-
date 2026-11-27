@@ -18,7 +18,7 @@ import { Links, Page } from './blocks.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { authService } from '../services/authService.js'
-import { ErrorBox, Loading, useLoad } from './remote-discovery.jsx'
+import { ErrorBox, useLoad } from './remote-discovery.jsx'
 import { VendorWorkspace } from './vendor.jsx'
 
 export const QUOTE_LOOKUP_LIMIT = 25
@@ -217,18 +217,19 @@ async function loadCustomerDashboard() {
   return { ok: true, bookings: bookings.bookings, rfqs: rfqs.rfqs, orders: orders.purchaseOrders, contracts: contracts.contracts }
 }
 
+const CUSTOMER_STAT_ITEMS = [
+  { key: 'bookings', label: 'Open bookings', icon: Clock, count: (d) => (d.bookings || []).filter((b) => OPEN_BOOKING_STATES.includes(b.state)).length, go: (nav) => nav.go('c_activity', { tab: 'bookings' }) },
+  { key: 'rfqs', label: 'Active RFQs', icon: ClipboardList, count: (d) => (d.rfqs || []).filter((r) => r.state === 'open').length, go: (nav) => nav.go('c_activity', { tab: 'rfqs' }) },
+  { key: 'orders', label: 'Purchase orders', icon: Receipt, count: (d) => (d.orders || []).length, go: (nav) => nav.go('c_orders') },
+  { key: 'contracts', label: 'Contracts', icon: FileText, count: (d) => (d.contracts || []).length, go: (nav) => nav.go('c_activity', { tab: 'contracts' }) },
+]
+
 export function RemoteCustomerDashboard() {
   const nav = useNav()
   const { me } = useApp()
   const load = useCallback(() => loadCustomerDashboard(), [])
   const dash = useLoad(load, [load])
   const d = dash.data
-  const stats = d && [
-    ['Open bookings', Clock, (d.bookings || []).filter((b) => OPEN_BOOKING_STATES.includes(b.state)).length, () => nav.go('c_activity', { tab: 'bookings' })],
-    ['Active RFQs', ClipboardList, (d.rfqs || []).filter((r) => r.state === 'open').length, () => nav.go('c_activity', { tab: 'rfqs' })],
-    ['Purchase orders', Receipt, (d.orders || []).length, () => nav.go('c_orders')],
-    ['Contracts', FileText, (d.contracts || []).length, () => nav.go('c_activity', { tab: 'contracts' })],
-  ]
   const actions = [
     [ClipboardList, 'Request a quotation', 'Services or goods', 'c_rfq_new'],
     [Store, 'Find a supplier', 'Suppliers and manufacturers', 'c_explore_suppliers'],
@@ -237,13 +238,12 @@ export function RemoteCustomerDashboard() {
   ]
   return <Page title="Dashboard" subtitle={me?.name}>
     <div className="vv-cdash">
-      {dash.loading && !d && <Loading />}
       {dash.error && <ErrorBox message={dash.error} onRetry={dash.reload} />}
-      {d && <section aria-label="Your activity" className="vv-cdash-stats">
-        {stats.map(([label, Icon, value, go]) => (
-          <button key={label} type="button" onClick={go} className="vv-cdash-stat">
+      {!dash.error && <section aria-label="Your activity" aria-busy={dash.loading && !d ? 'true' : undefined} className="vv-cdash-stats">
+        {CUSTOMER_STAT_ITEMS.map(({ key, label, icon: Icon, count, go }) => (
+          <button key={key} type="button" onClick={() => go(nav)} className="vv-cdash-stat">
             <span className="vv-cdash-stat-icon"><Icon size={18} /></span>
-            <span className="vv-cdash-stat-value">{value}</span>
+            <span className="vv-cdash-stat-value">{d ? count(d) : <span className="vv-sk-bar vv-cdash-stat-sk" aria-hidden="true" />}</span>
             <span className="vv-cdash-stat-label">{label}</span>
           </button>
         ))}

@@ -75,10 +75,11 @@ export function LangButton() {
 }
 
 export function NotifBell({ role }) {
-  const { notifs } = useApp()
+  const { me, notifs } = useApp()
   const nav = useNav()
-  const remoteCount = useUnreadCount(role)
-  const n = remoteInbox ? remoteCount : notifs[role]?.filter((x) => !x.read).length || 0
+  const signedIn = Boolean(me?.loggedIn)
+  const remoteCount = useUnreadCount(role, signedIn)
+  const n = remoteInbox ? (signedIn ? remoteCount : 0) : notifs[role]?.filter((x) => !x.read).length || 0
   return (
     <IconBtn label="Notifications" onClick={() => nav.go('notifications')}>
       <Bell size={21} />

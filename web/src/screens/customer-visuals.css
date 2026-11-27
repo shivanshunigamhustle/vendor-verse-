@@ -21,7 +21,6 @@
 .vv-customer-route .vv-vendor-workspace.vx-shell h2,
 .vv-customer-route .vv-vendor-workspace.vx-shell h3,
 .vv-customer-route .vv-vendor-workspace.vx-shell h4 { font-family: "Bricolage Grotesque", "Figtree", "Segoe UI", system-ui, sans-serif; }
-.vv-customer-route .vv-vendor-workspace.vx-shell .vx-fa-icon { width: 17px; text-align: center; font-size: 15px; }
 .vv-customer-route .vv-vendor-workspace.vx-shell .vx-logo,
 .vv-customer-route .vv-vendor-workspace.vx-shell .vx-av { background: linear-gradient(135deg, #8a6420, #b98f3e) !important; }
 .vv-customer-route .vv-vendor-workspace.vx-shell .vx-nav-item > svg,
@@ -798,7 +797,8 @@
 }
 .vv-cdash-stat:hover { transform: translateY(-3px); border-color: #cbb486; box-shadow: 0 16px 32px -18px rgba(111, 80, 24, .35); }
 .vv-cdash-stat-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 10px; border-radius: 12px; background: #f7f4ee; color: #8a6420; }
-.vv-cdash-stat-value { font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: #111; }
+.vv-cdash-stat-value { font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: #111; min-height: 34px; display: flex; align-items: center; }
+.vv-cdash-stat-sk { width: 44px; height: 28px; border-radius: 8px; }
 .vv-cdash-stat-label { font-size: 13px; font-weight: 600; color: #111; }
 .vv-cdash-heading { margin: 32px 0 14px; font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -.02em; color: #111; }
 .vv-cdash-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -850,29 +850,53 @@
   .vv-customer-route.vv-vendor-workspace-route .vv-screen-layout > header > button[aria-label="Back"] { display: none; }
   .vv-customer-route.vv-vendor-workspace-route .vv-screen-layout > header { gap: 0; }
 }
-/* Back-to-home arrow beside the VendorVerse logo in the customer sidebar. */
-.vx-brand:has(> .vx-home-back) { position: relative; }
-.vx-home-back { display: grid; flex: none; place-items: center; width: 34px; height: 34px; margin-left: auto; border: 1px solid #e4ddd0; border-radius: 50%; background: #fff; color: #6f5018; cursor: pointer; transition: background .15s, transform .15s; }
-.vx-home-back:hover { background: #f7f4ee; transform: translateX(-2px); }
+/* Back-to-home button above the customer sidebar navigation options. */
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-side { padding: 16px 12px 12px; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-brand { gap: 10px; padding: 2px 6px 10px; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-side .vx-logo { width: 36px; height: 36px; border-radius: 11px; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-bt { gap: 1px; min-width: 0; flex: 1; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-bt b { font: 700 15px/1.2 "Bricolage Grotesque", "Figtree", Inter, system-ui, sans-serif; letter-spacing: -.015em; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-bt small { font-size: 11.5px; line-height: 1.25; }
+.vx-home-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 30px;
+  margin: 0 0 8px;
+  padding: 5px 10px;
+  border: 1px solid #e4ddd0;
+  border-radius: 10px;
+  background: #fffdf8;
+  color: #6f5018;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.vx-home-back:hover { background: #f3ead6; border-color: #d6c5a3; color: #543c10; }
+.vx-home-back svg { width: 14px; height: 14px; flex: none; transition: transform .15s; }
+.vx-home-back:hover svg { transform: translateX(-2px); }
 
-/* Customer sidebar: compact rows so every entry (incl. Account) fits without scrolling */
-.vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-nav { gap: 1px; }
-.vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-nav-item { gap: 12px; min-height: 36px; padding: 6px 12px; font-size: 14px; }
-.vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-nav-item svg,
-.vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-nav-item .vx-fa-icon { width: 17px; height: 17px; font-size: 16px; }
-.vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-side .vx-group { padding: 10px 12px 4px; font-size: 11px; }
-.vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-side .vx-group:first-of-type { padding-top: 4px; }
+/* Customer sidebar: refined compact scale with Lucide icons */
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-nav { gap: 2px; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-nav-item { gap: 10px; min-height: 32px; padding: 5px 10px; border-radius: 10px; font-size: 13px; font-weight: 500; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-nav-item.is-active { font-weight: 600; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-nav-item svg { width: 15px; height: 15px; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-side .vx-group { padding: 10px 10px 3px; font-size: 10px; letter-spacing: .07em; }
+.vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-side .vx-group:first-of-type { padding-top: 2px; }
 
 /* Short windows (not full screen): tighten further and keep the menu scrollable with a visible thin scrollbar */
 .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-side .vx-nav { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(138, 100, 32, .35) transparent; }
 .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-side .vx-nav::-webkit-scrollbar { display: block; width: 5px; }
 .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-side .vx-nav::-webkit-scrollbar-thumb { border-radius: 4px; background: rgba(138, 100, 32, .35); }
 @media (max-height: 960px) {
-  .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-nav-item { min-height: 32px; padding: 4px 12px; font-size: 13.5px; }
-  .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-side .vx-group { padding: 6px 12px 2px; font-size: 10.5px; }
-  .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-side { padding-top: 12px; padding-bottom: 8px; }
-  .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-brand { padding-bottom: 4px; }
-  .vv-customer-route.vv-customer-route.vv-customer-route .vv-vendor-workspace.vx-shell .vx-logout { margin-top: 2px; }
+  .vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-nav-item { min-height: 30px; padding: 4px 10px; font-size: 12.5px; }
+  .vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-side .vx-group { padding: 7px 10px 2px; font-size: 9.5px; }
+  .vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-side { padding-top: 12px; padding-bottom: 8px; }
+  .vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-brand { padding-bottom: 6px; }
+  .vv-customer-route.vv-customer-route.vv-customer-route.vv-vendor-workspace-route .vv-vendor-workspace.vx-shell .vx-logout { margin-top: 2px; }
 }
 
 /* All Categories page: match the Home page's warm editorial ivory/gold/navy design system */
