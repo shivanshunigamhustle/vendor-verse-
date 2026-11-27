@@ -13,6 +13,7 @@ import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
 import { authService } from '../services/authService.js'
 import { openAuthDialog } from '../components/MarketplaceAuthDialog.jsx'
+import { openVendorDm } from './directQuote.js'
 import { SAMPLE_GROUPS, SAMPLE_LISTINGS } from '../data/exploreSamples.js'
 import { INDUSTRIES, VENDORS0 } from '../data.jsx'
 import { FIELD_CATEGORY_MAP, getPopularSubcategories, matchesSearchText, vendorMatchesSubcategory } from '../data/vendorSeed.js'
@@ -249,7 +250,7 @@ function vendorsFromListings(listings) {
 
 function VendorCard({ vendor, sample }) {
   const nav = useNav()
-  const { me } = useApp()
+  const { me, setThreads } = useApp()
   const listing = vendor.listing
   const city = listing?.city || vendor.city
   const rating = Number(vendor.ratingAvg ?? vendor.rating)
@@ -293,6 +294,23 @@ function VendorCard({ vendor, sample }) {
       <div className="vv-vendor-directory-foot">
         <div className="vv-vendor-directory-actions">
           <button type="button" onClick={() => nav.go('c_vendor', { id: vendor.id })} className="vv-vendor-btn-secondary">View profile</button>
+          <button
+            type="button"
+            onClick={() => openVendorDm({
+              me,
+              nav,
+              setThreads,
+              vendorId: vendor.id,
+              vendorName: vendor.name,
+              cat: vendor.cat,
+              city,
+              isDirectory: true,
+            })}
+            className="vv-vendor-btn-secondary"
+          >
+            <MessageCircle size={14} aria-hidden="true" />
+            Message
+          </button>
           <button type="button" onClick={() => (me?.loggedIn ? nav.go('c_rfq_new', { cat: vendor.cat }) : openAuthDialog('signin'))} className="vv-vendor-btn-primary">Request quote</button>
         </div>
       </div>

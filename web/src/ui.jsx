@@ -1,4 +1,4 @@
-import { Children, useEffect, useRef, useState } from 'react'
+import { Children, useEffect, useId, useRef, useState } from 'react'
 import {
   ArrowLeft, Check, ChevronRight, ChevronDown, Star, X, Search, Info, AlertTriangle, CheckCircle2, XCircle, Clock, Smartphone, ShieldCheck,
   FileText, Upload, Inbox,
@@ -300,14 +300,15 @@ export function useForm(initial) {
 }
 
 const fieldBase = 'w-full rounded-xl bg-white px-3.5 text-sm text-ink-900 outline-none ring-1 ring-inset ring-ink-200 transition placeholder:text-ink-400 focus:ring-2 focus:ring-brand-500'
-export function Field({ label, hint, error, children, required }) {
+export function Field({ label, hint, error, children, required, asLabel = true, labelId }) {
+  const Tag = asLabel ? 'label' : 'div'
   return (
-    <label className="block">
-      {label && <span className="mb-1.5 block text-[13px] font-semibold text-ink-700">{label}{required && <span className="text-red-500"> *</span>}</span>}
+    <Tag className="block">
+      {label && <span id={labelId} className="mb-1.5 block text-[13px] font-semibold text-ink-700">{label}{required && <span className="text-red-500"> *</span>}</span>}
       {children}
       {error ? <span className="mt-1 flex items-center gap-1 text-xs font-medium text-red-600"><AlertTriangle size={12} />{error}</span>
         : hint && <span className="mt-1 block text-xs text-ink-500">{hint}</span>}
-    </label>
+    </Tag>
   )
 }
 export function Input({ label, hint, error, required, icon: Icon, textarea, rows = 3, prefix, className, ...p }) {
@@ -337,27 +338,103 @@ export function Select({ label, hint, error, required, options, ...p }) {
 
 export function CategorySelect({ label, hint, error, required, options, value, onChange }) {
   const [open, setOpen] = useState(false)
-  const selected = options.find((option) => (typeof option === 'string' ? option : option.value) === value)
-  const selectedLabel = selected ? (typeof selected === 'string' ? selected : selected.label) : (options[0]?.label || 'Choose a category')
+  const [query, setQuery] = useState('')
+  const containerRef = useRef(null)
+  const labelId = useId()
+  const normalizedOptions = options.map((option) => (typeof option === 'string' ? { value: option, label: option } : option))
+  const selected = normalizedOptions.find((option) => option.value === value)
+  const selectedLabel = selected ? selected.label : (normalizedOptions[0]?.label || 'Choose a category')
+  const trimmedQuery = query.trim().toLowerCase()
+  const filteredOptions = trimmedQuery
+    ? normalizedOptions.filter((option) => option.value !== '' && option.label.toLowerCase().includes(trimmedQuery))
+    : normalizedOptions
+
+  useEffect(() => {
+    if (!open) return undefined
+    const onPointerDown = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setOpen(false)
+      }
+    }
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
   const choose = (nextValue) => {
     onChange({ target: { value: nextValue } })
     setOpen(false)
+    setQuery('')
   }
+
   return (
-    <Field label={label} hint={hint} error={error} required>
-      <div className="relative" onBlur={() => window.setTimeout(() => setOpen(false), 120)}>
-        <button type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((state) => !state)} className={cx('group flex h-12 w-full items-center justify-between rounded-xl bg-white px-3.5 text-left text-sm text-ink-900 outline-none ring-1 ring-inset transition hover:bg-white', open ? 'ring-2 ring-[#0e1b2c]' : 'ring-[#e4ddd0] hover:ring-[#b9b2a5]', error && '!ring-red-400')}>
-          <span className={cx(!value && 'text-ink-400')}>{selectedLabel}</span>
-          <ChevronDown size={17} className={cx('text-[#8c9a98] transition-transform', open && 'rotate-180 text-[#0e1b2c]')} />
+    <Field label={label} hint={hint} error={error} required={required} asLabel={false} labelId={labelId}>
+      <div ref={containerRef} className="relative">
+        <button
+          type="button"
+          aria-labelledby={label ? labelId : undefined}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          onClick={() => {
+            setOpen((state) => {
+              const next = !state
+              if (!next) setQuery('')
+              return next
+            })
+          }}
+          className={cx('group flex h-12 w-full items-center justify-between rounded-xl bg-white px-3.5 text-left text-sm text-ink-900 outline-none ring-1 ring-inset transition hover:bg-white', open ? 'ring-2 ring-[#0e1b2c]' : 'ring-[#e4ddd0] hover:ring-[#b9b2a5]', error && '!ring-red-400')}
+        >
+          <span className={cx('truncate', !value && 'text-ink-400')}>{selectedLabel}</span>
+          <ChevronDown size={17} className={cx('shrink-0 text-[#8c9a98] transition-transform', open && 'rotate-180 text-[#0e1b2c]')} />
         </button>
-        {open && <div role="listbox" className="absolute left-0 right-0 z-30 mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e4ddd0] bg-[#fffdf8] p-1.5 shadow-[0_16px_35px_-18px_rgba(15,43,53,.28)]">
-          {options.map((option) => {
-            const optionValue = typeof option === 'string' ? option : option.value
-            const optionLabel = typeof option === 'string' ? option : option.label
-            const active = optionValue === value
-            return <button key={optionValue} type="button" role="option" aria-selected={active} onClick={() => choose(optionValue)} className={cx('flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition', active ? 'bg-[#efeae0] font-bold text-[#0e1b2c]' : 'text-ink-700 hover:bg-[#f7f4ee] hover:text-ink-900')}>{optionLabel}{active && <Check size={16} className="text-[#8a6420]" />}</button>
-          })}
-        </div>}
+        {open && (
+          <div className="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-[#e4ddd0] bg-[#fffdf8] shadow-[0_16px_35px_-18px_rgba(15,43,53,.28)]">
+            {normalizedOptions.length > 8 && (
+              <div className="border-b border-[#eee7da] p-2">
+                <div className="relative flex items-center">
+                  <Search size={15} className="pointer-events-none absolute left-3 text-[#8c9a98]" />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search categories…"
+                    aria-label="Search categories"
+                    autoFocus
+                    className="h-9 w-full rounded-lg border border-[#e4ddd0] bg-white pl-8 pr-3 text-sm text-ink-900 outline-none placeholder:text-ink-400 focus:border-[#0e1b2c]"
+                  />
+                </div>
+              </div>
+            )}
+            <div role="listbox" className="max-h-64 overflow-y-auto p-1.5">
+              {filteredOptions.length === 0 ? (
+                <p className="px-3 py-2.5 text-sm text-ink-500">No matching categories</p>
+              ) : (
+                filteredOptions.map((option, index) => {
+                  const active = option.value === value
+                  return (
+                    <button
+                      key={`${option.value}-${index}`}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => choose(option.value)}
+                      className={cx('flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm transition', active ? 'bg-[#efeae0] font-bold text-[#0e1b2c]' : 'text-ink-700 hover:bg-[#f7f4ee] hover:text-ink-900')}
+                    >
+                      <span className="truncate">{option.label}</span>
+                      {active && <Check size={16} className="shrink-0 text-[#8a6420]" />}
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </Field>
   )

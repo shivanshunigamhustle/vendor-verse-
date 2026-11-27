@@ -256,6 +256,129 @@
 .vv-conversation-send { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 20px; border: 0; border-radius: 999px; background: linear-gradient(135deg, #8f6a22, #6f5018); color: #fff; font-weight: 700; cursor: pointer; transition: transform .15s, opacity .15s; }
 .vv-conversation-send:hover:not(:disabled) { transform: translateY(-1px); }
 .vv-conversation-send:disabled { opacity: .45; cursor: not-allowed; }
+.vv-remote-vendor-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.vv-remote-vendor-quote-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1px solid #d7c39d;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #6f5018;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.vv-remote-vendor-quote-btn:hover { background: #f8f1e3; border-color: #8a6420; transform: translateY(-2px); }
+.vv-remote-vendor-quote-btn:disabled { cursor: wait; opacity: .65; transform: none; }
+.vv-dm-quote-trigger {
+  display: inline-flex !important;
+  width: auto !important;
+  height: 36px !important;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px !important;
+  border: 1px solid #dfd2ba !important;
+  border-radius: 999px !important;
+  background: #fbf8f1 !important;
+  color: #6f5018 !important;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.vv-dm-quote-trigger:hover,
+.vv-dm-quote-trigger.is-active {
+  border-color: #8a6420 !important;
+  background: #8a6420 !important;
+  color: #fff !important;
+}
+.vv-dm-quote-panel {
+  flex: 0 0 auto;
+  border-bottom: 1px solid #e7decb;
+  background: #fffdf8;
+  padding: 14px 24px 16px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.vv-dm-quote-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.vv-dm-quote-badge {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f3e8cf;
+  color: #6f5018;
+  font-size: 11px;
+  font-weight: 700;
+}
+.vv-dm-quote-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 750;
+  color: #0e1b2c;
+}
+.vv-dm-quote-close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #f3ede2;
+  color: #4a3d28;
+  cursor: pointer;
+}
+.vv-dm-quote-body {
+  display: grid;
+  gap: 10px;
+}
+.vv-dm-quote-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.vv-dm-quote-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+.vv-dm-quote-link {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 767px) {
+  .vv-dm-quote-panel { padding: 12px 14px 14px; }
+  .vv-dm-quote-grid { grid-template-columns: 1fr; }
+  .vv-dm-quote-trigger span { display: none; }
+  .vv-dm-quote-trigger { width: 36px !important; padding: 0 !important; justify-content: center; }
+}
+
 @media (max-width: 767px) {
   .vv-conversation-page-title { padding: 14px 16px; font-size: 20px; border-bottom: 1px solid #eee8dc; }
   .vv-conversation-page.is-mobile-chat .vv-conversation-page-title,

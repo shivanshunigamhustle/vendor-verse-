@@ -13,9 +13,14 @@ import { ClipboardList, FileSignature, FileText, Send } from 'lucide-react'
 import { Badge, Banner, Button, Card, CategorySelect, Checkbox, Dialog, EmptyState, Input, KV, Screen, Section, Segmented, Select } from '../ui.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
+import { INDUSTRIES, VENDORS0 } from '../data.jsx'
+import { findCity } from '../geo.js'
+import { openAuthDialog } from '../components/MarketplaceAuthDialog.jsx'
 import { authService } from '../services/authService.js'
 import { BookingList, BookingRows, ErrorBox, Loading, fmtWhen, minorToText, useLoad } from './remote-discovery.jsx'
 import { ContractRows, WorkOrderRows } from './remote-transactions.jsx'
+import { RfqDetail } from './customer2.jsx'
+import { buildRfqCategoryOptions, resolveIndustryCat, resolveInitialRfqCategory, selectDirectoryVendorsForIndustry } from './rfqCategories.js'
 
 const RFQ_STATE = {
   draft: ['Draft', 'gray'], open: ['Open for quotes', 'blue'], accepted: ['Quote accepted', 'teal'], expired: ['Expired', 'gray'], cancelled: ['Cancelled', 'gray'],
@@ -77,13 +82,24 @@ function ActivityEmpty({ icon: Icon, title, body, action, onAction }) {
 /** Customer activity hub (F-BKG-10): bookings first, then RFQs, work orders and contracts, one tab each. */
 export function RemoteActivity() {
   const nav = useNav()
+  const { rfqs: localRfqs } = useApp()
   const [tab, setTab] = useState(() => nav.params?.tab || 'bookings')
   const load = useCallback(() => authService.listMyBookings(), [])
   const bookings = useLoad(load, [load])
   const rfqs = useLoad(() => authService.listMyRfqs(), [])
   const work = useLoad(() => authService.listMyWorkOrders(), [])
   const contracts = useLoad(() => authService.listMyContracts(), [])
-  const count = (r, key) => (r.data ? (r.data[key] || []).length : undefined)
+  const directoryRfqs = useMemo(() => (localRfqs || [])
+    .filter((r) => r.source === 'directory')
+    .map((r) => ({
+      id: r.id,
+      kind: r.kind || 'service',
+      state: r.status || 'submitted',
+      quoteDeadlineAt: null,
+      requirements: { title: r.title },
+    })), [localRfqs])
+  const allRfqs = useMemo(() => [...directoryRfqs, ...(rfqs.data?.rfqs || [])], [directoryRfqs, rfqs.data])
+  const count = (r, key) => (key === 'rfqs' ? (r.data ? allRfqs.length : (directoryRfqs.length || undefined)) : (r.data ? (r.data[key] || []).length : undefined))
   const tabs = [
     { id: 'bookings', label: 'Bookings', count: count(bookings, 'bookings') },
     { id: 'rfqs', label: 'RFQs', count: count(rfqs, 'rfqs') },
@@ -104,7 +120,11 @@ export function RemoteActivity() {
       {tab === 'rfqs' && (
         <>
           <div className="flex items-center justify-between px-4 pt-4"><p className="text-sm text-ink-600">Requests you sent to vendors for quotes.</p><Button size="sm" variant="secondary" onClick={() => nav.go('c_rfq_new')}>New RFQ</Button></div>
-          {panel(rfqs, 'rfqs', rfqs.data && <RfqRows rfqs={rfqs.data.rfqs} detail="c_rfq" />, <ActivityEmpty icon={FileText} title="No RFQs yet" body="Ask vendors for quotes and compare them here." />)}
+          <div className="space-y-3 p-4">
+            {rfqs.loading && !rfqs.data && !directoryRfqs.length && <Loading />}
+            {rfqs.error && !directoryRfqs.length && <ErrorBox message={rfqs.error} onRetry={rfqs.reload} />}
+            {(rfqs.data || directoryRfqs.length > 0) && (allRfqs.length ? <RfqRows rfqs={allRfqs} detail="c_rfq" /> : <ActivityEmpty icon={FileText} title="No RFQs yet" body="Ask vendors for quotes and compare them here." />)}
+          </div>
         </>
       )}
       {tab === 'work' && panel(work, 'workOrders', work.data && <WorkOrderRows items={work.data.workOrders} detail="c_work_order" />, <ActivityEmpty icon={ClipboardList} title="No work orders" body="Accepted quotes that become work orders appear here." />)}
@@ -152,14 +172,24 @@ export function RemoteVendorWork() {
 export function RemoteRfqNew({ params = {} }) {
   const nav = useNav()
   const app = useApp()
-  const { toast } = app
+  const { me, toast, rfqs, setRfqs, notify, vendors: appVendors, vendor } = app
   const locale = app.locale ?? app.loc ?? {}
   const country = locale.country || 'IN'
   const cities = useLoad(() => authService.listCities(country), [country])
   const cityId = useMemo(() => cities.data?.cities?.find((c) => c.name === locale.city)?.id, [cities.data, locale.city])
+  const categories = useLoad(() => authService.listCategories({ countryCode: country, cityId }), [country, cityId])
 
-  const [f, setF] = useState({ categoryId: params.categoryId || '', kind: 'service', title: '', scope: '', quantity: '', budget: '', timeline: '', deadline: '', listingId: params.listingId || '' })
-  // Categories and vendors come from the eligible listings in this place, so every category offered has someone to send the RFQ to.
+  const [f, setF] = useState(() => ({
+    categoryId: resolveInitialRfqCategory({ categoryId: params.categoryId, cat: params.cat, industries: INDUSTRIES }),
+    kind: 'service',
+    title: params.title ? `Bulk quote: ${params.title}` : '',
+    scope: '',
+    quantity: '',
+    budget: '',
+    timeline: '',
+    deadline: '',
+    listingId: params.listingId || '',
+  }))
   const [listings, setListings] = useState({ loading: true, error: '', items: [] })
   const [picked, setPicked] = useState(() => new Set(params.vendorId ? [params.vendorId] : []))
   const [errs, setErrs] = useState({})
@@ -184,18 +214,32 @@ export function RemoteRfqNew({ params = {} }) {
     if (l) setF((x) => ({ ...x, categoryId: l.categoryId }))
   }, [listings.items]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const categoryOptions = useMemo(() => {
-    const m = new Map()
-    for (const l of listings.items) if (!m.has(l.categoryId)) m.set(l.categoryId, l.categoryName)
-    return [...m.entries()].map(([value, label]) => ({ value, label }))
-  }, [listings.items])
+  const categoryOptions = useMemo(
+    () => buildRfqCategoryOptions({
+      industries: INDUSTRIES,
+      remoteCategories: categories.data?.categories || [],
+      listingItems: listings.items,
+    }),
+    [categories.data, listings.items],
+  )
+  const selectedOption = useMemo(() => categoryOptions.find((o) => o.value === f.categoryId) || null, [categoryOptions, f.categoryId])
   const categoryListings = useMemo(() => listings.items.filter((l) => l.categoryId === f.categoryId), [listings.items, f.categoryId])
-  const vendors = useMemo(() => {
+  const remoteVendors = useMemo(() => {
     const m = new Map()
     for (const l of categoryListings) if (!m.has(l.vendor.id)) m.set(l.vendor.id, l.vendor)
     return [...m.values()]
   }, [categoryListings])
-  const chosenListing = categoryListings.find((l) => l.id === f.listingId)
+  const directoryVendors = useMemo(
+    () => selectDirectoryVendorsForIndustry({
+      industry: selectedOption?.industry,
+      allVendors: appVendors?.length ? appVendors : VENDORS0,
+      city: locale.city,
+    }),
+    [selectedOption, appVendors, locale.city],
+  )
+  const usingRemoteVendors = Boolean(selectedOption?.isRemote && remoteVendors.length > 0)
+  const vendors = usingRemoteVendors ? remoteVendors : directoryVendors
+  const chosenListing = usingRemoteVendors ? categoryListings.find((l) => l.id === f.listingId) : null
   const recipients = chosenListing ? [chosenListing.vendor.id] : [...picked].filter((id) => vendors.some((v) => v.id === id))
   const toggle = (id) => setPicked((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n })
 
@@ -209,6 +253,62 @@ export function RemoteRfqNew({ params = {} }) {
     if (!recipients.length) e.recipients = 'Choose at least one vendor to receive it'
     setErrs(e)
     if (Object.keys(e).length) return toast('Please complete the required fields', 'warn')
+
+    if (!usingRemoteVendors) {
+      const id = `RFQ-${Date.now().toString().slice(-6)}`
+      const place = findCity(locale.city)
+      const [y, m, d] = f.deadline.split('-')
+      const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m - 1]
+      const cityLabel = locale.city || place?.n || 'India'
+      const buyerName = me.role === 'vendor' ? (vendor?.(me.vendorId)?.name || me.name || 'Business buyer') : (me.name && me.name !== 'Guest' ? me.name : 'Marketplace customer')
+      const specs = [
+        `Category: ${selectedOption?.label || f.categoryId}`,
+        `Scope: ${f.scope.trim()}`,
+        ...(f.timeline.trim() ? [`Timeline: ${f.timeline.trim()}`] : []),
+      ]
+      setRfqs((r) => [{
+        id,
+        mine: true,
+        source: 'directory',
+        buyerType: me.role === 'vendor' ? 'vendor' : 'customer',
+        buyerVendorId: me.role === 'vendor' ? me.vendorId : undefined,
+        customer: buyerName,
+        title: f.title.trim(),
+        cat: resolveIndustryCat(selectedOption?.industry) || 'elec',
+        industryId: selectedOption?.industry?.id,
+        categoryName: selectedOption?.label,
+        kind: f.kind,
+        cats: [resolveIndustryCat(selectedOption?.industry) || 'elec'],
+        categoryBudgets: {},
+        qty: f.quantity.trim(),
+        budget: f.budget.trim(),
+        deadline: `${d} ${mon} ${y}`,
+        location: `${cityLabel}${place ? `, ${place.state}, ${place.countryName}` : ''}`,
+        country: place?.countryName || locale.countryName || 'India',
+        state: place?.state || locale.state || '',
+        city: cityLabel,
+        pincode: locale.pincode || '',
+        desc: specs.join('\n'),
+        files: [],
+        status: 'submitted',
+        created: 'Just now',
+        recipients: recipients.length,
+        history: [{ s: 'submitted', at: 'Just now', note: `Sent to ${recipients.length} eligible vendor${recipients.length === 1 ? '' : 's'}` }],
+        quotes: [],
+        chat: [],
+      }, ...(r || [])])
+      notify?.('vendor', 'RFQ matches your category', `${id} · ${f.title.trim()}`, 'rfq')
+      toast(`RFQ sent to ${recipients.length} vendor${recipients.length === 1 ? '' : 's'}`)
+      nav.replace('c_rfq', { id })
+      return
+    }
+
+    if (!me?.loggedIn) {
+      toast('Please sign in to send your RFQ', 'warn')
+      openAuthDialog('signin', 'customer', { next: 'c_rfq_new', nextParams: params })
+      return
+    }
+
     setBusy(true)
     setFailure('')
     let id = draftId
@@ -232,22 +332,32 @@ export function RemoteRfqNew({ params = {} }) {
   return (
     <Screen title="Request quotation" subtitle="Structured request for eligible vendors" headerClass="bg-[#fffdf8]" bg="bg-[#f4efe6]" footer={<Button className="!border !border-[#d8cdbb] !bg-[#e7dfd1] !text-[#0e1b2c] hover:!border-[#0e1b2c] hover:!bg-[#0e1b2c] hover:!text-white" full size="lg" icon={Send} disabled={busy} onClick={submit}>{busy ? 'Sending…' : draftId ? 'Send draft RFQ' : 'Send RFQ'}</Button>}>
       {failure && <Banner tone="red" title="Could not send">{failure}</Banner>}
-      {listings.error && <ErrorBox message={listings.error} />}
-      <CategorySelect label="Category" required value={f.categoryId} error={errs.categoryId} onChange={(e) => { set('categoryId')(e); setF((x) => ({ ...x, categoryId: e.target.value, listingId: '' })); setPicked(new Set()) }} options={[{ value: '', label: listings.loading ? 'Loading…' : categoryOptions.length ? 'Choose a category' : 'No category has vendors here yet' }, ...categoryOptions]} />
+      <CategorySelect
+        label="Category"
+        required
+        value={f.categoryId}
+        error={errs.categoryId}
+        onChange={(e) => {
+          setF((x) => ({ ...x, categoryId: e.target.value, listingId: '' }))
+          setErrs((x) => ({ ...x, categoryId: '', recipients: '' }))
+          setPicked(new Set())
+        }}
+        options={[{ value: '', label: 'Choose a category' }, ...categoryOptions]}
+      />
       <Segmented value={f.kind} onChange={(v) => setF((x) => ({ ...x, kind: v }))} options={[{ id: 'service', label: 'Service' }, { id: 'goods', label: 'Goods' }]} />
       <Input label="What do you need?" required placeholder="e.g. Repair kitchen pipe leak" value={f.title} onChange={set('title')} error={errs.title} />
       <Input label="Scope" required textarea placeholder="Describe the work or the items" value={f.scope} onChange={set('scope')} error={errs.scope} />
       <div className="flex gap-3"><Input label="Quantity" value={f.quantity} onChange={set('quantity')} /><Input label="Budget (optional)" value={f.budget} onChange={set('budget')} /></div>
       <div className="flex gap-3"><Input label="Timeline (optional)" value={f.timeline} onChange={set('timeline')} /><Input label="Quotes needed by" required type="date" min={new Date().toISOString().slice(0, 10)} value={f.deadline} onChange={set('deadline')} error={errs.deadline} /></div>
-      {f.categoryId && vendors.length > 0 && (
+      {f.categoryId && usingRemoteVendors && vendors.length > 0 && (
         <Select label={f.kind === 'service' ? 'Book a specific listing' : 'For a specific listing (optional)'} hint="Picking a listing is what makes the accepted quote a booking on that listing (the vendor offers one of its time slots). It then goes only to that listing's vendor. Leave it empty to ask several vendors for a quote; what is created on acceptance then depends on the category." value={f.listingId} onChange={set('listingId')} options={[{ value: '', label: 'No specific listing' }, ...categoryListings.map((l) => ({ value: l.id, label: `${l.title} · ${l.vendor.name}` }))]} />
       )}
       <Card>
         <p className="text-sm font-bold">Who receives it</p>
         {!f.categoryId && <p className="mt-1 text-xs text-ink-500">Choose a category to see eligible vendors in {locale.city || 'your area'}.</p>}
-                {f.categoryId && vendors.length === 0 && <p className="mt-1 text-xs font-semibold text-amber-700">No verified vendor serves this category here yet, so there is nobody to send it to.</p>}
+        {f.categoryId && vendors.length === 0 && <p className="mt-1 text-xs font-semibold text-amber-700">No verified vendor serves this category here yet, so there is nobody to send it to.</p>}
         {chosenListing ? <p className="mt-2 text-sm font-semibold">{chosenListing.vendor.name}</p> : (
-          <div className="mt-2 space-y-2">{vendors.map((v) => <Checkbox key={v.id} checked={picked.has(v.id)} onChange={() => toggle(v.id)}>{v.name}</Checkbox>)}</div>
+          <div className="mt-2 space-y-2">{vendors.map((v) => <Checkbox key={v.id} checked={picked.has(v.id)} onChange={() => toggle(v.id)}>{v.name}{v.city ? ` · ${v.city}` : ''}</Checkbox>)}</div>
         )}
         {errs.recipients && <p className="mt-2 text-xs font-semibold text-red-600">{errs.recipients}</p>}
         <p className="mt-2 text-[11px] text-ink-400">Only vendors you choose here receive it. Your contact details stay hidden.</p>
@@ -280,6 +390,13 @@ function QuoteCard({ q, name, canAccept, onAccept, kind }) {
 }
 
 export function RemoteRfqDetail({ params = {} }) {
+  const { rfqs } = useApp()
+  const localRfq = (rfqs || []).find((r) => r.id === params.id)
+  if (localRfq) return <RfqDetail params={params} />
+  return <RemoteApiRfqDetail params={params} />
+}
+
+function RemoteApiRfqDetail({ params = {} }) {
   const nav = useNav()
   const { toast } = useApp()
   const { loading, error, data, reload } = useLoad(() => authService.listRfqQuotes(params.id), [params.id])
