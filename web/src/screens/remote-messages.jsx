@@ -23,7 +23,7 @@ export function RemoteVendorProfile({ params = {} }) {
   const listing = useLoad(() => params.listingId ? authService.getPublicListing(params.listingId) : Promise.resolve({ ok: true, listing: null }), [params.listingId])
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState('')
-  if (vendor.loading && !vendor.data) return <Screen title="Vendor profile"><Loading /></Screen>
+  if (vendor.loading && !vendor.data) return <Screen title="Vendor profile"><Loading variant="detail" /></Screen>
   if (vendor.error && !seededVendor) return <Screen title="Vendor profile"><ErrorBox message={vendor.error} onRetry={vendor.reload} /></Screen>
   const v = vendor.data?.vendor || (seededVendor ? {
     id: seededVendor.id,
@@ -99,7 +99,7 @@ export function RemoteVendorProfile({ params = {} }) {
         <div className="vv-remote-vendor-content">
           <section className="vv-remote-vendor-offerings" aria-labelledby="vendor-offerings-title">
             <div className="vv-remote-vendor-section-heading"><span>Explore</span><h2 id="vendor-offerings-title">What this vendor offers</h2></div>
-            {listing.loading && params.listingId && <Loading />}
+            {listing.loading && params.listingId && <Loading variant="rows" />}
             {featuredListing && <button type="button" className="vv-remote-vendor-listing" onClick={() => nav.go('c_listing', { id: featuredListing.id })}>
               <span className="vv-remote-vendor-listing-icon"><Store size={25} aria-hidden="true" /></span>
               <span className="vv-remote-vendor-listing-copy">
@@ -158,7 +158,7 @@ export function RemoteMessages() {
     )
   }
   const remoteList = state.data?.conversations || []
-  if (state.loading && !state.data && directoryThreads.length === 0) return <Screen title="Messages" back={false}><Loading /></Screen>
+  if (state.loading && !state.data && directoryThreads.length === 0) return <Screen title="Messages" back={false}><Loading variant="rows" /></Screen>
   if (state.error && directoryThreads.length === 0) return <Screen title="Messages" back={false}><ErrorBox message={state.error} onRetry={state.reload} /></Screen>
   const firstId = remoteList[0]?.id || directoryThreads[0]?.id
   if (!firstId) return <Screen title="Messages" back={false}><EmptyState icon={MessageCircle} title="No conversations yet" body="Open a vendor profile to start one." /></Screen>
@@ -524,7 +524,7 @@ export function RemoteChat({ params = {}, initialConversations }) {
         <div className="vv-conversation-messages">
           {failure && <Banner tone="red" title="Message not sent">{failure}</Banner>}
           {!isDir && state.error && <ErrorBox message={state.error} onRetry={state.reload} />}
-          {!isDir && state.loading && !c && <Loading />}
+          {!isDir && state.loading && !c && <Loading variant="rows" />}
           {c && !c.messages?.length && <EmptyState icon={MessageCircle} title={isDir ? `Direct message with ${headName}` : 'Say hello'} body={isDir ? 'Send a direct quote request or message to start the conversation.' : 'Messages you send here reach the conversation.'} />}
           {c?.messages?.map((item) => <div key={item.id} className={`vv-conversation-bubble${item.mine ? ' is-mine' : ''}`}>
             <p>{item.body}</p>

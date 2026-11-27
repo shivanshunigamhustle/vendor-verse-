@@ -108,7 +108,7 @@ export function RemoteActivity() {
   ]
   const panel = (r, key, node, empty) => (
     <div className="space-y-3 p-4">
-      {r.loading && !r.data && <Loading />}
+      {r.loading && !r.data && <Loading variant="rows" />}
       {r.error && <ErrorBox message={r.error} onRetry={r.reload} />}
       {r.data && ((r.data[key] || []).length ? node : empty)}
     </div>
@@ -121,7 +121,7 @@ export function RemoteActivity() {
         <>
           <div className="flex items-center justify-between px-4 pt-4"><p className="text-sm text-ink-600">Requests you sent to vendors for quotes.</p><Button size="sm" variant="secondary" onClick={() => nav.go('c_rfq_new')}>New RFQ</Button></div>
           <div className="space-y-3 p-4">
-            {rfqs.loading && !rfqs.data && !directoryRfqs.length && <Loading />}
+            {rfqs.loading && !rfqs.data && !directoryRfqs.length && <Loading variant="rows" />}
             {rfqs.error && !directoryRfqs.length && <ErrorBox message={rfqs.error} onRetry={rfqs.reload} />}
             {(rfqs.data || directoryRfqs.length > 0) && (allRfqs.length ? <RfqRows rfqs={allRfqs} detail="c_rfq" /> : <ActivityEmpty icon={FileText} title="No RFQs yet" body="Ask vendors for quotes and compare them here." />)}
           </div>
@@ -141,24 +141,24 @@ export function RemoteVendorWork() {
   const load = useCallback(() => (vendorId ? authService.listVendorBookings(vendorId) : Promise.resolve({ ok: true, bookings: [] })), [vendorId])
   const work = useLoad(() => (vendorId ? authService.listVendorWorkOrders(vendorId) : Promise.resolve({ ok: true, workOrders: [] })), [vendorId])
   const contracts = useLoad(() => (vendorId ? authService.listVendorContracts(vendorId) : Promise.resolve({ ok: true, contracts: [] })), [vendorId])
-  if (mine.loading) return <Screen title="Work" back={false}><Loading /></Screen>
+  if (mine.loading) return <Screen title="Work" back={false}><Loading variant="rows" /></Screen>
   if (mine.error) return <Screen title="Work" back={false}><ErrorBox message={mine.error} onRetry={mine.reload} /></Screen>
   return (
     <BookingList title="Work" back={false} load={load} detail="v_booking" empty={vendorId ? 'Booking requests for your listings appear here.' : 'Register your business to receive bookings.'}>
       <div className="vv-work-hub space-y-3 px-4 pt-4">
         <h1 className="vv-work-title">Work</h1>
         <Section title="RFQs sent to you">
-          {rfqs.loading && !rfqs.data && <Loading />}
+          {rfqs.loading && !rfqs.data && <Loading variant="rows" />}
           {rfqs.error && <ErrorBox message={rfqs.error} onRetry={rfqs.reload} />}
           {rfqs.data && <RfqRows rfqs={rfqs.data.rfqs} detail="v_rfq" empty={vendorId ? 'RFQs from customers that match your categories appear here.' : 'Register your business to receive RFQs.'} />}
         </Section>
         <Section title="Work orders">
-          {work.loading && !work.data && <Loading />}
+          {work.loading && !work.data && <Loading variant="rows" />}
           {work.error && <ErrorBox message={work.error} onRetry={work.reload} />}
           {work.data && <WorkOrderRows items={work.data.workOrders} detail="v_work_order" empty="Accepted quotes that become work orders appear here." />}
         </Section>
         <Section title="Contracts">
-          {contracts.loading && !contracts.data && <Loading />}
+          {contracts.loading && !contracts.data && <Loading variant="rows" />}
           {contracts.error && <ErrorBox message={contracts.error} onRetry={contracts.reload} />}
           {contracts.data && <ContractRows items={contracts.data.contracts} detail="v_contract" empty="Contracts proposed to you appear here." />}
         </Section>
@@ -416,7 +416,7 @@ function RemoteApiRfqDetail({ params = {} }) {
     return () => { live = false }
   }, [vendorIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (loading && !data) return <Screen title="RFQ"><Loading /></Screen>
+  if (loading && !data) return <Screen title="RFQ"><Loading variant="detail" /></Screen>
   if (error) return <Screen title="RFQ"><ErrorBox message={error} onRetry={reload} /></Screen>
   const { rfq, quotes } = data
   const req = rfq.requirements || {}
@@ -484,7 +484,7 @@ export function RemoteVendorRfq({ params = {} }) {
   const listingId = text(data?.rfq?.requirements?.listingId)
   const capacity = useLoad(() => (listingId ? authService.listListingCapacity(listingId) : Promise.resolve({ ok: true, windows: [] })), [listingId])
 
-  if ((loading && !data) || mine.loading) return <Screen title="RFQ"><Loading /></Screen>
+  if ((loading && !data) || mine.loading) return <Screen title="RFQ"><Loading variant="detail" /></Screen>
   if (error) return <Screen title="RFQ"><ErrorBox message={error} onRetry={reload} /></Screen>
   if (mine.error) return <Screen title="RFQ"><ErrorBox message={mine.error} onRetry={mine.reload} /></Screen>
   const { rfq, quotes } = data

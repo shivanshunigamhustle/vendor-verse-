@@ -797,7 +797,8 @@
 }
 .vv-cdash-stat:hover { transform: translateY(-3px); border-color: #cbb486; box-shadow: 0 16px 32px -18px rgba(111, 80, 24, .35); }
 .vv-cdash-stat-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 10px; border-radius: 12px; background: #f7f4ee; color: #8a6420; }
-.vv-cdash-stat-value { font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: #111; }
+.vv-cdash-stat-value { font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: #111; min-height: 34px; display: flex; align-items: center; }
+.vv-cdash-stat-sk { width: 44px; height: 28px; border-radius: 8px; }
 .vv-cdash-stat-label { font-size: 13px; font-weight: 600; color: #111; }
 .vv-cdash-heading { margin: 32px 0 14px; font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -.02em; color: #111; }
 .vv-cdash-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
