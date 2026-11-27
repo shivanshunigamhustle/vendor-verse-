@@ -51,14 +51,15 @@ export function VerifiedBadge({ id, className }) {
 
 export function NotifBell({ role, className }) {
   const dropdown = true
-  const { notifs, setNotifs } = useApp()
+  const { me, notifs, setNotifs } = useApp()
   const nav = useNav()
   const [open, setOpen] = useState(false)
   const anchorRef = useRef(null)
-  const inbox = useInbox(role, dropdown && open)
-  const remoteCount = useUnreadCount(role)
-  const n = remoteInbox ? remoteCount : notifs[role]?.filter((x) => !x.read).length || 0
-  const list = remoteInbox ? inbox.rows.slice(0, 8) : (notifs[role] || []).slice(0, 8)
+  const signedIn = Boolean(me?.loggedIn)
+  const inbox = useInbox(role, dropdown && open && (!remoteInbox || signedIn))
+  const remoteCount = useUnreadCount(role, signedIn)
+  const n = remoteInbox ? (signedIn ? remoteCount : 0) : notifs[role]?.filter((x) => !x.read).length || 0
+  const list = remoteInbox ? (signedIn ? inbox.rows.slice(0, 8) : []) : (notifs[role] || []).slice(0, 8)
   useEffect(() => {
     if (!open) return undefined
     const close = (event) => { if (!anchorRef.current?.contains(event.target)) setOpen(false) }

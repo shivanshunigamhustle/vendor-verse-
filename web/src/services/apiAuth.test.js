@@ -262,10 +262,37 @@ describe('createApiAuthService: customer profile and saved locations (F-ACC-06)'
     expect(calls[2].auth).toBe('Bearer a2')
   })
 
-  it('does nothing when signed out', async () => {
+  it('does nothing when signed out and does not open the auth dialog', async () => {
     const { service, calls } = setup({})
-    expect((await service.getProfile()).ok).toBe(false)
-    expect(calls).toHaveLength(0)
+    const events = []
+    const prevDispatch = globalThis.dispatchEvent
+    globalThis.dispatchEvent = (event) => { events.push(event); return true }
+    try {
+      expect((await service.getProfile()).ok).toBe(false)
+      expect((await service.getUnreadNotificationCount()).ok).toBe(false)
+      expect(calls).toHaveLength(0)
+      expect(events).toHaveLength(0)
+    } finally {
+      globalThis.dispatchEvent = prevDispatch
+    }
+  })
+
+  it('opens the auth dialog once when an active session expires on 401', async () => {
+    const { service, store } = setup({
+      'GET /me/profile': reply(401, {}),
+      'POST /auth/refresh': reply(401, {}),
+    })
+    store.set(TOKENS)
+    const events = []
+    const prevDispatch = globalThis.dispatchEvent
+    globalThis.dispatchEvent = (event) => { events.push(event); return true }
+    try {
+      expect((await service.getProfile()).ok).toBe(false)
+      expect(store.get()).toBeNull()
+      expect(events.map((e) => e.type)).toEqual(['vv:open-auth'])
+    } finally {
+      globalThis.dispatchEvent = prevDispatch
+    }
   })
 
   it('lists, adds, edits and removes saved locations', async () => {

@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut, MapPin, Home, Compass, ClipboardList, MessageCircle, User, LayoutDashboard, Package, Heart, FileText, Store } from 'lucide-react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHouse, faScrewdriverWrench, faChampagneGlasses, faUserTie, faCode, faBoxesStacked, faIndustry, faTruck } from '@fortawesome/free-solid-svg-icons'
+import { Battery, Signal, Wifi, Search, X, LayoutGrid, CheckCircle2, AlertTriangle, Info, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, FileCheck2, Rocket, Users2, Target, HelpCircle, Smartphone, Menu, Bell, Globe, ArrowLeftRight, PanelRightClose, PanelRightOpen, PanelLeftClose, PanelLeftOpen, LogOut, MapPin, Home, Compass, ClipboardList, MessageCircle, User, LayoutDashboard, Package, Heart, FileText, Store, HardHat, CalendarDays, Briefcase, Code2, Boxes, Factory, Truck } from 'lucide-react'
 import { AppProvider, COUNTRY_SETTINGS, LOCATION_PRESETS, useApp } from './store.jsx'
 import { canOpenRoute } from './services/authorization.js'
 import { authService } from './services/authService.js'
 import { NavProvider, useNav } from './nav.jsx'
 import { HOME, TABS, ROLES, ADMIN_SIDEBAR, resolveActiveTab, shouldShowTabBar } from './roles.js'
-import { INDUSTRIES, SORTED_INDUSTRIES } from './data.jsx'
 import { SCREENS, GROUPS } from './registry.jsx'
 import { pathForScreen, screenForLocation } from './screen-routes.js'
 import { Logo } from './screens/auth.jsx'
@@ -41,221 +38,15 @@ const FIRST_PAINT_ROUTE = SCREENS[INITIAL_ROUTE.id] && (SCREENS[INITIAL_ROUTE.id
   : { id: 'c_home', params: {} }
 
 const MARKETPLACE_CATEGORIES = [
-  ['Home services', faHouse],
-  ['Construction', faScrewdriverWrench],
-  ['Events', faChampagneGlasses],
-  ['Professional services', faUserTie],
-  ['IT and digital', faCode],
-  ['Wholesale and industrial', faBoxesStacked],
-  ['Manufacturing and supply', faIndustry],
-  ['Logistics', faTruck],
+  ['Construction', 'Construction', HardHat],
+  ['Events', 'Events', CalendarDays],
+  ['Professional services', 'Professional services', Briefcase],
+  ['IT and digital', 'IT and digital', Code2],
+  ['Wholesale and industrial', 'Wholesale and industrial', Boxes],
+  ['Manufacturing and supply', 'Manufacturing and supply', Factory],
+  ['Logistics', 'Logistics', Truck],
+  ['Domestic & repair', 'Home services', Home],
 ]
-
-function MarketplaceCategoriesMenu({ nav }) {
-  const [open, setOpen] = useState(false)
-  const [activeId, setActiveId] = useState(() => SORTED_INDUSTRIES[0]?.id)
-  const [query, setQuery] = useState('')
-  const [mobileStep, setMobileStep] = useState('list')
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches)
-  const menuRef = useRef(null)
-  const activeIndustry = SORTED_INDUSTRIES.find((industry) => industry.id === activeId) || SORTED_INDUSTRIES[0]
-  const trimmedQuery = query.trim().toLowerCase()
-
-  const filteredIndustries = useMemo(() => {
-    if (!trimmedQuery) return SORTED_INDUSTRIES
-    return SORTED_INDUSTRIES.filter((industry) =>
-      industry.name.toLowerCase().includes(trimmedQuery)
-      || industry.subs.some((sub) => sub.toLowerCase().includes(trimmedQuery))
-    )
-  }, [trimmedQuery])
-
-  const matchingSubcategories = useMemo(() => {
-    if (!trimmedQuery) return []
-    return SORTED_INDUSTRIES.flatMap((industry) =>
-      industry.subs
-        .filter((sub) => sub.toLowerCase().includes(trimmedQuery) || industry.name.toLowerCase().includes(trimmedQuery))
-        .map((sub) => ({ industry, sub }))
-    ).slice(0, 24)
-  }, [trimmedQuery])
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)')
-    const onChange = (event) => setIsMobile(event.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  useEffect(() => {
-    if (!open) {
-      setQuery('')
-      setMobileStep('list')
-      return undefined
-    }
-    const closeOnOutsideClick = (event) => { if (menuRef.current && !menuRef.current.contains(event.target)) setOpen(false) }
-    const closeOnEscape = (event) => { if (event.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', closeOnOutsideClick)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutsideClick)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [open])
-
-  const openCategory = (group, q) => {
-    setOpen(false)
-    nav.go('c_explore', q ? { group, q, mode: 'vendors' } : { group, mode: 'vendors' })
-  }
-
-  const ActiveIcon = activeIndustry?.icon
-
-  return <div ref={menuRef} className={cx('vv-category-menu', open && 'is-open')}>
-    <button
-      type="button"
-      className="is-featured"
-      aria-haspopup="true"
-      aria-expanded={open}
-      onClick={() => { setOpen((value) => !value); setActiveId((value) => value || SORTED_INDUSTRIES[0]?.id); setMobileStep('list') }}
-    >
-      <LayoutGrid size={15} aria-hidden="true" />
-      <span>View all categories</span>
-      <ChevronDown className="vv-category-menu-caret" size={16} aria-hidden="true" />
-    </button>
-    <div className="vv-category-mega" role="menu">
-      <div className="vv-category-mega-heading">
-        <div className="vv-category-mega-title">
-          <div>
-            <strong>All categories</strong>
-            <span>{INDUSTRIES.length} industries · browse sectors &amp; services</span>
-          </div>
-          <button type="button" className="vv-category-mega-close" aria-label="Close categories menu" onClick={() => setOpen(false)}>
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-        <label className="vv-category-mega-search">
-          <Search size={15} aria-hidden="true" />
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Filter industries or subcategories…"
-            aria-label="Filter categories"
-          />
-          {query && (
-            <button type="button" aria-label="Clear category filter" onClick={() => setQuery('')}>
-              <X size={13} aria-hidden="true" />
-            </button>
-          )}
-        </label>
-      </div>
-
-      {trimmedQuery ? (
-        <div className="vv-category-search-results">
-          {filteredIndustries.length === 0 && matchingSubcategories.length === 0 ? (
-            <div className="vv-category-empty">
-              <p>No categories match “{query.trim()}”.</p>
-              <button type="button" onClick={() => setQuery('')}>Reset filter</button>
-            </div>
-          ) : <>
-            {filteredIndustries.length > 0 && (
-              <div className="vv-category-search-section">
-                <p className="vv-category-search-label">Industries ({filteredIndustries.length})</p>
-                <div className="vv-category-search-chips">
-                  {filteredIndustries.map((industry) => {
-                    const Icon = industry.icon
-                    return (
-                      <button key={industry.id} type="button" role="menuitem" className="vv-category-industry-chip" onClick={() => openCategory(industry.name)}>
-                        {Icon && <Icon size={14} aria-hidden="true" />}
-                        <span>{industry.name}</span>
-                        <small>{industry.cats}</small>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-            {matchingSubcategories.length > 0 && (
-              <div className="vv-category-search-section">
-                <p className="vv-category-search-label">Subcategories ({matchingSubcategories.length})</p>
-                <div className="vv-category-browser-subs">
-                  {matchingSubcategories.map(({ industry, sub }) => (
-                    <button key={`${industry.id}-${sub}`} type="button" role="menuitem" className="vv-category-sub-btn" onClick={() => openCategory(industry.name, sub)}>
-                      <span><b>{sub}</b><small>{industry.name}</small></span>
-                      <ChevronRight size={14} aria-hidden="true" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>}
-        </div>
-      ) : (
-        <div className={cx('vv-category-browser', isMobile && mobileStep === 'detail' && 'is-mobile-detail')}>
-          <div className="vv-category-browser-list" role="menu" aria-label="All categories">
-            {SORTED_INDUSTRIES.map((industry) => {
-              const Icon = industry.icon
-              const selected = activeIndustry?.id === industry.id
-              return (
-                <button
-                  key={industry.id}
-                  type="button"
-                  role="menuitem"
-                  aria-current={selected ? 'true' : undefined}
-                  className={cx(selected && 'is-selected')}
-                  onMouseEnter={() => { if (!isMobile) setActiveId(industry.id) }}
-                  onFocus={() => { if (!isMobile) setActiveId(industry.id) }}
-                  onClick={() => {
-                    if (isMobile) {
-                      setActiveId(industry.id)
-                      setMobileStep('detail')
-                    } else {
-                      openCategory(industry.name)
-                    }
-                  }}
-                >
-                  <span className="vv-category-ico">{Icon && <Icon size={15} aria-hidden="true" />}</span>
-                  <span className="vv-category-name">{industry.name}</span>
-                  <small>{industry.cats}</small>
-                  <ChevronRight size={14} className="vv-category-arrow" aria-hidden="true" />
-                </button>
-              )
-            })}
-          </div>
-          <div className="vv-category-browser-detail" role="menu" aria-label={`${activeIndustry?.name || 'Category'} subcategories`}>
-            {activeIndustry && <>
-              <div className="vv-category-mobile-nav">
-                <button type="button" className="vv-category-mobile-back" onClick={() => setMobileStep('list')}>
-                  <ArrowLeft size={15} aria-hidden="true" />
-                  <span>All industries</span>
-                </button>
-              </div>
-              <div className="vv-category-browser-detail-heading">
-                <div className="vv-category-browser-detail-title">
-                  <span className="vv-category-detail-ico">{ActiveIcon && <ActiveIcon size={18} aria-hidden="true" />}</span>
-                  <div>
-                    <strong>{activeIndustry.name}</strong>
-                    <span>{activeIndustry.cats} categories · {activeIndustry.subs.length} popular</span>
-                  </div>
-                </div>
-                <button type="button" className="vv-category-view-all" onClick={() => openCategory(activeIndustry.name)}>
-                  <span>Explore all</span>
-                  <ArrowRight size={14} aria-hidden="true" />
-                </button>
-              </div>
-              <div className="vv-category-browser-subs">
-                {activeIndustry.subs.map((subcategory) => (
-                  <button key={subcategory} type="button" role="menuitem" className="vv-category-sub-btn" onClick={() => openCategory(activeIndustry.name, subcategory)}>
-                    <span>{subcategory}</span>
-                    <ChevronRight size={14} aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
-            </>}
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
-}
 
 function useViewport() {
   const [v, setV] = useState({ w: window.innerWidth, h: window.innerHeight })
@@ -596,10 +387,10 @@ function MarketplaceMobileDrawer({ open, onClose, nav, me, setMe, threads, toast
           <div className="vv-mock-drawer-section">
             <p className="vv-mock-drawer-label">Browse sectors</p>
             <div className="vv-mock-drawer-cats">
-              {MARKETPLACE_CATEGORIES.map(([category, icon]) => (
-                <button key={category} type="button" className={cx('vv-mock-drawer-cat', nav.id === 'c_explore' && nav.params?.group === category && 'is-active')} onClick={() => navigate('c_explore', { group: category, mode: 'vendors' })}>
-                  <FontAwesomeIcon icon={icon} aria-hidden="true" />
-                  <span>{category}</span>
+              {MARKETPLACE_CATEGORIES.map(([label, group, Icon]) => (
+                <button key={group} type="button" className={cx('vv-mock-drawer-cat', nav.id === 'c_explore' && nav.params?.group === group && 'is-active')} onClick={() => navigate('c_explore', { group, mode: 'vendors' })}>
+                  <Icon size={15} aria-hidden="true" />
+                  <span>{label}</span>
                 </button>
               ))}
             </div>
@@ -768,7 +559,7 @@ function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme =
         </div>
         </>}
       </div>
-      {mockMarketplaceHeader && marketplaceCategories && <nav className="vv-mock-category-nav" aria-label="Categories"><div className="vv-category-nav-items"><MarketplaceCategoriesMenu nav={nav} /><div className="vv-category-nav-links">{MARKETPLACE_CATEGORIES.map(([category, icon]) => <button key={category} className={cx(nav.id === 'c_explore' && nav.params?.group === category && 'is-active')} onClick={() => nav.go('c_explore', { group: category, mode: 'vendors' })}><FontAwesomeIcon icon={icon} aria-hidden="true" /><span>{category}</span></button>)}</div><div className="vv-mock-mobile-utils">{renderMarketplaceLanguage()}{renderMarketplaceLocation()}</div></div></nav>}
+      {mockMarketplaceHeader && marketplaceCategories && <nav className="vv-mock-category-nav" aria-label="Categories"><div className="vv-category-nav-items"><div className="vv-category-menu"><button type="button" className={cx('vv-category-home-btn', nav.id === 'c_home' && 'is-active')} aria-label="Home" title="Home" aria-current={nav.id === 'c_home' ? 'page' : undefined} onClick={() => nav.reset('c_home')}><Home size={16} aria-hidden="true" /></button></div><div className="vv-category-nav-links">{MARKETPLACE_CATEGORIES.map(([label, group]) => <button key={group} className={cx(nav.id === 'c_explore' && nav.params?.group === group && 'is-active')} onClick={() => nav.go('c_explore', { group, mode: 'vendors' })}><span>{label}</span></button>)}</div><div className="vv-mock-mobile-utils">{renderMarketplaceLanguage()}{renderMarketplaceLocation()}</div></div></nav>}
       <div className="sr-only" aria-live="polite">{screen.title}</div>
       {mockMarketplaceHeader && <MarketplaceMobileDrawer open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} nav={nav} me={me} setMe={setMe} threads={threads} toast={toast} accountHome={accountHome} onOpenAuth={(mode, role, extra = {}) => setAuthDialog({ mode, role, ...extra })} renderLocation={renderMarketplaceLocation} renderLanguage={renderMarketplaceLanguage} />}
       <LocationDialog open={locationOpen} onClose={() => setLocationOpen(false)} />
@@ -845,11 +636,11 @@ function Shell() {
   const customerPortalRoute = (me.role === 'customer' || !me.loggedIn) && CUSTOMER_PORTAL_IDS.has(nav.id)
   const showCustomerWorkspace = Boolean(me.loggedIn) && me.role === 'customer' && CUSTOMER_WORKSPACE_IDS.includes(nav.id)
   const agentLogout = () => {
-    setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
+    setMe({ role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest' })
     nav.reset('c_home')
   }
   const adminLogout = () => {
-    setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' })
+    setMe({ role: 'customer', loggedIn: false, guest: true, vendorId: 'v-me', name: 'Guest' })
     nav.reset('c_home')
   }
 

@@ -7,11 +7,11 @@ export const remoteInbox = Boolean(authService.isRemote)
 const PAGE = 20
 
 /** F-MSG-04 inbox from the API. Does nothing (and stays empty) against the mock. */
-export function useInbox(role) {
-  const [state, setState] = useState({ items: [], loading: remoteInbox, error: '', more: false })
+export function useInbox(role, enabled = true) {
+  const [state, setState] = useState({ items: [], loading: remoteInbox && enabled, error: '', more: false })
 
   const load = useCallback(async (before) => {
-    if (!remoteInbox) return
+    if (!remoteInbox || !enabled) return
     setState((s) => ({ ...s, loading: true, error: '' }))
     const r = await authService.listNotifications({ limit: PAGE, before })
     setState((s) =>
@@ -19,11 +19,15 @@ export function useInbox(role) {
         ? { items: before ? [...s.items, ...r.notifications] : r.notifications, loading: false, error: '', more: r.notifications.length === PAGE }
         : { ...s, loading: false, error: r.message },
     )
-  }, [])
+  }, [enabled])
 
   useEffect(() => {
+    if (!remoteInbox || !enabled) {
+      setState({ items: [], loading: false, error: '', more: false })
+      return
+    }
     load()
-  }, [load, role])
+  }, [load, role, enabled])
 
   const markRead = async (id) => {
     const r = await authService.markNotificationRead(id)
@@ -41,15 +45,18 @@ export function useInbox(role) {
 }
 
 /** Unread count for the bell badge. Zero while signed out or against the mock. */
-export function useUnreadCount(role) {
+export function useUnreadCount(role, enabled = true) {
   const [count, setCount] = useState(0)
   useEffect(() => {
-    if (!remoteInbox) return
+    if (!remoteInbox || !enabled) {
+      setCount(0)
+      return undefined
+    }
     let live = true
     authService.getUnreadNotificationCount().then((r) => live && setCount(r.ok ? r.count : 0))
     return () => {
       live = false
     }
-  }, [role])
+  }, [role, enabled])
   return count
 }
