@@ -143,9 +143,9 @@ function ScreenHost({ onMenu }) {
   const workspaceRoute = vendorWorkspaceRoute || businessWorkspaceRoute || customerWorkspaceRoute
   const vendorMessagesRoute = nav.id === 'messages' && (me.role === 'vendor' || me.role === 'business')
   const agentWorkspaceRoute = me.role === 'agent' && reg.role === 'agent'
-  const adminWorkspaceRoute = ['ad_dash', 'ad_approvals', 'ad_users', 'ad_reports', 'ad_more'].includes(nav.id)
+  const adminWorkspaceRoute = me.role === 'admin' && reg.role === 'admin'
   const FORM_IDS = ['c_book_new', 'c_book_instant', 'c_book_series', 'c_book_modify', 'c_booking_done', 'c_rfq_new', 'c_rfq_edit', 'c_rfq_none', 'c_rfq_goods', 'c_order_new', 'c_order_exc', 'c_review', 'c_review_no', 'c_report', 'c_profile_edit', 'c_settings', 'c_notif_prefs', 'c_delete', 'c_export', 'c_sessions', 'c_contact_share', 'c_location', 'c_location_wait', 'c_cat_suggest', 'c_contract_new', 'c_company_order', 'acct_state', 'ui_states', 'v_register']
-  const formRoute = FORM_IDS.includes(nav.id) || (!customerRoute && !workspaceRoute && !agentWorkspaceRoute && !adminWorkspaceRoute && !['auth'].includes(reg.role) && !['v_explore', 'vb_explore', 'c_explore_suppliers', 'messages', 'chat', 'ad_vendors', 'ad_listings', 'ad_cases', 'ad_agents', 'ad_categories', 'ad_audit', 'ad_customers', 'ad_analytics', 'ad_coupons'].includes(nav.id))
+  const formRoute = FORM_IDS.includes(nav.id) || (!customerRoute && !workspaceRoute && !agentWorkspaceRoute && !adminWorkspaceRoute && !['auth'].includes(reg.role) && !['v_explore', 'vb_explore', 'c_explore_suppliers', 'messages', 'chat'].includes(nav.id))
   // Dashboard shells (sidebar + header) must persist between pages: a stable key keeps them mounted
   // and skips the entrance animation, so switching pages never looks like a reload.
   const persistentShell = workspaceRoute || agentWorkspaceRoute || adminWorkspaceRoute
@@ -444,7 +444,223 @@ function MarketplaceMobileDrawer({ open, onClose, nav, me, setMe, threads, toast
   )
 }
 
-function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme = false, blueBrand = false, workspaceToggle, workspaceMobile = false, workspaceMobileOpen = false, workspaceCollapsed = false, marketplaceCategories = true, marketplaceAnnouncement = true }) {
+function AdminHeaderSearch({ onNavigate }) {
+  const { vendors = [], users = [], agents = [], disputes = [] } = useApp()
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [highlighted, setHighlighted] = useState(-1)
+  const rootRef = useRef(null)
+
+  const pageItems = useMemo(() => {
+    const items = []
+    const seen = new Set()
+    for (const group of ADMIN_SIDEBAR || []) {
+      for (const item of group.items || []) {
+        const key = `${item.id}:${JSON.stringify(item.params || {})}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        items.push({
+          key: `page:${key}`,
+          kind: 'Page',
+          title: item.label,
+          subtitle: group.label || group.title || 'Admin',
+          routeId: item.id,
+          params: item.params,
+          Icon: item.icon || LayoutGrid,
+        })
+      }
+    }
+    return items
+  }, [])
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return pageItems.slice(0, 6)
+    const results = []
+    for (const page of pageItems) {
+      if (`${page.title} ${page.subtitle}`.toLowerCase().includes(q)) results.push(page)
+    }
+    for (const v of vendors) {
+      if (`${v.name || ''} ${v.owner || ''} ${v.city || ''} ${v.cat || ''}`.toLowerCase().includes(q)) {
+        results.push({
+          key: `vendor:${v.id}`,
+          kind: 'Vendor',
+          title: v.name,
+          subtitle: [v.owner, v.city].filter(Boolean).join(' · ') || 'Vendor account',
+          routeId: 'ad_vendor',
+          params: { id: v.id },
+          Icon: Store,
+        })
+      }
+    }
+    for (const u of users) {
+      if (`${u.name || ''} ${u.role || ''} ${u.phone || ''}`.toLowerCase().includes(q)) {
+        results.push({
+          key: `user:${u.id}`,
+          kind: 'User',
+          title: u.name,
+          subtitle: [u.role, u.phone].filter(Boolean).join(' · ') || 'User account',
+          routeId: 'ad_user',
+          params: { id: u.id },
+          Icon: User,
+        })
+      }
+    }
+    for (const a of agents) {
+      if (`${a.name || ''} ${a.region || ''}`.toLowerCase().includes(q)) {
+        results.push({
+          key: `agent:${a.id}`,
+          kind: 'Agent',
+          title: a.name,
+          subtitle: a.region || 'Sales agent',
+          routeId: 'ad_agent',
+          params: { id: a.id },
+          Icon: Users2,
+        })
+      }
+    }
+    for (const d of disputes) {
+      if (`${d.id || ''} ${d.title || ''} ${d.ref || ''} ${d.against || ''} ${d.raisedBy || ''}`.toLowerCase().includes(q)) {
+        results.push({
+          key: `case:${d.id}`,
+          kind: 'Case',
+          title: d.title || d.id,
+          subtitle: [d.id, d.raisedBy && d.against ? `${d.raisedBy} vs ${d.against}` : ''].filter(Boolean).join(' · '),
+          routeId: 'ad_case',
+          params: { id: d.id },
+          Icon: FileText,
+        })
+      }
+    }
+    return results.slice(0, 8)
+  }, [query, pageItems, vendors, users, agents, disputes])
+
+  useEffect(() => {
+    setHighlighted(-1)
+  }, [query])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const handleOutside = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [open])
+
+  const selectSuggestion = (item) => {
+    if (!item) return
+    setOpen(false)
+    setQuery(item.kind === 'Page' ? '' : item.title)
+    onNavigate(item.routeId, item.params)
+  }
+
+  const submitSearch = (event) => {
+    event.preventDefault()
+    const target = (highlighted >= 0 && suggestions[highlighted]) || suggestions[0]
+    if (target) selectSuggestion(target)
+  }
+
+  const handleKeyDown = (event) => {
+    if (!open && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+      setOpen(true)
+      return
+    }
+    if (!suggestions.length) return
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setHighlighted((prev) => (prev + 1) % suggestions.length)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setHighlighted((prev) => (prev <= 0 ? suggestions.length - 1 : prev - 1))
+    } else if (event.key === 'Escape') {
+      setOpen(false)
+      setHighlighted(-1)
+    } else if (event.key === 'Enter' && highlighted >= 0) {
+      event.preventDefault()
+      selectSuggestion(suggestions[highlighted])
+    }
+  }
+
+  return (
+    <div ref={rootRef} className="vv-mock-header-search vv-admin-header-search">
+      <form className="vv-nav-search-form" onSubmit={submitSearch} role="search" aria-label="Search admin portal">
+        <Search size={17} className="vv-nav-search-icon" aria-hidden="true" />
+        <input
+          type="search"
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setOpen(true)
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="Search vendors, users, agents, cases, or pages..."
+          aria-label="Search admin portal"
+          aria-expanded={open}
+          aria-autocomplete="list"
+          autoComplete="off"
+        />
+        {query && (
+          <button
+            type="button"
+            className="vv-nav-search-clear"
+            aria-label="Clear admin search"
+            onClick={() => {
+              setQuery('')
+              setOpen(true)
+            }}
+          >
+            <X size={15} />
+          </button>
+        )}
+        <button type="submit" className="vv-nav-search-submit" aria-label="Go to top search result">
+          <ArrowRight size={16} />
+        </button>
+      </form>
+      {open && (
+        <div className="vv-mock-suggestions" role="listbox" aria-label="Admin search results">
+          <div className="vv-mock-suggestions-head">
+            <span>{query.trim() ? 'Matching admin results' : 'Quick jump'}</span>
+            <span>{suggestions.length} shown</span>
+          </div>
+          {suggestions.length ? (
+            <div className="vv-mock-suggestions-list">
+              {suggestions.map((item, idx) => {
+                const Icon = item.Icon || LayoutGrid
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="option"
+                    aria-selected={idx === highlighted}
+                    className={cx('vv-mock-suggestion-item', idx === highlighted && 'is-highlighted')}
+                    onMouseEnter={() => setHighlighted(idx)}
+                    onClick={() => selectSuggestion(item)}
+                  >
+                    <span className="vv-mock-suggestion-ico"><Icon size={16} /></span>
+                    <span className="vv-nav-suggestion-copy">
+                      <strong>{item.title}</strong>
+                      <span className="vv-nav-suggestion-sub">{item.subtitle}</span>
+                    </span>
+                    <span className="vv-mock-suggestion-meta">{item.kind}</span>
+                    <ArrowRight size={14} className="vv-mock-suggestion-arrow" />
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="vv-mock-suggestions-empty">
+              No matching pages, vendors, users, agents, or cases for “{query.trim()}”.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme = false, blueBrand = false, adminHeader = false, workspaceToggle, workspaceMobile = false, workspaceMobileOpen = false, workspaceCollapsed = false, marketplaceCategories = true, marketplaceAnnouncement = true }) {
   const nav = useNav()
   const { lang, setLang, locale, setLocale, me, setMe, threads, t, toast } = useApp()
   const [locationOpen, setLocationOpen] = useState(false)
@@ -455,6 +671,7 @@ function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme =
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const accountHome = me.role === 'customer' || !me.role ? 'c_dash' : HOME[me.role] || 'c_dash'
   useEffect(() => setHeaderSearch(nav.params?.q || ''), [nav.id, nav.params?.q])
+  useEffect(() => setHeaderLanguage(lang), [lang])
   useEffect(() => { setMobileMenuOpen(false) }, [nav.id])
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)')
@@ -544,18 +761,30 @@ function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme =
             )}
           </div>
         </> : <>
-          <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 rounded-xl text-left" aria-label="VendorVerse home"><Logo size={42} blue={blueBrand} /><span className="hidden lg:block"><span className="block text-[18px] font-black leading-tight tracking-tight text-ink-900">VendorVerse</span><span className="block text-[11px] font-medium text-ink-500">Global Marketplace · products · services · quotes</span></span></button>
+          {adminHeader ? (
+            <>
+              <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 shrink-0 place-items-center rounded-xl text-ink-600 hover:bg-ink-50 md:hidden"><Menu size={20} /></button>
+              <AdminHeaderSearch onNavigate={(id, params) => nav.go(id, params)} />
+            </>
+          ) : (
+            <button onClick={() => nav.reset(HOME[me.role || 'customer'])} className="flex shrink-0 items-center gap-2.5 rounded-xl text-left" aria-label="VendorVerse home"><Logo size={42} blue={blueBrand} /><span className="hidden lg:block"><span className="block text-[18px] font-black leading-tight tracking-tight text-ink-900">VendorVerse</span><span className="block text-[11px] font-medium text-ink-500">Global Marketplace · products · services · quotes</span></span></button>
+          )}
         <nav className={cx("no-scrollbar ml-3 hidden min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto", hideTabs ? "" : "md:flex")} style={hideTabs ? { display: "none" } : undefined} aria-label="Main navigation">
           {tabs.map((tab) => { const on = activeTab === tab.id; return <button key={tab.id} onClick={() => nav.reset(tab.id)} aria-current={on ? 'page' : undefined} className={cx('flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-[13px] font-bold transition', on ? 'bg-brand-50 text-brand-800' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900')}><tab.icon size={17} />{t(tab.k)}</button> })}
         </nav>
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           {workspaceHeader && !workspaceMobile && <button type="button" onClick={workspaceToggle} aria-controls="business-workspace-navigation" aria-label={workspaceCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={!workspaceCollapsed} className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50">{workspaceCollapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}</button>}
-          <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50"><Menu size={20} /></button>
+          {!adminHeader && <button onClick={onMenu} aria-label="More pages and tools" title="More pages and tools" className="grid size-10 place-items-center rounded-xl text-ink-600 hover:bg-ink-50"><Menu size={20} /></button>}
           {me.loggedIn && me.role !== 'business' && me.hasVendorAccount && <button onClick={async () => { const nextRole = me.role === 'business' ? 'vendor' : me.role === 'vendor' ? 'customer' : 'vendor'; const switched = await authService.switchMode?.(nextRole === 'customer' ? 'CUSTOMER' : 'VENDOR'); if (switched && !switched.ok) { toast(switched.message, 'warn'); return }; setMe({ ...me, role: nextRole, name: nextRole === 'customer' ? (me.customerName || me.name) : nextRole === 'vendor' && me.vendorOwnerName ? me.vendorOwnerName : (me.vendorName || me.name), buyerMode: false }); nav.reset(nextRole === 'customer' ? 'c_home' : 'v_dash') }} className="flex h-10 items-center gap-1.5 rounded-xl bg-brand-50 px-2.5 text-xs font-bold text-brand-800 hover:bg-brand-100" title={me.role === 'business' ? 'Switch to vendor workspace' : me.role === 'vendor' ? 'Switch to customer' : 'Switch to vendor workspace'}><ArrowLeftRight size={16} /><span className="hidden sm:inline">{me.role === 'business' ? 'Vendor' : me.role === 'vendor' ? 'Customer' : 'Vendor'}</span></button>}
-          <button onClick={() => setLocationOpen(true)} className="hidden max-w-[210px] truncate rounded-xl bg-ink-50 px-3 py-2 text-left text-xs font-bold text-ink-700 hover:bg-brand-50 sm:block" title={t('searchLocation')}><MapPin size={14} className="mr-1 inline text-brand-700" />{locale.city ? `${locale.city}${locale.pincode ? ` ${locale.pincode}` : ''}${locale.state ? `, ${locale.state}` : ''}, ${locale.countryName || 'India'}` : formatLocationLabel(locale, 'Jabalpur')}</button>
-          <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>
-          <NotifBell role={me.role || 'customer'} dropdown />
-          {!me.loggedIn ? <button onClick={() => openAuthDialog('signup')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Get started</button> : <button onClick={() => nav.reset(accountHome)} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">My account</button>}
+          {adminHeader ? <>
+            {renderMarketplaceLanguage()}
+            <NotifBell role={me.role || 'customer'} dropdown className="vv-mock-header-notifications" />
+          </> : <>
+            <button onClick={() => setLocationOpen(true)} className="hidden max-w-[210px] truncate rounded-xl bg-ink-50 px-3 py-2 text-left text-xs font-bold text-ink-700 hover:bg-brand-50 sm:block" title={t('searchLocation')}><MapPin size={14} className="mr-1 inline text-brand-700" />{locale.city ? `${locale.city}${locale.pincode ? ` ${locale.pincode}` : ''}${locale.state ? `, ${locale.state}` : ''}, ${locale.countryName || 'India'}` : formatLocationLabel(locale, 'Jabalpur')}</button>
+            <button onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} className="hidden h-10 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-ink-600 hover:bg-ink-50 sm:flex" aria-label="Switch language"><Globe size={17} /><span>{lang === 'en' ? 'EN' : 'हि'}</span></button>
+            <NotifBell role={me.role || 'customer'} dropdown />
+            {!me.loggedIn ? <button onClick={() => openAuthDialog('signup')} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">Get started</button> : <button onClick={() => nav.reset(accountHome)} className="h-10 rounded-xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-brand-700">My account</button>}
+          </>}
         </div>
         </>}
       </div>
@@ -597,22 +826,21 @@ function AgentSidebar({ collapsed, onToggle, onNavigate, onLogout, me, t, active
   )
 }
 
-function AdminSidebar({ collapsed, onToggle, onNavigate, onLogout, me, t, activeId }) {
+function AdminSidebar({ onNavigate, onLogout, me, activeId }) {
+  const adminName = !me.name || me.name === 'Demo Admin' ? 'Admin' : me.name
+  const initials = adminName.split(/\s+/).filter(Boolean).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'A'
   return (
-    <aside className={cx('vv-agent-sidebar vv-admin-sidebar', collapsed && 'is-collapsed')} aria-label="Super Admin navigation">
+    <aside className="vv-agent-sidebar vv-admin-sidebar" aria-label="Super Admin navigation">
       <div className="vv-agent-sidebar-brand">
         <Logo size={40} />
-        {!collapsed && <div className="vv-agent-sidebar-brand-copy"><b>VendorVerse</b><span>Admin workspace</span></div>}
-        <button className="vv-agent-sidebar-toggle" type="button" onClick={onToggle} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
-          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-        </button>
+        <div className="vv-agent-sidebar-brand-copy"><b>VendorVerse</b><span>Admin workspace</span></div>
       </div>
       <nav className="vv-agent-sidebar-nav vv-admin-sidebar-nav" aria-label="Admin pages">
-        {ADMIN_SIDEBAR.map((group) => <div key={group.label} className="vv-admin-sidebar-group"><p className="vv-admin-sidebar-label">{collapsed ? '' : group.label}</p>{group.items.map((item) => { const Icon = item.icon; const selected = activeId === item.id; return <button key={item.id} type="button" className={cx('vv-agent-sidebar-link', selected && 'is-active')} onClick={() => onNavigate(item.id)} aria-current={selected ? 'page' : undefined} title={collapsed ? item.label : undefined}><Icon size={19} />{!collapsed && <span>{item.label}</span>}</button> })}</div>)}
+        {ADMIN_SIDEBAR.map((group) => <div key={group.label} className="vv-admin-sidebar-group"><p className="vv-admin-sidebar-label">{group.label}</p>{group.items.map((item) => { const Icon = item.icon; const selected = activeId === item.id; return <button key={item.id} type="button" className={cx('vv-agent-sidebar-link', selected && 'is-active')} onClick={() => onNavigate(item.id)} aria-current={selected ? 'page' : undefined}><Icon size={19} /><span>{item.label}</span></button> })}</div>)}
       </nav>
       <div className="vv-agent-sidebar-bottom">
-        {!collapsed && <div className="vv-agent-sidebar-user"><span className="vv-agent-sidebar-avatar">{(me.name || 'Priya Nair').split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</span><span><b>{me.name || 'Priya Nair'}</b><small>Super Admin</small></span></div>}
-        <button type="button" className="vv-agent-sidebar-logout" onClick={onLogout} title={collapsed ? 'Log out' : undefined}><LogOut size={18} />{!collapsed && <span>Log out</span>}</button>
+        <div className="vv-agent-sidebar-user"><span className="vv-agent-sidebar-avatar">{initials}</span><span><b>{adminName}</b><small>Super Admin</small></span></div>
+        <button type="button" className="vv-agent-sidebar-logout" onClick={onLogout}><LogOut size={18} /><span>Log out</span></button>
       </div>
     </aside>
   )
@@ -626,11 +854,10 @@ function Shell() {
   const [routeInitialized, setRouteInitialized] = useState(false)
   const firstUrlSync = useRef(true)
   const [agentSidebarCollapsed, setAgentSidebarCollapsed] = useState(false)
-  const [adminSidebarCollapsed, setAdminSidebarCollapsed] = useState(false)
   const desktop = w >= 768
   const showAgentSidebar = me.role === 'agent' && (SCREENS[nav.id] || {}).role === 'agent'
   const adminSidebarIds = ADMIN_SIDEBAR.flatMap((group) => group.items.map((item) => item.id)).concat(['ad_approvals', 'ad_more', 'ad_vendors', 'ad_vendor', 'ad_vendor_new', 'ad_listings', 'ad_listing', 'ad_users', 'ad_user', 'ad_roles', 'ad_category', 'ad_agent', 'ad_case', 'ad_sub', 'ad_cat_new'])
-  const showAdminSidebar = me.role === 'admin' && adminSidebarIds.includes(nav.id)
+  const showAdminSidebar = me.role === 'admin' && (adminSidebarIds.includes(nav.id) || (SCREENS[nav.id] || {}).role === 'admin')
   const showBusinessWorkspace = me.role === 'business' && ['b_home', 'b_company', 'b_services', 'b_messages', 'b_more'].includes(nav.id)
   const showVendorWorkspace = (['vendor', 'business'].includes(me.role) && ((SCREENS[nav.id] || {}).role === 'vendor' || ['messages', 'chat'].includes(nav.id))) || showBusinessWorkspace
   const customerPortalRoute = (me.role === 'customer' || !me.loggedIn) && CUSTOMER_PORTAL_IDS.has(nav.id)
@@ -699,9 +926,9 @@ function Shell() {
   return (
     <div className={cx('flex h-full min-h-0 bg-white', showAgentSidebar ? 'vv-agent-shell' : showAdminSidebar ? 'vv-admin-shell' : 'flex-col', showAgentSidebar && agentSidebarCollapsed && 'is-agent-sidebar-collapsed', (showVendorWorkspace || showCustomerWorkspace) && 'vv-global-vendor-shell', showBusinessWorkspace && 'vv-business-shell')}>
       {showAgentSidebar && <AgentSidebar collapsed={agentSidebarCollapsed} onToggle={() => setAgentSidebarCollapsed((value) => !value)} onNavigate={(id) => nav.reset(id)} onLogout={agentLogout} me={me} t={t} activeId={nav.id} />}
-      {showAdminSidebar && <AdminSidebar collapsed={adminSidebarCollapsed} onToggle={() => setAdminSidebarCollapsed((value) => !value)} onNavigate={jump} onLogout={adminLogout} me={me} t={t} activeId={nav.id} />}
+      {showAdminSidebar && <AdminSidebar onNavigate={jump} onLogout={adminLogout} me={me} activeId={nav.id} />}
       <div className={cx('flex min-h-0 min-w-0 flex-1 flex-col', showAgentSidebar && 'vv-agent-main', showAdminSidebar && 'vv-admin-main')}>
-        {!showVendorWorkspace && !showCustomerWorkspace && (!customerPortalRoute || CUSTOMER_PORTAL_IDS.has(nav.id)) && <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} blueBrand={showAgentSidebar} workspaceTheme={showAgentSidebar} marketplaceCategories={!PORTAL_NO_BANNER_IDS.has(nav.id)} marketplaceAnnouncement={!PORTAL_NO_BANNER_IDS.has(nav.id)} />}
+        {!showVendorWorkspace && !showCustomerWorkspace && (!customerPortalRoute || CUSTOMER_PORTAL_IDS.has(nav.id)) && <WebHeader onMenu={() => setDrawer(true)} hideTabs={showAgentSidebar || showAdminSidebar} blueBrand={showAgentSidebar} workspaceTheme={showAgentSidebar} adminHeader={showAdminSidebar} marketplaceCategories={!PORTAL_NO_BANNER_IDS.has(nav.id)} marketplaceAnnouncement={!PORTAL_NO_BANNER_IDS.has(nav.id)} />}
         <main className={cx('relative flex min-h-0 flex-1 flex-col bg-white', showAgentSidebar && 'vv-agent-main-content')}>
           <Phone frame={false} scale={1} web={desktop} onMenu={() => setDrawer(true)} />
         </main>
