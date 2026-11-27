@@ -296,7 +296,7 @@ function MarketplaceMobileDrawer({ open, onClose, nav, me, setMe, threads, toast
   const accountLinks = me.loggedIn && me.role === 'customer'
     ? [
         { id: 'c_dash', label: 'Account overview', icon: LayoutDashboard },
-        { id: 'c_activity', label: 'Activity & quotes', icon: ClipboardList },
+        { id: 'c_activity', label: 'Activity', icon: ClipboardList },
         { id: 'c_orders', label: 'Purchase orders', icon: Package },
         { id: 'c_saved', label: 'Saved & compare', icon: Heart },
         { id: 'messages', label: 'Messages', icon: MessageCircle, badge: unread },
