@@ -7,7 +7,12 @@ export class DatabaseService implements OnModuleDestroy {
   private readonly logger = new Logger(DatabaseService.name);
 
   constructor(connectionString: string, ssl = false) {
-    this.pool = new Pool({ connectionString, ssl });
+    // Hosted Postgres instances (such as Render) can present a certificate
+    // whose CA is not in Node's default trust store, which fails `ssl: true`.
+    this.pool = new Pool({
+      connectionString,
+      ssl: ssl ? { rejectUnauthorized: false } : false,
+    });
     this.pool.on("error", (error: Error) => {
       this.logger.error(`Idle PostgreSQL connection failed: ${error.message}`, error.stack);
     });

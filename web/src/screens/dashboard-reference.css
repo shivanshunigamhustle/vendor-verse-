@@ -220,6 +220,10 @@
   padding: 2px 6px 12px;
   border-bottom: 1px solid #efeae0;
 }
+.vv-admin-shell .vv-admin-sidebar .vx-home-back {
+  flex: none;
+  margin: 2px 0;
+}
 .vv-admin-shell .vv-admin-sidebar .vv-agent-sidebar-brand > svg {
   width: 36px;
   height: 36px;

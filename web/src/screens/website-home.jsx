@@ -247,18 +247,6 @@ const HOME_SEARCHES = ['Interior fit-out', 'Event planning', 'Home cleaning', 'W
 const HERO_POPULAR = ['Web Development', 'Construction', 'Digital Marketing', 'Suppliers']
 const HERO_TRUST = [[Users, { to: 10, suffix: 'K+' }, 'Trusted Vendors'], [Handshake, { to: 50, suffix: 'K+' }, 'Businesses Served'], [Globe, { to: 100, suffix: '+' }, 'Countries Worldwide'], [Star, { to: 4.8, suffix: '/5', decimals: 1 }, 'Customer Rating']]
 const HOME_PLACES = [['Use my current location','Auto-detect GPS'],['Jabalpur, India','India'],['Bhopal, India','India'],['Indore, India','India'],['Mumbai, India','India'],['Delhi NCR, India','India'],['Dubai, UAE','UAE'],['Remote or worldwide','Remote-capable vendors']]
-const formatMinorPrice = (price) => {
-  if (price?.state === 'on_request') return 'Price on request'
-  if (price?.state !== 'stated') return 'Price not provided'
-  const amount = price.minMinor ?? price.maxMinor
-  if (amount == null) return 'Price not provided'
-  const currency = price.currency || 'INR'
-  try {
-    const digits = new Intl.NumberFormat(undefined, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits
-    const formatted = new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amount) / (10 ** digits))
-    return price.unit ? `${formatted} /${price.unit}` : formatted
-  } catch { return `${amount} ${currency}` }
-}
 
 function HomeHeroIllustration() {
   const shape = 'M0.40,0.10 Q0.41,0.07 0.45,0.06 L0.88,0.02 Q1,0.01 1,0.14 L1,0.72 Q1,0.84 0.9,0.87 L0.14,0.99 Q0,1 0,0.88 L0,0.84 Q0,0.80 0.03,0.74 L0.37,0.14 Q0.38,0.11 0.40,0.10Z'
@@ -620,10 +608,6 @@ export function WebsiteHome() {
           const Icon = product.icon || (product.listingType === 'service' ? Wrench : Package);
           const name = product.title || product.name || '';
           const vendorObj = typeof product.vendor === 'object' && product.vendor !== null ? product.vendor : { name: product.vendor, city: product.city };
-          const priceStr = typeof product.price === 'object' && product.price !== null
-            ? formatMinorPrice(product.price)
-            : (product.price ? (String(product.price).startsWith('Price') || String(product.price).startsWith('₹') ? String(product.price) : `₹${product.price}`) : 'Price on request');
-          const unitStr = product.unit ? ` /${product.unit}` : '';
           const saved = remote ? remoteFavorites.includes(product.vendor?.id) : savedProducts.includes(index);
           return <article className="vv-mock-product-card" style={{ '--vv-i': index }} key={product.id || name || index}>
             <button className="vv-mock-product-main" onClick={()=>remote?nav.go('c_listing',{id:product.id}):setDetail({type:'product',item:product,index})}>
@@ -658,7 +642,6 @@ export function WebsiteHome() {
               <span className="vv-mock-product-info">
                 <b>{name}</b>
                 <small>{vendorObj.name}{vendorObj.city?` · ${vendorObj.city}`:''}</small>
-                <span className="vv-mock-product-price">{priceStr}{unitStr&&!priceStr.includes('/')&&<small>{unitStr}</small>}</span>
               </span>
             </button>
             <button className="vv-mock-heart vv-mock-product-heart" aria-label={`${saved?'Unsave':'Save'} ${name}`} aria-pressed={saved} onClick={()=>toggleProductSaved(product,index)}>

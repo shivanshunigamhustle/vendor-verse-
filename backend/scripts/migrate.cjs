@@ -14,7 +14,7 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
-const { Client } = require("pg");
+const { createPgClient } = require("./pg-client.cjs");
 
 const LOCK_ID = 727401; // arbitrary constant shared by every VendorVerse runner
 const dir = path.join(__dirname, "..", "db", "migrations");
@@ -114,19 +114,15 @@ async function down(client) {
 }
 
 async function main() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is required");
   const command = process.argv[2] ?? "up";
   if (!["up", "status", "down"].includes(command))
     throw new Error(`unknown command "${command}" (use up, status or down)`);
-  const ssl = process.env.DATABASE_SSL === "true";
   const files = fs
     .readdirSync(dir)
     .filter((name) => name.endsWith(".up.sql"))
     .sort();
 
-  const client = new Client({ connectionString: url, ssl });
-  client.on("error", (error) => console.error(`PostgreSQL connection lost: ${error.message}`));
+  const client = createPgClient();
   await client.connect();
   try {
     await client.query("SELECT pg_advisory_lock($1)", [LOCK_ID]);
