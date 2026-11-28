@@ -14,6 +14,24 @@ function harness() {
   return { service: new DatabaseService("postgresql://unused"), client };
 }
 
+describe("DatabaseService SSL configuration", () => {
+  it("disables SSL by default and uses rejectUnauthorized=false when enabled", () => {
+    const poolMock = Pool as unknown as jest.Mock;
+    poolMock.mockReset();
+    poolMock.mockImplementation(() => ({ on: jest.fn(), connect: jest.fn(), end: jest.fn() }));
+    new DatabaseService("postgresql://unused");
+    new DatabaseService("postgresql://unused", true);
+    expect(poolMock).toHaveBeenNthCalledWith(1, {
+      connectionString: "postgresql://unused",
+      ssl: false,
+    });
+    expect(poolMock).toHaveBeenNthCalledWith(2, {
+      connectionString: "postgresql://unused",
+      ssl: { rejectUnauthorized: false },
+    });
+  });
+});
+
 describe("DatabaseService.transaction", () => {
   it("handles a reset on a checked-out client without an unhandled event", async () => {
     const { service, client } = harness();

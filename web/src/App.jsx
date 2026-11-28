@@ -693,7 +693,7 @@ function WebHeader({ onMenu, hideTabs, workspaceHeader = false, workspaceTheme =
   const role = me.role || 'customer'
   const tabs = TABS[role] || TABS.customer
   const activeTab = resolveActiveTab(nav, role) || nav.id
-  const mockMarketplaceHeader = !workspaceHeader && !workspaceTheme && !blueBrand && (['customer', 'vendor', 'business'].includes(me.role) || (!me.loggedIn && !['ad_login', 'splash', 'welcome'].includes(nav.id)))
+  const mockMarketplaceHeader = !workspaceHeader && !workspaceTheme && !blueBrand && !adminHeader && !['ad_login', 'splash', 'welcome'].includes(nav.id)
   const countryLabel = { India: 'India', 'United Arab Emirates': 'UAE', 'United Kingdom': 'UK' }
   const localeCountry = ['India', 'United Arab Emirates', 'United Kingdom'].includes(locale.countryName) ? locale.countryName : 'India'
   const changeCountry = (countryName) => setLocale({ ...locale, ...COUNTRY_SETTINGS[countryName], ...LOCATION_PRESETS[countryName], countryName })
@@ -835,6 +835,10 @@ function AdminSidebar({ onNavigate, onLogout, me, activeId }) {
         <Logo size={40} />
         <div className="vv-agent-sidebar-brand-copy"><b>VendorVerse</b><span>Admin workspace</span></div>
       </div>
+      <button type="button" className="vx-home-back" aria-label="Back to home" onClick={() => onNavigate('c_home')}>
+        <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
+        <span>Back to home</span>
+      </button>
       <nav className="vv-agent-sidebar-nav vv-admin-sidebar-nav" aria-label="Admin pages">
         {ADMIN_SIDEBAR.map((group) => <div key={group.label} className="vv-admin-sidebar-group"><p className="vv-admin-sidebar-label">{group.label}</p>{group.items.map((item) => { const Icon = item.icon; const selected = activeId === item.id; return <button key={item.id} type="button" className={cx('vv-agent-sidebar-link', selected && 'is-active')} onClick={() => onNavigate(item.id)} aria-current={selected ? 'page' : undefined}><Icon size={19} /><span>{item.label}</span></button> })}</div>)}
       </nav>

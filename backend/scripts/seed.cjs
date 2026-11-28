@@ -2,20 +2,16 @@
 // Usage: node scripts/seed.cjs   (reads DATABASE_URL and DATABASE_SSL from the environment)
 const fs = require("node:fs");
 const path = require("node:path");
-const { Client } = require("pg");
+const { createPgClient } = require("./pg-client.cjs");
 
 async function main() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is required");
-  const ssl = process.env.DATABASE_SSL === "true";
   const dir = path.join(__dirname, "..", "db", "seeds");
   const files = fs
     .readdirSync(dir)
     .filter((name) => name.endsWith(".sql"))
     .sort();
 
-  const client = new Client({ connectionString: url, ssl });
-  client.on("error", (error) => console.error(`PostgreSQL connection lost: ${error.message}`));
+  const client = createPgClient();
   await client.connect();
   try {
     for (const file of files) {

@@ -4,7 +4,7 @@
 // The value must match user_identifiers.normalized_value exactly (the user must have signed up first).
 // Refuses to run when a Super Admin already exists.
 const { randomUUID } = require("node:crypto");
-const { Client } = require("pg");
+const { createPgClient } = require("./pg-client.cjs");
 
 async function main() {
   const [channel, value, reason] = process.argv.slice(2);
@@ -13,13 +13,7 @@ async function main() {
       'Usage: grant-first-super-admin.cjs <phone|email> <normalized value> "<reason>"',
     );
   }
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is required");
-  const client = new Client({
-    connectionString: url,
-    ssl: process.env.DATABASE_SSL === "true",
-  });
-  client.on("error", (error) => console.error(`PostgreSQL connection lost: ${error.message}`));
+  const client = createPgClient();
   await client.connect();
   try {
     await client.query("BEGIN");

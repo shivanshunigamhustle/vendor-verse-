@@ -4,7 +4,7 @@
 // Usage: npm run db:seed:admin
 // Idempotent: re-running updates the password and makes sure the SUPER_ADMIN role is assigned.
 const { randomBytes, randomUUID, scryptSync } = require("node:crypto");
-const { Client } = require("pg");
+const { createPgClient } = require("./pg-client.cjs");
 
 const hashPassword = (password) => {
   const salt = randomBytes(16);
@@ -19,10 +19,7 @@ async function main() {
     throw new Error("ADMIN_LOGIN_ID must be set to an email address");
   }
   if (password.length < 8) throw new Error("ADMIN_PASSWORD must be set (at least 8 characters)");
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is required");
-  const client = new Client({ connectionString: url, ssl: process.env.DATABASE_SSL === "true" });
-  client.on("error", (error) => console.error(`PostgreSQL connection lost: ${error.message}`));
+  const client = createPgClient();
   await client.connect();
   try {
     await client.query("BEGIN");
