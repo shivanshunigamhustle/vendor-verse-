@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle, BarChart3, CalendarCheck, Check, ChevronRight, ClipboardList, Clock, FileText, MessageCircle, Package, Plus, Receipt, Send, ShieldCheck, Star, Store, UserRound } from 'lucide-react'
-import { Button, EmptyState, Screen, Stat } from '../ui.jsx'
+import { Badge, Button, Card, EmptyState, Screen, Stat, StatusBadge, cx } from '../ui.jsx'
 import { Links, Page } from './blocks.jsx'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
@@ -80,8 +80,8 @@ export function RemoteVendorDashboard() {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
   const today = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())
 
-  if (dash.loading && !dash.data) return <VendorWorkspace><div className="vx-perf-shell vx-vendor-dash vx-dash-skeleton" aria-busy="true" aria-label="Loading dashboard"><div className="vx-sk vx-sk-head" /><div className="vx-perf-grid stats-grid vx-kpi-strip">{[0, 1, 2, 3].map((i) => <div key={i} className="vx-sk vx-sk-kpi" />)}</div><div className="vx-perf-grid wide-grid"><div className="vx-sk vx-sk-card" /><div className="vx-sk vx-sk-card" /></div></div></VendorWorkspace>
-  if (dash.error) return <VendorWorkspace><div className="vx-perf-shell vx-vendor-dash"><ErrorBox message={dash.error} onRetry={dash.reload} /></div></VendorWorkspace>
+  if (dash.loading && !dash.data) return <VendorWorkspace><div className="vv-admin-reference-dashboard vv-vendor-reference-dashboard vx-dash-skeleton" aria-busy="true" aria-label="Loading dashboard"><div className="vx-sk vx-sk-head" /><div className="vv-admin-reference-kpis">{[0, 1, 2, 3].map((i) => <div key={i} className="vx-sk vx-sk-kpi" />)}</div><div className="vv-admin-reference-grid"><div className="vx-sk vx-sk-card" /><div className="vx-sk vx-sk-card" /></div></div></VendorWorkspace>
+  if (dash.error) return <VendorWorkspace><div className="vv-admin-reference-dashboard vv-vendor-reference-dashboard"><ErrorBox message={dash.error} onRetry={dash.reload} /></div></VendorWorkspace>
   const d = dash.data
   if (!d?.vendor) return <VendorWorkspace><Screen title="Vendor" back={false}><EmptyState icon={Store} title="Complete your registration" action={<Button onClick={() => nav.go('v_register')}>Start</Button>} /></Screen></VendorWorkspace>
 
@@ -111,93 +111,94 @@ export function RemoteVendorDashboard() {
     { label: 'Booking requests', value: bookingRequests.length, icon: CalendarCheck, caption: 'Awaiting your response', route: 'v_work' },
     ...(conversations ? [{ label: 'Conversations', value: conversations.length, icon: MessageCircle, caption: 'Customer chats', route: 'messages' }] : []),
   ]
-  const funnelRows = [{ label: 'Requests', value: rfqs.length }, { label: 'Quotes sent', value: quotesReady ? quoted.length : '…' }, { label: 'Accepted', value: quotesReady ? accepted.length : '…' }]
+  const funnelRows = [
+    { label: 'Requests', value: rfqs.length, color: 'bg-amber-600' },
+    { label: 'Quotes sent', value: quotesReady ? quoted.length : 0, display: quotesReady ? quoted.length : '…', color: 'bg-amber-400' },
+    { label: 'Accepted', value: quotesReady ? accepted.length : 0, display: quotesReady ? accepted.length : '…', color: 'bg-emerald-500' },
+  ]
   const verified = vendor.roles?.some((role) => role.status === 'verified')
+  const recentListings = listings.slice(0, 5)
+  const statusForBadge = (state) => ({ approved: 'approved', pending_review: 'pending', changes_requested: 'info', draft: 'draft', paused: 'inactive', rejected: 'rejected', unpublished: 'inactive' }[state] || state)
 
-  return <VendorWorkspace><div className="vx-perf-shell vx-vendor-dash">
-    <header className="vx-perf-header">
+  return <VendorWorkspace><div className="vv-admin-reference-dashboard vv-vendor-reference-dashboard">
+    <div className="vv-admin-reference-heading">
       <div>
-        <p className="vx-perf-kicker">Workspace overview · {today}</p>
-        <h2>{greeting}, {firstName}</h2>
-        <p className="vx-perf-subtitle">{businessName} · Your business activity at a glance</p>
+        <p>Workspace overview · {today} · {businessName}</p>
+        <h1>{greeting}, {firstName}</h1>
       </div>
-      <div className="vx-perf-actions">
-        {verified && <span className="vx-perf-pill"><ShieldCheck size={14} /> Verified business</span>}
+      <div className="flex flex-wrap items-center gap-2">
+        {verified && <Badge tone="green">Verified</Badge>}
         <Button size="sm" variant="secondary" icon={UserRound} onClick={() => nav.go('v_profile')}>Edit profile</Button>
-        <Button size="sm" variant="secondary" icon={BarChart3} onClick={() => nav.go('v_perf')}>Performance</Button>
+        <Button size="sm" variant="secondary" icon={BarChart3} onClick={() => nav.go('v_perf')}>Analytics</Button>
         <Button size="sm" icon={Plus} onClick={() => nav.go('v_listing_edit')}>Add listing</Button>
       </div>
-    </header>
-
-    <div className="vx-perf-grid stats-grid vx-kpi-strip">
-      {stats.map(({ label, value, icon: Icon, caption, route }) => (
-        <button type="button" key={label} className="vx-card vx-perf-stat" onClick={() => nav.go(route)}>
-          <span className="vx-perf-ic sky"><Icon size={18} /></span>
-          <span className="vx-perf-stat-text"><b>{value}</b><span>{label}</span></span>
-          <small>View</small>
-          <span className="vx-dash-stat-caption">{caption}</span>
-        </button>
-      ))}
     </div>
 
-    <div className="vx-perf-grid wide-grid">
-      <section className="vx-card vx-perf-card">
-        <div className="vx-top-row">
-          <div><h3>Quote conversion</h3><p className="s">Your RFQ pipeline{d.lookupCapped ? ` · quotes checked on your ${QUOTE_LOOKUP_LIMIT} latest RFQs` : ''}</p></div>
-          <button type="button" className="vx-text-link" onClick={() => nav.go('v_work')}>View requests <ChevronRight size={14} /></button>
+    <div className="vv-admin-reference-kpis">
+      <Stat label="Quote requests" value={quotesReady ? toQuote.length : '…'} icon={FileText} tone="violet" caption="↗ Ready for quotation" onClick={() => nav.go('v_work')} />
+      <Stat label="Quotes sent" value={quotesReady ? quoted.length : '…'} icon={Send} tone="rose" caption={quotesReady ? `↗ ${accepted.length} accepted` : 'Checking quotes'} onClick={() => nav.go('v_work')} />
+      <Stat label="Live listings" value={live.length} icon={Package} tone="amber" caption={`↗ ${listings.length} total listings`} onClick={() => nav.go('v_listings')} />
+      <Stat label="Booking requests" value={bookingRequests.length} icon={CalendarCheck} tone="emerald" caption="↗ Awaiting your reply" onClick={() => nav.go('v_work')} />
+    </div>
+
+    <div className="vv-admin-reference-grid">
+      <Card className="vv-admin-reference-panel !p-0">
+        <div className="vv-admin-reference-panel-head">
+          <div>
+            <h2>Recent listings</h2>
+            <p>Your catalogue and publication status</p>
+          </div>
+          <Button size="sm" variant="secondary" onClick={() => nav.go('v_listings')}>View all</Button>
         </div>
-        <div className="vx-conversion-list">
+        {recentListings.length > 0 && <div className="vv-admin-reference-table-head"><span>Listing</span><span>Category</span><span>Type</span><span>Status</span></div>}
+        {recentListings.map((item) => (
+          <button type="button" key={item.id} onClick={() => nav.go('v_listing_edit', { id: item.id })} className="vv-admin-reference-row">
+            <span className="truncate font-bold">{item.title}</span>
+            <span className="truncate">{categoryNames.get(item.categoryId) || 'Catalogue'}</span>
+            <span>{item.listingType === 'service' ? 'Service' : 'Product'}</span>
+            <StatusBadge s={statusForBadge(item.contentState)} />
+          </button>
+        ))}
+        {!recentListings.length && <EmptyState icon={Package} title="No listings yet" body="Create a listing. It stays a draft until you submit it and it is approved." action={<Button size="sm" onClick={() => nav.go('v_listing_edit')}>Add listing</Button>} />}
+      </Card>
+
+      <div className="space-y-4">
+        <Card className="vv-admin-reference-panel">
+          <h2>Quote conversion</h2>
           {funnelRows.map((row) => (
-            <div key={row.label} className="vx-conversion-row">
-              <div className="vx-conversion-meta"><span>{row.label}</span><b>{row.value}</b></div>
-              <div className="vx-conversion-bar"><i className="sky" style={{ width: `${(row.value / funnelMax) * 100}%` }} /></div>
+            <div key={row.label} className="mt-4">
+              <div className="flex justify-between text-xs font-semibold text-ink-600">
+                <span>{row.label}</span>
+                <span>{row.display ?? row.value}</span>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-100">
+                <div className={cx('h-full rounded-full', row.color)} style={{ width: `${Math.max((row.value / funnelMax) * 100, row.value ? 8 : 0)}%` }} />
+              </div>
             </div>
           ))}
-        </div>
-      </section>
+          {d.lookupCapped && <p className="mt-3 text-[11px] text-ink-500">Quotes checked on your {QUOTE_LOOKUP_LIMIT} latest RFQs</p>}
+        </Card>
 
-      <section className="vx-card vx-perf-card">
-        <div className="vx-top-row">
-          <div><h3>Listings by status</h3><p className="s">Where your catalogue stands</p></div>
-          <button type="button" className="vx-text-link" onClick={() => nav.go('v_listings')}>Manage <ChevronRight size={14} /></button>
-        </div>
-        <div className="vx-conversion-list">
-          {statusRows.map((row) => (
-            <div key={row.id} className="vx-conversion-row">
-              <div className="vx-conversion-meta"><span>{row.label}</span><b>{row.value}</b></div>
-              <div className="vx-conversion-bar"><i className="sky" style={{ width: `${(row.value / statusMax) * 100}%` }} /></div>
-            </div>
-          ))}
-          {!statusRows.length && <EmptyState icon={Package} title="No listings yet" body="Create a listing. It stays a draft until you submit it and it is approved." action={<Button size="sm" onClick={() => nav.go('v_listing_edit')}>Add listing</Button>} />}
-        </div>
-      </section>
+        <Card className="vv-admin-reference-panel">
+          <h2>Needs your attention</h2>
+          <button type="button" onClick={() => nav.go('v_work')} className="vv-admin-moderation-row text-amber-800">
+            <FileText size={16} />{quotesReady ? `${toQuote.length} open quote requests` : 'Checking quote requests…'} <ChevronRight size={15} />
+          </button>
+          <button type="button" onClick={() => nav.go('v_listings')} className="vv-admin-moderation-row text-rose-800">
+            <AlertTriangle size={16} />{fix.length} listings need changes <ChevronRight size={15} />
+          </button>
+          <button type="button" onClick={() => nav.go('v_work')} className="vv-admin-moderation-row text-violet-800">
+            <CalendarCheck size={16} />{bookingRequests.length} booking requests <ChevronRight size={15} />
+          </button>
+          {quotesReady && todo === 0 && <div className="mt-3 flex items-center gap-2 rounded-xl bg-ink-50 px-3 py-2 text-xs font-semibold text-ink-600"><Check size={14} />You are all caught up.</div>}
+        </Card>
+      </div>
     </div>
 
-    <div className="vx-perf-grid lower-grid">
-      <section className="vx-card vx-perf-card vx-attention vx-dash-attention">
-        <div className="vx-top-row">
-          <div><h3>Needs your attention {todo > 0 && <span className="vx-count">{todo}</span>}</h3><p className="s">Items that may need a response</p></div>
-          <button type="button" className="vx-text-link" onClick={() => nav.go('v_work')}>View work <ChevronRight size={14} /></button>
-        </div>
-        <div className="vx-rows">
-          {bookingRequests.map((booking) => <button type="button" className="vx-row" key={booking.id} onClick={() => nav.go('v_booking', { id: booking.id })}><span className="ri violet"><CalendarCheck size={17} /></span><span className="rt"><b>Booking request</b><small>Awaiting your response</small></span><ChevronRight size={16} /></button>)}
-          {toQuote.map((request) => <button type="button" className="vx-row" key={request.id} onClick={() => nav.go('v_rfq', { id: request.id })}><span className="ri amber"><FileText size={17} /></span><span className="rt"><b>{request.requirements?.title || 'Quote request'}</b><small>Open for your quotation</small></span><ChevronRight size={16} /></button>)}
-          {fix.map((item) => <button type="button" className="vx-row" key={item.id} onClick={() => nav.go('v_listing_edit', { id: item.id })}><span className="ri rose"><AlertTriangle size={17} /></span><span className="rt"><b>{item.contentState === 'rejected' ? 'Listing rejected' : 'Listing needs changes'}</b><small>{item.title}</small></span><ChevronRight size={16} /></button>)}
-          {!quotesReady && <div className="vx-empty"><span>Checking your quote requests…</span></div>}
-          {quotesReady && todo === 0 && <div className="vx-empty"><Check size={19} /><span>You are all caught up.</span></div>}
-        </div>
-      </section>
-
-      <section className="vx-card vx-perf-card">
-        <div className="vx-top-row">
-          <div><h3>Top categories</h3><p className="s">Live listings in your catalogue</p></div>
-          <button type="button" className="vx-text-link" onClick={() => nav.go('v_listings')}>View all <ChevronRight size={14} /></button>
-        </div>
-        <div className="vx-cat-list">
-          {topCategories.map((category) => <button type="button" key={category.id} className="vx-cat-row" onClick={() => nav.go('v_listings')}><span className="ci"><Package size={18} /></span><b>{category.name}</b><em>{category.count}</em></button>)}
-          {!topCategories.length && <EmptyState icon={Store} title="No live listings yet" body="Approved products and services will appear by category here." action={<Button size="sm" onClick={() => nav.go('v_listing_edit')}>Add listing</Button>} />}
-        </div>
-      </section>
+    <div className="vv-admin-reference-footer-stats">
+      <button type="button" onClick={() => nav.go('messages')}><b>{conversations ? conversations.length : 0}</b><span>Conversations</span></button>
+      <button type="button" onClick={() => nav.go('v_listings')}><b>{topCategories.length}</b><span>Live categories</span></button>
+      <button type="button" onClick={() => nav.go('v_work')}><b>{bookings.length}</b><span>Total bookings</span></button>
     </div>
   </div></VendorWorkspace>
 }

@@ -73,7 +73,7 @@ export const DEFAULT_LOCALE = {
   state: 'Madhya Pradesh',
   city: 'Jabalpur',
   cityId: null,
-  pincode: '',
+  pincode: '482002',
   locality: '',
   currency: 'INR',
   timeZone: 'Asia/Kolkata',
@@ -82,7 +82,11 @@ export const DEFAULT_LOCALE = {
 }
 
 export const hasUserSelectedLocation = (value) => Boolean(
-  value?.city && ((value?.source && !['unset', 'default'].includes(value.source)) || value?.pincode),
+  value?.city && (
+    value?.source
+      ? !['unset', 'default'].includes(value.source)
+      : Boolean(value?.pincode)
+  ),
 )
 
 export const normalizeLocale = (value) => {
@@ -96,7 +100,7 @@ export const normalizeLocale = (value) => {
       state: 'Madhya Pradesh',
       city: 'Jabalpur',
       cityId: null,
-      pincode: '',
+      pincode: '482002',
       locality: '',
       currency: 'INR',
       timeZone: 'Asia/Kolkata',

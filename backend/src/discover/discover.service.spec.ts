@@ -176,6 +176,38 @@ describe("DiscoverService.search", () => {
     // plan tier and sponsorship are not ranking signals (GM-21, GM-22)
     expect(sql).not.toMatch(/subscription|plan_tier|sponsor/i);
   });
+
+  it("includes vendor.city when the query returns a city_name", async () => {
+    const h = harness();
+    live(h, [{ countryCode: "IN", enabled: true }]);
+    h.query.mockResolvedValueOnce(
+      result([
+        {
+          id: "l1",
+          title: "Wedding catering",
+          listing_type: "service",
+          category_id: "cat1",
+          category_name: "Event catering",
+          vendor_id: "v1",
+          vendor_name: "Royal Rasoi Caterers",
+          city_name: "Jabalpur",
+          roles: ["service_provider"],
+          price_on_request: false,
+          price_min_minor: null,
+          price_max_minor: null,
+          price_currency: null,
+          price_unit: null,
+          instant_booking_enabled: false,
+          coverage_rank: 1,
+          title_hit: false,
+          description_hit: false,
+          vendor_hit: false,
+        },
+      ]),
+    );
+    const page = await h.service.search(query({ limit: 10 }));
+    expect(page.items[0].vendor.city).toBe("Jabalpur");
+  });
 });
 
 describe("DiscoverService.getListing", () => {

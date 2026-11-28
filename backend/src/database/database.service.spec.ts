@@ -30,6 +30,20 @@ describe("DatabaseService SSL configuration", () => {
       ssl: { rejectUnauthorized: false },
     });
   });
+
+  it("strips ssl and sslmode query params so connectionString cannot override ssl", () => {
+    const poolMock = Pool as unknown as jest.Mock;
+    poolMock.mockReset();
+    poolMock.mockImplementation(() => ({ on: jest.fn(), connect: jest.fn(), end: jest.fn() }));
+    new DatabaseService(
+      "postgresql://user:pass@host/db?sslmode=require&ssl=true&application_name=vv",
+      true,
+    );
+    expect(poolMock).toHaveBeenCalledWith({
+      connectionString: "postgresql://user:pass@host/db?application_name=vv",
+      ssl: { rejectUnauthorized: false },
+    });
+  });
 });
 
 describe("DatabaseService.transaction", () => {

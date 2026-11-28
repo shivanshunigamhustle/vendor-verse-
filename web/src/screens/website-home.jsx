@@ -220,10 +220,10 @@ function getProductImageData(title) {
   return null
 }
 const HOME_VENDOR_SAMPLES = [
-  { name:'Royal Rasoi Caterers', category:'Event catering', location:'India, India', level:2, sponsored:false, coverage:'Offers public listings', price:'Offers public listings', ships:'', reviews:'Public vendor', contract:false, image:'/royal-rasoi-catering-under-130kb.jpg', imageAlt:'Professional catering and buffet setup by Royal Rasoi Caterers' },
-  { name:'Pink City Hardware Supply', category:'Hardware and building materials', location:'India, India', level:2, coverage:'Offers public listings', price:'Offers public listings', ships:'', reviews:'Public vendor', contract:false, image:'/pink-city-hardware-under-130kb.jpg', imageAlt:'Realistic hardware store interior with building materials and tools at Pink City Hardware Supply' },
+  { name:'Royal Rasoi Caterers', category:'Event catering', location:'Jabalpur, India', level:2, sponsored:false, coverage:'Serves Jabalpur', price:'Offers public listings', ships:'', reviews:'Public vendor', contract:false, image:'/royal-rasoi-catering-under-130kb.jpg', imageAlt:'Professional catering and buffet setup by Royal Rasoi Caterers' },
+  { name:'Pink City Hardware Supply', category:'Hardware and building materials', location:'Jabalpur, India', level:2, coverage:'Serves Jabalpur', price:'Offers public listings', ships:'', reviews:'Public vendor', contract:false, image:'/pink-city-hardware-under-130kb.jpg', imageAlt:'Realistic hardware store interior with building materials and tools at Pink City Hardware Supply' },
   { name:'Apex Fabrication Works', category:'Manufacturer', location:'Pune, India', level:2, coverage:'Ships to your country', price:'Min. order: Not provided', ships:'India, UAE', reviews:'No reviews yet', contract:true },
-  { name:'Choudhary Woodworks', category:'Carpentry', location:'India, India', level:2, coverage:'Price on request', price:'Price on request', ships:'', reviews:'Public vendor', contract:false, image:'/choudhary-woodworks-under-130kb.jpg', imageAlt:'Realistic woodworking workshop with carpenter crafting wooden furniture at Choudhary Woodworks' },
+  { name:'Choudhary Woodworks', category:'Carpentry', location:'Jabalpur, India', level:2, coverage:'Serves Jabalpur', price:'Price on request', ships:'', reviews:'Public vendor', contract:false, image:'/choudhary-woodworks-under-130kb.jpg', imageAlt:'Realistic woodworking workshop with carpenter crafting wooden furniture at Choudhary Woodworks' },
   { name:'Meridian Design Remote', category:'Professional services', location:'Lisbon, Portugal', level:1, coverage:'Remote delivery', price:'EUR 60 per hour', ships:'', reviews:'No reviews yet', contract:false },
   { name:'Kestrel Logistics', category:'Logistics', location:'Dubai, UAE', level:3, coverage:'Coverage: UAE, India', price:'Price on request', ships:'UAE, India', reviews:'No reviews yet', contract:true },
   { name:'Oakline Joinery', category:'Construction', location:'Bhopal, India', level:2, coverage:'Serves your city', price:'Price on request', ships:'', reviews:'No reviews yet', contract:false },
@@ -507,18 +507,28 @@ export function WebsiteHome() {
     const match = isRemote ? homeData.categories.find((category) => category.name?.trim().toLowerCase() === item.categoryName.toLowerCase()) : null
     return { ...item, ...(match || {}) }
   })
-  const vendorCards = (isRemote && homeData.listings.length > 0) ? [...new Map(homeData.listings.map((listing) => [listing.vendor.id, {
-    id: listing.vendor.id,
-    name: listing.vendor.name,
-    category: listing.categoryName,
-    location: locale?.city ? `${locale.city}, ${locale.countryName || locale.country}` : (locale?.countryName || locale?.country),
-    coverage: (listing.matchedOn || []).find((match) => match.startsWith('coverage:'))?.slice(9) || 'Available in this market',
-    price: listing.price?.state === 'on_request' ? 'Price on request' : listing.price?.state === 'not_provided' ? 'Price not provided' : 'Offers public listings',
-    reviews: 'Public vendor',
-    level: 0,
-    image: VENDOR_IMAGES[listing.vendor.name]?.src,
-    imageAlt: VENDOR_IMAGES[listing.vendor.name]?.alt,
-  }])).values()].slice(0, 3) : [0,1,3].map((index) => {
+  const vendorCards = (isRemote && homeData.listings.length > 0) ? [...new Map(homeData.listings.map((listing) => {
+    const coverageCode = (listing.matchedOn || []).find((match) => match.startsWith('coverage:'))?.slice(9)
+    const vendorCity = listing.vendor?.city || (coverageCode === 'city' ? locale?.city : '') || locale?.city
+    const coverageLabel = {
+      city: vendorCity ? `Serves ${vendorCity}` : 'In your city',
+      region: 'Covers your state or region',
+      country: 'Covers your country',
+      remote: 'Remote service',
+    }[coverageCode] || 'Available in this market'
+    return [listing.vendor.id, {
+      id: listing.vendor.id,
+      name: listing.vendor.name,
+      category: listing.categoryName,
+      location: vendorCity ? `${vendorCity}, ${locale?.countryName || locale?.country}` : (locale?.countryName || locale?.country),
+      coverage: coverageLabel,
+      price: listing.price?.state === 'on_request' ? 'Price on request' : listing.price?.state === 'not_provided' ? 'Price not provided' : 'Offers public listings',
+      reviews: 'Public vendor',
+      level: 0,
+      image: VENDOR_IMAGES[listing.vendor.name]?.src,
+      imageAlt: VENDOR_IMAGES[listing.vendor.name]?.alt,
+    }]
+  })).values()].slice(0, 3) : [0,1,3].map((index) => {
     const v = HOME_VENDOR_SAMPLES[index]
     return {
       ...v,

@@ -32,7 +32,7 @@ export interface SearchItem {
   listingType: "service" | "product";
   categoryId: string;
   categoryName: string;
-  vendor: { id: string; name: string; roles: string[] };
+  vendor: { id: string; name: string; roles: string[]; city?: string };
   price: PriceView;
   instantBooking: boolean;
   /** Why it matched: coverage level plus any text field that hit (F-DSC-02). */
@@ -54,6 +54,7 @@ interface SearchRow {
   category_name: string;
   vendor_id: string;
   vendor_name: string | null;
+  city_name?: string | null;
   roles: string[] | null;
   price_on_request: boolean;
   price_min_minor: string | null;
@@ -235,6 +236,22 @@ export class DiscoverService {
         SELECT l.id, l.title, l.listing_type, l.category_id,
                cfg.name AS category_name, v.id AS vendor_id,
                COALESCE(vp.trading_name, v.legal_name) AS vendor_name,
+               (SELECT sc.name
+                FROM service_areas AS sa
+                JOIN cities AS sc ON sc.id = sa.city_id
+                WHERE sa.vendor_id = l.vendor_id
+                  AND (sa.listing_id = l.id OR sa.listing_id IS NULL)
+                  AND sa.coverage_type = 'city'
+                  AND sc.country_id = ${country}::uuid
+                ORDER BY
+                  CASE
+                    WHEN ${city}::uuid IS NOT NULL AND sa.city_id = ${city}::uuid THEN 0
+                    WHEN ${region}::uuid IS NOT NULL AND sc.region_id = ${region}::uuid THEN 1
+                    ELSE 2
+                  END,
+                  (sa.listing_id = l.id) DESC,
+                  sc.name
+                LIMIT 1) AS city_name,
                (SELECT array_agg(r.role_code ORDER BY r.role_code)
                 FROM vendor_roles AS r
                 WHERE r.vendor_id = v.id AND r.status = 'verified') AS roles,
@@ -270,6 +287,7 @@ export class DiscoverService {
           id: row.vendor_id,
           name: row.vendor_name ?? "",
           roles: row.roles ?? [],
+          ...(row.city_name ? { city: row.city_name } : {}),
         },
         price: priceView(row),
         instantBooking: row.instant_booking_enabled,

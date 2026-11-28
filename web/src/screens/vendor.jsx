@@ -4,7 +4,7 @@ import {
   Package, CalendarCheck, FileText, IndianRupee, Plus, AlertTriangle, ChevronRight, Store, ShieldCheck, Clock, MessageCircle, Truck, Check, X, Briefcase, Building2,
   Upload, Wallet, BarChart3, Star, Settings, LogOut, MapPin, Boxes, CalendarClock, Crown, Download, Trash2, ImagePlus, Phone, TrendingUp, BadgeCheck, Minus, Info,
   LayoutDashboard, PanelLeftClose, PanelLeftOpen, Search, ChevronLeft, ChevronDown, Sun, Moon, UsersRound, MessageSquare, PackageCheck, UserRound,
-  Compass, Heart, Home, ClipboardList, ShieldAlert, ArrowLeft, Menu,
+  Compass, Heart, Home, ClipboardList, ShieldAlert, ArrowLeft, ArrowRight, Globe, Menu, Send,
 } from 'lucide-react'
 import { useApp } from '../store.jsx'
 import { useNav } from '../nav.jsx'
@@ -686,13 +686,9 @@ function useRemoteListingCount() {
 
 function VendorSidebar({ active, vendor, collapsed, onNavigate }) {
   const nav = useNav()
-  const { setMe, me, threads, listings, settings } = useApp()
+  const { setMe, me, threads } = useApp()
   const businessSupplier = me.role === 'business'
   const unread = authService.isRemote ? 0 : (threads?.vendor || []).reduce((sum, thread) => sum + thread.unread, 0)
-  const plan = settings?.plans?.find((item) => item.name === vendor?.plan)
-  const remoteUsed = useRemoteListingCount()
-  const used = authService.isRemote ? remoteUsed ?? 0 : listings.filter((item) => item.vendorId === me.vendorId).length
-  const limit = authService.isRemote ? 0 : Number(plan?.listings) || 0
   const navRef = useRef(null)
   const [pill, setPill] = useState(null)
 
@@ -707,10 +703,13 @@ function VendorSidebar({ active, vendor, collapsed, onNavigate }) {
   }
 
   const label = (text) => (businessSupplier && text === 'Quote requests' ? 'Vendor RFQs' : businessSupplier && text.startsWith('Reviews') ? 'Buyer reviews' : text)
+  const displayName = me.name || vendor?.name || 'Vendor'
+  const initials = displayName.split(/\s+/).filter(Boolean).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'V'
 
   return (
     <aside className="vx-side">
-      <div className="vx-brand"><span className="vx-logo" style={{ background: '#ffffff', border: '1px solid rgba(22, 41, 68, 0.12)', boxShadow: '0 4px 12px rgba(22, 41, 68, 0.08)' }}><BrandLogoMark size={26} /></span><div className="vx-bt"><b>VendorVerse</b><small>{businessSupplier ? 'Supplier workspace' : 'Vendor workspace'}</small></div></div>
+      <div className="vx-brand"><span className="vx-logo" style={{ background: '#ffffff', border: '1px solid rgba(22, 41, 68, 0.12)', boxShadow: '0 4px 12px rgba(22, 41, 68, 0.08)' }}><BrandLogoMark size={22} /></span><div className="vx-bt"><b>VendorVerse</b><small>{businessSupplier ? 'Supplier workspace' : 'Vendor workspace'}</small></div></div>
+      <button type="button" className="vx-home-back" aria-label="Back to home" title={collapsed ? 'Back to home' : undefined} onClick={() => { nav.go('c_home'); onNavigate?.() }}><ArrowLeft size={14} strokeWidth={2} aria-hidden="true" /><span className="vx-lbl">Back to home</span></button>
       <nav id="vendor-workspace-navigation" className="vx-nav" ref={navRef} aria-label={businessSupplier ? 'Business supplier workspace' : 'Vendor workspace'}>
         <span className="vx-pill" aria-hidden="true" style={pill ? { transform: `translateY(${pill.y}px)`, height: pill.h, opacity: 1 } : undefined} />
         {VENDOR_NAV.map(([group, items]) => (
@@ -718,18 +717,17 @@ function VendorSidebar({ active, vendor, collapsed, onNavigate }) {
             <div className="vx-group">{group}</div>
             {items.map(([I, text, id]) => (
               <button type="button" key={id} title={collapsed ? label(text) : undefined} aria-label={collapsed ? id === 'messages' && unread > 0 ? `${label(text)}, ${unread} unread` : label(text) : undefined} aria-current={active === id ? 'page' : undefined} className={cx('vx-nav-item', active === id && 'is-active')} onClick={() => { nav.go(id); onNavigate?.() }}>
-                <I size={17} /><span className="vx-lbl">{label(text)}</span>
+                <I size={16} strokeWidth={1.85} /><span className="vx-lbl">{label(text)}</span>
                 {id === 'messages' && unread > 0 && <span className="vx-badge">{unread}</span>}
               </button>
             ))}
           </Fragment>
         ))}
       </nav>
-      <div className="vx-plan">
-        <div><span>{authService.isRemote ? 'Your catalogue' : vendor?.plan ? `${vendor.plan} plan` : 'No active plan'}</span><span>{limit ? `${used} of ${limit} listings` : `${used} listings`}</span></div>
-        <div className="vx-bar"><i style={{ width: `${limit ? Math.min(100, (used / limit) * 100) : 0}%` }} /></div>
+      <div className="vx-side-bottom">
+        <div className="vx-side-user"><span className="vx-side-avatar">{initials}</span><div className="vx-lbl"><b>{displayName}</b><small>{businessSupplier ? 'Supplier' : 'Owner'}</small></div></div>
+        <button type="button" className="vx-nav-item vx-logout" title={collapsed ? 'Log out' : undefined} onClick={logout}><LogOut size={16} strokeWidth={1.85} /><span className="vx-lbl">Log out</span></button>
       </div>
-      <button type="button" className="vx-nav-item vx-logout" title={collapsed ? 'Log out' : undefined} onClick={logout}><LogOut size={17} /><span className="vx-lbl">Log out</span></button>
     </aside>
   )
 }
@@ -891,9 +889,6 @@ export function VendorWorkspace({ children, variant = 'vendor', header }) {
           {variant === 'business' && header
             ? header({ onWorkspaceToggle: toggleWorkspace, mobile, mobileOpen, collapsed })
             : <header className="vx-top">
-              {!mobile && !customer && <button type="button" className="vx-toggle" aria-controls="vendor-workspace-navigation" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={!collapsed} onClick={toggleWorkspace}>
-                <ChevronLeft size={15} />
-              </button>}
               {variant === 'vendor' && <nav className="vx-top-nav" aria-label="Vendor workspace shortcuts">
                 {topNavItems.map(([Icon, text, id]) => (
                   <button type="button" key={id} title={topNavLabel(text)} aria-label={topNavLabel(text)} aria-current={nav.id === id ? 'page' : undefined} className={cx('vx-top-nav-item', nav.id === id && 'is-active')} onClick={() => nav.go(id)}>
@@ -903,13 +898,23 @@ export function VendorWorkspace({ children, variant = 'vendor', header }) {
               </nav>}
               <form className="vx-search" role="search" onSubmit={(e) => {
                 e.preventDefault()
-                if (!customer) return
                 const q = new FormData(e.currentTarget).get('q')?.toString().trim()
-                nav.go('c_explore', q ? { q } : {})
-              }}><Search size={16} /><input name="q" placeholder={customer ? 'Search services, vendors, products…' : 'Search listings, quotes, messages…'} aria-label="Search" /></form>
-              <div className="vx-ico"><NotifBell role={customer ? 'customer' : 'vendor'} dropdown /></div>
-              {!customer && <button type="button" className="vx-locale" onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} aria-label="Switch language">{lang === 'en' ? 'EN | हिन्दी' : 'हि | EN'} <ChevronDown size={12} /></button>}
-              <div className="vx-me"><div className="vx-av">{(me.name || 'V').split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div><div><b>{me.name || (customer ? 'Customer' : 'Vendor')}</b><small>{customer ? 'Customer' : 'Owner'}</small></div></div>
+                if (customer) {
+                  nav.go('c_explore', q ? { q } : {})
+                  return
+                }
+                if (!q) { nav.go('v_listings'); return }
+                const lower = q.toLowerCase()
+                if (lower.includes('quote') || lower.includes('rfq') || lower.includes('book')) nav.go('v_work')
+                else if (lower.includes('mess') || lower.includes('chat')) nav.go('messages')
+                else if (lower.includes('order')) nav.go('v_orders')
+                else nav.go('v_listings')
+              }}><Search size={16} /><input name="q" placeholder={customer ? 'Search services, vendors, products…' : 'Search listings, quotes, messages…'} aria-label="Search" />{!customer && <button type="submit" className="vx-search-submit" aria-label="Search"><ArrowRight size={14} /></button>}</form>
+              <div className="vx-top-actions">
+                {!customer && <button type="button" className="vx-locale" onClick={() => setLang(lang === 'en' ? 'hi' : 'en')} aria-label="Switch language"><Globe size={14} />{lang === 'en' ? 'English' : 'हिन्दी'} <ChevronDown size={12} /></button>}
+                <div className="vx-ico"><NotifBell role={customer ? 'customer' : 'vendor'} dropdown /></div>
+                {customer && <div className="vx-me"><div className="vx-av">{(me.name || 'V').split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div><div><b>{me.name || 'Customer'}</b><small>Customer</small></div></div>}
+              </div>
             </header>}
           <main className="vx-panel">{children}</main>
         </section>
@@ -1631,7 +1636,7 @@ export function VendorProfile() {
     <Screen title="Business profile" footer={<Button full size="lg" onClick={save}>Save changes</Button>}>
       <DemoPhonePePayment open={!!selectedPlan} amount={selectedPlan?.price} title={`${selectedPlan?.name || ''} subscription`} onClose={() => setSelectedPlan(null)} onSuccess={() => { patchVendor(v.id, { plan: selectedPlan.name }); setPaymentDone(selectedPlan); setSelectedPlan(null) }} />
       <div className="vv-vendor-profile-body">
-      <h1 className="vx-prof-title">Business profile</h1>
+      <div className="vx-prof-head"><p className="vx-prof-kicker">Account &amp; workspace</p><h1 className="vx-prof-title">Business profile</h1></div>
       <Dialog open={businessOpen} onClose={() => setBusinessOpen(false)} title="Create business workspace" actions={<><Button variant="secondary" className="flex-1" onClick={() => setBusinessOpen(false)}>Cancel</Button><Button className="flex-1" onClick={createBusinessWorkspace}>Create & open</Button></>}><p className="text-sm leading-relaxed text-ink-600">This workspace uses your verified vendor account as the supplier identity. Vendors will be able to send bulk RFQs, compare terms and place purchase orders with you.</p><div className="mt-4"><Input label="Business / company name" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} /></div></Dialog>
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title={me.role === 'business' ? 'Delete business workspace?' : 'Delete vendor account?'} actions={<><Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>Keep account</Button><Button variant="danger" className="flex-1" onClick={deleteAccount}>Confirm delete</Button></>}><p className="text-sm leading-relaxed text-ink-600">{me.role === 'business' ? 'Your vendor workspace and marketplace listings will remain available. Only the Business Supplier workspace will be removed.' : 'This demo will close the vendor session and record the account as deleted. Production deletion would require backend data-retention and verification rules.'}</p></Dialog>
       <div className="vx-prof-col">
@@ -1705,93 +1710,95 @@ export function VendorDashboard() {
     { label: 'Booking requests', value: bookingRequests, icon: CalendarCheck, tone: 'cyan', caption: 'Awaiting your response', route: 'v_booking' },
   ]
   const funnelRows = [
-    { label: 'Requests', value: matchingRfqs.length, tone: 'mint' },
-    { label: 'Quotes sent', value: quoteCount, tone: 'sky' },
-    { label: 'Accepted', value: acceptedCount, tone: 'violet' },
+    { label: 'Requests', value: matchingRfqs.length, color: 'bg-amber-600' },
+    { label: 'Quotes sent', value: quoteCount, color: 'bg-amber-400' },
+    { label: 'Accepted', value: acceptedCount, color: 'bg-emerald-500' },
   ]
-  return <VendorWorkspace><div className="vx-perf-shell vx-vendor-dash">
-      <header className="vx-perf-header">
-        <div>
-          <p className="vx-perf-kicker">Workspace overview · {today}</p>
-          <h2>{greeting}, {firstName}</h2>
-          <p className="vx-perf-subtitle">{v.name} · Your business activity at a glance</p>
-        </div>
-        <div className="vx-perf-actions">
-          {v.status === 'approved' && <span className="vx-perf-pill"><ShieldCheck size={14} /> Verified business</span>}
-          <Button size="sm" variant="secondary" icon={UserRound} onClick={() => nav.go('v_profile')}>Edit profile</Button>
-          <Button size="sm" variant="secondary" icon={BarChart3} onClick={() => nav.go('v_perf')}>Performance</Button>
-          <Button size="sm" icon={Plus} onClick={() => nav.go('v_listing_edit')}>Add listing</Button>
-        </div>
-      </header>
-      {banner}
+  const recentListings = mine.slice(0, 5)
+  const verified = v.status === 'approved'
 
-      <div className="vx-perf-grid stats-grid vx-kpi-strip">
-        {stats.map(({ label, value, icon: Icon, tone, caption, route }) => (
-          <button type="button" key={label} className="vx-card vx-perf-stat" onClick={() => nav.go(route)}>
-            <span className={`vx-perf-ic ${tone}`}><Icon size={18} /></span>
-            <span className="vx-perf-stat-text"><b>{value}</b><span>{label}</span></span>
-            <small>View</small>
-            <span className="vx-dash-stat-caption">{caption}</span>
+  return <VendorWorkspace><div className="vv-admin-reference-dashboard vv-vendor-reference-dashboard">
+    <div className="vv-admin-reference-heading">
+      <div>
+        <p>Workspace overview · {today} · {v.name}</p>
+        <h1>{greeting}, {firstName}</h1>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {verified && <Badge tone="green">Verified</Badge>}
+        <Button size="sm" variant="secondary" icon={UserRound} onClick={() => nav.go('v_profile')}>Edit profile</Button>
+        <Button size="sm" variant="secondary" icon={BarChart3} onClick={() => nav.go('v_perf')}>Analytics</Button>
+        <Button size="sm" icon={Plus} onClick={() => nav.go('v_listing_edit')}>Add listing</Button>
+      </div>
+    </div>
+
+    {banner}
+
+    <div className="vv-admin-reference-kpis">
+      <Stat label={me.role === 'business' ? 'Vendor RFQs' : 'Quote requests'} value={toQuote.length} icon={FileText} tone="violet" caption="↗ Ready for quotation" onClick={() => nav.go('v_work')} />
+      <Stat label="Quotes sent" value={quoteCount} icon={Send} tone="rose" caption={`↗ ${acceptedCount} accepted`} onClick={() => nav.go('v_work')} />
+      <Stat label="Live listings" value={live} icon={Package} tone="amber" caption={`↗ ${mine.length} total listings`} onClick={() => nav.go('v_listings')} />
+      <Stat label="Booking requests" value={bookingRequests} icon={CalendarCheck} tone="emerald" caption="↗ Awaiting your reply" onClick={() => nav.go('v_booking')} />
+    </div>
+
+    <div className="vv-admin-reference-grid">
+      <Card className="vv-admin-reference-panel !p-0">
+        <div className="vv-admin-reference-panel-head">
+          <div>
+            <h2>Recent listings</h2>
+            <p>Your catalogue and publication status</p>
+          </div>
+          <Button size="sm" variant="secondary" onClick={() => nav.go('v_listings')}>View all</Button>
+        </div>
+        {recentListings.length > 0 && <div className="vv-admin-reference-table-head"><span>Listing</span><span>Category</span><span>Type</span><span>Status</span></div>}
+        {recentListings.map((item) => (
+          <button type="button" key={item.id} onClick={() => nav.go('v_listing_edit', { id: item.id })} className="vv-admin-reference-row">
+            <span className="truncate font-bold">{item.title}</span>
+            <span className="truncate">{cat(item.cat).name}</span>
+            <span>{item.type === 'service' ? 'Service' : 'Product'}</span>
+            <StatusBadge s={item.status} />
           </button>
         ))}
-      </div>
+        {!recentListings.length && <EmptyState icon={Package} title="No listings yet" body="Create a listing. It stays a draft until you submit it and it is approved." action={<Button size="sm" onClick={() => nav.go('v_listing_edit')}>Add listing</Button>} />}
+      </Card>
 
-      <div className="vx-perf-grid wide-grid">
-        <section className="vx-card vx-perf-card">
-          <div className="vx-top-row">
-            <div><h3>Customer enquiries</h3><p className="s">Enquiry activity over time</p></div>
-            <div className="vx-seg vx-perf-period" aria-label="Chart time range">
-              {['6 weeks', '30 days', '90 days'].map((item) => <button type="button" key={item} className={range === item ? 'on' : ''} aria-pressed={range === item} onClick={() => setRange(item)}>{item}</button>)}
-            </div>
-          </div>
-          <VendorTrendChart data={trendData} />
-        </section>
-
-        <section className="vx-card vx-perf-card">
-          <div className="vx-top-row">
-            <div><h3>Quote conversion</h3><p className="s">Your RFQ pipeline</p></div>
-            <button type="button" className="vx-text-link" onClick={() => nav.go('v_work')}>View requests <ChevronRight size={14} /></button>
-          </div>
-          <div className="vx-conversion-list">
-            {funnelRows.map((row) => (
-              <div key={row.label} className="vx-conversion-row">
-                <div className="vx-conversion-meta"><span>{row.label}</span><b>{row.value}</b></div>
-                <div className="vx-conversion-bar"><i className={row.tone} style={{ width: `${(row.value / funnelMax) * 100}%` }} /></div>
+      <div className="space-y-4">
+        <Card className="vv-admin-reference-panel">
+          <h2>Quote conversion</h2>
+          {funnelRows.map((row) => (
+            <div key={row.label} className="mt-4">
+              <div className="flex justify-between text-xs font-semibold text-ink-600">
+                <span>{row.label}</span>
+                <span>{row.value}</span>
               </div>
-            ))}
-          </div>
-        </section>
-      </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-100">
+                <div className={cx('h-full rounded-full', row.color)} style={{ width: `${Math.max((row.value / funnelMax) * 100, row.value ? 8 : 0)}%` }} />
+              </div>
+            </div>
+          ))}
+        </Card>
 
-      <div className="vx-perf-grid lower-grid">
-        <section className="vx-card vx-perf-card vx-attention vx-dash-attention">
-          <div className="vx-top-row">
-            <div><h3>Needs your attention {todo > 0 && <span className="vx-count">{todo}</span>}</h3><p className="s">Items that may need a response</p></div>
-            <button type="button" className="vx-text-link" onClick={() => nav.go('v_work')}>View work <ChevronRight size={14} /></button>
-          </div>
-          <div className="vx-rows">
-            {th.filter((thread) => thread.unread > 0).map((thread) => <button type="button" className="vx-row" key={thread.id} onClick={() => nav.go('chat', { id: thread.id })}><span className="ri violet"><MessageCircle size={17} /></span><span className="rt"><b>{thread.unread} new from {thread.name}</b><small>{thread.msgs[thread.msgs.length - 1]?.t}</small></span><ChevronRight size={16} /></button>)}
-            {toQuote.map((request) => <button type="button" className="vx-row" key={request.id} onClick={() => nav.go('v_rfq', { id: request.id })}><span className="ri amber"><FileText size={17} /></span><span className="rt"><b>Quote {request.id}</b><small>{request.title}</small></span><ChevronRight size={16} /></button>)}
-            {fix.map((item) => <button type="button" className="vx-row" key={item.id} onClick={() => nav.go('v_listing_edit', { id: item.id })}><span className="ri rose"><AlertTriangle size={17} /></span><span className="rt"><b>Listing {item.status}</b><small>{item.title}</small></span><ChevronRight size={16} /></button>)}
-            {todo === 0 && <div className="vx-empty"><Check size={19} /><span>You are all caught up.</span></div>}
-          </div>
-        </section>
-
-        <section className="vx-card vx-perf-card">
-          <div className="vx-top-row">
-            <div><h3>Top categories</h3><p className="s">Approved listings in your catalogue</p></div>
-            <button type="button" className="vx-text-link" onClick={() => nav.go('v_listings')}>View all <ChevronRight size={14} /></button>
-          </div>
-          <div className="vx-cat-list">
-            {topCategories.map((category) => {
-              const Icon = category.icon
-              return <button type="button" key={category.id} className="vx-cat-row" onClick={() => nav.go('v_listings')}><span className="ci"><Icon size={18} /></span><b>{category.name}</b><em>{category.count}</em></button>
-            })}
-            {!topCategories.length && <EmptyState icon={Store} title="No approved listings yet" body="Approved products and services will appear by category here." action={<Button size="sm" onClick={() => nav.go('v_listing_edit')}>Add listing</Button>} />}
-          </div>
-        </section>
+        <Card className="vv-admin-reference-panel">
+          <h2>Needs your attention</h2>
+          <button type="button" onClick={() => nav.go('v_work')} className="vv-admin-moderation-row text-amber-800">
+            <FileText size={16} />{toQuote.length} open quote requests <ChevronRight size={15} />
+          </button>
+          <button type="button" onClick={() => nav.go('v_listings')} className="vv-admin-moderation-row text-rose-800">
+            <AlertTriangle size={16} />{fix.length} listings need changes <ChevronRight size={15} />
+          </button>
+          <button type="button" onClick={() => nav.go('messages')} className="vv-admin-moderation-row text-violet-800">
+            <MessageCircle size={16} />{unread} unread messages <ChevronRight size={15} />
+          </button>
+          {todo === 0 && <div className="mt-3 flex items-center gap-2 rounded-xl bg-ink-50 px-3 py-2 text-xs font-semibold text-ink-600"><Check size={14} />You are all caught up.</div>}
+        </Card>
       </div>
-    </div></VendorWorkspace>
+    </div>
+
+    <div className="vv-admin-reference-footer-stats">
+      <button type="button" onClick={() => nav.go('messages')}><b>{th.length}</b><span>Conversations</span></button>
+      <button type="button" onClick={() => nav.go('v_listings')}><b>{topCategories.length}</b><span>Live categories</span></button>
+      <button type="button" onClick={() => nav.go('v_booking')}><b>{bookings.filter((b) => b.vendorId === vid).length}</b><span>Total bookings</span></button>
+    </div>
+  </div></VendorWorkspace>
 }
 
 /* ================= QUOTE REQUESTS ================= */
@@ -1879,16 +1886,24 @@ export function VendorMore() {
   ]
   return (
     <VendorWorkspace>
-    <Screen title="More" back={false} pad={false}>
+    <Screen title="Settings & more" headerless pad={false}>
       <div className="vx-more">
+        <div className="vv-admin-reference-heading">
+          <div>
+            <p>Account &amp; workspace settings</p>
+            <h1>Settings &amp; more</h1>
+          </div>
+          <Button size="sm" variant="secondary" icon={UserRound} onClick={() => nav.go('v_profile')}>Edit profile</Button>
+        </div>
+
         <button type="button" className="vx-more-profile" onClick={() => nav.go('v_profile')}>
-          <span className="vx-more-logo"><Store size={30} /></span>
+          <span className="vx-more-logo"><Store size={24} /></span>
           <span className="vx-more-profile-text">
             <b>{v?.name || 'Your business'}</b>
             <span>{me.name}</span>
-            <span className="vx-more-status">{v?.status === 'approved' ? <Badge tone="green"><ShieldCheck size={13} />Verified</Badge> : <StatusBadge s={v?.status || 'draft'} />}</span>
+            <span className="vx-more-status">{v?.status === 'approved' ? <Badge tone="green"><ShieldCheck size={12} />Verified</Badge> : <StatusBadge s={v?.status || 'draft'} />}</span>
           </span>
-          <ChevronRight size={22} />
+          <ChevronRight size={18} />
         </button>
 
         {moreSections.map((section) => (
@@ -1897,16 +1912,18 @@ export function VendorMore() {
             <div className="vx-more-grid">
               {section.items.map(({ icon: Icon, title, subtitle, onClick }) => (
                 <button type="button" key={title} className="vx-more-item" onClick={onClick}>
-                  <span className="vx-more-ic"><Icon size={22} /></span>
+                  <span className="vx-more-ic"><Icon size={18} /></span>
                   <span className="vx-more-text"><b>{title}</b>{subtitle && <small>{subtitle}</small>}</span>
-                  <ChevronRight size={18} className="vx-more-chev" />
+                  <ChevronRight size={16} className="vx-more-chev" />
                 </button>
               ))}
             </div>
           </section>
         ))}
 
-        <Button full variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' }); nav.reset('c_home') }}>Log out</Button>
+        <div className="vx-more-footer">
+          <Button variant="dangerSoft" icon={LogOut} onClick={() => { setMe({ role: null, loggedIn: false, guest: false, vendorId: 'v-me', name: '' }); nav.reset('c_home') }}>Log out</Button>
+        </div>
       </div>
       <Dialog open={businessOpen} onClose={() => setBusinessOpen(false)} title="Become a supplier / business" actions={<><Button variant="secondary" className="flex-1" onClick={() => setBusinessOpen(false)}>Cancel</Button><Button className="flex-1" onClick={() => { createBusinessWorkspace(); setBusinessOpen(false) }}>Create & open</Button></>}><p className="text-sm leading-relaxed text-ink-600">Use your existing vendor identity as a Business / Company supplier. Vendors can send bulk RFQs, review quotations and place purchase orders with you.</p><div className="mt-4"><Input label="Business / company name" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} /></div></Dialog>
     </Screen>

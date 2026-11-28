@@ -279,7 +279,7 @@ export function EmptyState({ icon: Icon = Inbox, title, body, action }) {
   )
 }
 
-export function Stat({ label, value, icon: Icon, tone = 'teal', delta, onClick }) {
+export function Stat({ label, value, icon: Icon, tone = 'teal', delta, caption, onClick }) {
   return (
     <Card onClick={onClick} className="!p-3.5">
       <div className="flex items-start justify-between">
@@ -287,7 +287,8 @@ export function Stat({ label, value, icon: Icon, tone = 'teal', delta, onClick }
         {Icon && <span className={cx('grid size-8 place-items-center rounded-lg', SOFT[tone])}><Icon size={16} /></span>}
       </div>
       <p className="mt-1 text-[22px] font-extrabold leading-none tracking-tight text-ink-900">{value}</p>
-      {delta && <p className={cx('mt-1.5 text-[11px] font-semibold', delta.startsWith('-') ? 'text-red-600' : 'text-emerald-600')}>{delta} <span className="font-normal text-ink-400">vs last week</span></p>}
+      {caption ? <p className="mt-1.5 text-[11px] font-semibold text-emerald-600">{caption}</p>
+        : delta && <p className={cx('mt-1.5 text-[11px] font-semibold', delta.startsWith('-') ? 'text-red-600' : 'text-emerald-600')}>{delta} <span className="font-normal text-ink-400">vs last week</span></p>}
     </Card>
   )
 }

@@ -1,6 +1,25 @@
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
 
+function stripSslParams(connectionString: string): string {
+  try {
+    const parsed = new URL(connectionString);
+    if (
+      !parsed.searchParams.has("ssl") &&
+      !parsed.searchParams.has("sslmode") &&
+      !parsed.searchParams.has("uselibpqcompat")
+    ) {
+      return connectionString;
+    }
+    parsed.searchParams.delete("ssl");
+    parsed.searchParams.delete("sslmode");
+    parsed.searchParams.delete("uselibpqcompat");
+    return parsed.toString();
+  } catch {
+    return connectionString;
+  }
+}
+
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {
   private readonly pool: Pool;
@@ -9,8 +28,9 @@ export class DatabaseService implements OnModuleDestroy {
   constructor(connectionString: string, ssl = false) {
     // Hosted Postgres instances (such as Render) can present a certificate
     // whose CA is not in Node's default trust store, which fails `ssl: true`.
+    // Strip URL ssl/sslmode params so pg does not overwrite `ssl` back to strict.
     this.pool = new Pool({
-      connectionString,
+      connectionString: stripSslParams(connectionString),
       ssl: ssl ? { rejectUnauthorized: false } : false,
     });
     this.pool.on("error", (error: Error) => {

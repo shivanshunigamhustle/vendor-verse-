@@ -4,18 +4,22 @@ import { buildLocalePatch, formatHeroWhere, formatLocationLabel } from './locati
 import { DEFAULT_LOCALE, hasUserSelectedLocation, normalizeLocale } from '../store.jsx'
 
 describe('location defaults and user selection', () => {
-  it('defaults to Jabalpur when the user has not provided a location', () => {
+  it('defaults to Jabalpur 482002 when the user has not provided a location', () => {
     expect(DEFAULT_LOCALE.city).toBe('Jabalpur')
     expect(DEFAULT_LOCALE.state).toBe('Madhya Pradesh')
+    expect(DEFAULT_LOCALE.pincode).toBe('482002')
+    expect(formatLocationLabel(DEFAULT_LOCALE)).toBe('Jabalpur 482002')
     expect(formatLocationLabel(null)).toBe('Jabalpur')
     expect(normalizeLocale({ country: 'IN', city: '', source: 'unset' })).toMatchObject({
       city: 'Jabalpur',
       state: 'Madhya Pradesh',
+      pincode: '482002',
       source: 'default',
     })
     expect(normalizeLocale({ country: 'IN', city: 'Jaipur' })).toMatchObject({
       city: 'Jabalpur',
       state: 'Madhya Pradesh',
+      pincode: '482002',
       source: 'default',
     })
     expect(hasUserSelectedLocation(DEFAULT_LOCALE)).toBe(false)
@@ -27,7 +31,7 @@ describe('location defaults and user selection', () => {
     expect(normalizeLocale(userGeo)).toMatchObject({ city: 'Bhopal', pincode: '462001', source: 'geo' })
     expect(formatLocationLabel(userGeo)).toBe('Bhopal 462001')
     expect(formatHeroWhere(userGeo)).toBe('Bhopal 462001')
-    expect(formatHeroWhere(DEFAULT_LOCALE)).toBe('Jabalpur, India')
+    expect(formatHeroWhere(DEFAULT_LOCALE)).toBe('Jabalpur 482002')
 
     const userManual = { ...DEFAULT_LOCALE, ...buildLocalePatch({ city: 'Jaipur', state: 'Rajasthan', source: 'manual' }, DEFAULT_LOCALE) }
     expect(hasUserSelectedLocation(userManual)).toBe(true)

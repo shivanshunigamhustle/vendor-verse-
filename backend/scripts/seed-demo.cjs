@@ -211,17 +211,21 @@ async function main() {
     }
     const admin = id("user:admin");
 
-    // Jaipur goes live, plus a country-wide live row for searches without a city.
+    // Jabalpur goes live, plus a country-wide live row for searches without a city.
     const country = (await q(`SELECT id FROM countries WHERE iso_code = 'IN'`)).rows[0]?.id;
     if (!country) throw new Error("Run `npm run db:seed` first: India geography is missing");
-    const jaipur = (await q(`SELECT id, region_id FROM cities WHERE country_id = $1 AND name = 'Jaipur'`, [country])).rows[0];
+    const targetCity = (await q(
+      `SELECT id, region_id FROM cities WHERE country_id = $1 AND name = 'Jabalpur'`,
+      [country],
+    )).rows[0];
+    if (!targetCity) throw new Error("Run `npm run db:seed` first: Jabalpur city is missing");
     await q(
       `UPDATE market_activations
        SET status = 'live', activated_at = COALESCE(activated_at, CURRENT_TIMESTAMP),
            activated_by_user_id = $2, enabled_languages = '["en"]'::jsonb,
            currencies = '["INR"]'::jsonb, updated_at = CURRENT_TIMESTAMP
        WHERE city_id = $1`,
-      [jaipur.id, admin],
+      [targetCity.id, admin],
     );
     const countryRow = await q(`SELECT 1 FROM market_activations WHERE country_id = $1 AND city_id IS NULL`, [country]);
     if (countryRow.rowCount === 0) {
@@ -287,11 +291,12 @@ async function main() {
           [vid, id(`category:${category}`)],
         );
       }
-      // Vendor-wide coverage: the whole Jaipur city.
+      // Vendor-wide coverage: the whole Jabalpur city.
       await q(
         `INSERT INTO service_areas (id, vendor_id, coverage_type, country_id, region_id, city_id)
-         VALUES ($1, $2, 'city', $3, $4, $5) ON CONFLICT (id) DO NOTHING`,
-        [id(`area:${v.key}`), vid, country, jaipur.region_id, jaipur.id],
+         VALUES ($1, $2, 'city', $3, $4, $5)
+         ON CONFLICT (id) DO UPDATE SET region_id = EXCLUDED.region_id, city_id = EXCLUDED.city_id`,
+        [id(`area:${v.key}`), vid, country, targetCity.region_id, targetCity.id],
       );
     }
 

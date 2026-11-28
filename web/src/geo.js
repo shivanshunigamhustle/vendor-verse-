@@ -40,24 +40,9 @@ export const WORLD = [
 ]
 
 const C = (n, s = 'soon', extra = {}) => ({ n, s, ...extra })
-/* the remaining Indian states & union territories — supply is built city by city, so these start as waitlists */
-const REST = {
-  'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada'], 'Arunachal Pradesh': ['Itanagar'], 'Assam': ['Guwahati'], 'Bihar': ['Patna'], 'Chhattisgarh': ['Raipur'], 'Goa': ['Panaji'],
-  'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara'], 'Haryana': ['Faridabad', 'Ambala'], 'Himachal Pradesh': ['Shimla'], 'Jharkhand': ['Ranchi'], 'Kerala': ['Kochi', 'Thiruvananthapuram'],
-  'Madhya Pradesh': ['Bhopal', 'Indore', 'Jabalpur'], 'Manipur': ['Imphal'], 'Meghalaya': ['Shillong'], 'Mizoram': ['Aizawl'], 'Nagaland': ['Kohima'], 'Odisha': ['Bhubaneswar'], 'Punjab': ['Ludhiana', 'Amritsar'],
-  'Sikkim': ['Gangtok'], 'Tamil Nadu': ['Chennai', 'Coimbatore'], 'Telangana': ['Hyderabad'], 'Tripura': ['Agartala'], 'Uttarakhand': ['Dehradun'], 'West Bengal': ['Kolkata'],
-  'Andaman & Nicobar Islands': ['Port Blair'], 'Chandigarh': ['Chandigarh'], 'Dadra & Nagar Haveli and Daman & Diu': ['Daman'], 'Jammu & Kashmir': ['Srinagar', 'Jammu'], 'Ladakh': ['Leh'],
-  'Lakshadweep': ['Kavaratti'], 'Puducherry': ['Puducherry'],
-}
-const IN_REST = Object.entries(REST).sort(([a], [b]) => a.localeCompare(b)).map(([name, cs]) => ({ name, cities: cs.map((n, i) => C(n, 'later', { wait: 12 + ((name.length * 7 + i * 13) % 90) })) }))
 const GEO_BASE = [
   { code: 'IN', name: 'India', flag: '🇮🇳', cur: 'INR', launch: 'live', langs: ['English', 'हिन्दी'], vendors: 412, states: [
-    { name: 'Rajasthan', cities: [C('Jaipur', 'live', { vendors: 268 }), C('Ajmer', 'live', { vendors: 52 }), C('Sikar', 'live', { vendors: 31 }), C('Jodhpur', 'soon', { wait: 184 }), C('Kota', 'soon', { wait: 96 }), C('Udaipur', 'soon', { wait: 73 })] },
-    { name: 'Delhi NCR', cities: [C('Delhi NCR', 'live', { vendors: 61 }), C('Gurugram', 'soon', { wait: 240 }), C('Noida', 'soon', { wait: 188 })] },
-    { name: 'Maharashtra', cities: [C('Mumbai', 'soon', { wait: 612 }), C('Pune', 'soon', { wait: 344 })] },
-    { name: 'Karnataka', cities: [C('Bengaluru', 'soon', { wait: 521 })] },
-    { name: 'Uttar Pradesh', cities: [C('Lucknow', 'later', { wait: 44 }), C('Kanpur', 'later', { wait: 21 }), C('Varanasi', 'later', { wait: 18 })] },
-    ...IN_REST,
+    { name: 'Madhya Pradesh', cities: [C('Jabalpur', 'live', { vendors: 268 })] },
   ] },
   { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪', cur: 'AED', launch: 'soon', langs: ['English', 'العربية'], vendors: 0, states: [
     { name: 'Dubai', cities: [C('Dubai', 'soon', { wait: 402 })] }, { name: 'Abu Dhabi', cities: [C('Abu Dhabi', 'later', { wait: 118 })] },
